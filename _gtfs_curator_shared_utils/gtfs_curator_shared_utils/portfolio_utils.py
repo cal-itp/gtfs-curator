@@ -2,10 +2,12 @@
 Common functions for standardizing how outputs
 are displayed in portfolio.
 """
+
 from pathlib import Path
 
 import pandas as pd
 import yaml
+
 
 def create_portfolio_yaml_chapters_no_sections(portfolio_site_yaml: Path, chapter_name: str, chapter_values: list):
     """
@@ -37,7 +39,8 @@ def create_portfolio_yaml_chapters_no_sections(portfolio_site_yaml: Path, chapte
     print(f"{portfolio_site_yaml} generated")
 
     return
-    
+
+
 def create_portfolio_yaml_chapters_with_groups(
     portfolio_site_yaml: Path,
     df: pd.DataFrame,

@@ -2,13 +2,13 @@
 Utility functions for geospatial data.
 Some functions for dealing with census tract or other geographic unit dfs.
 """
+
 from typing import Literal, Union
 
 import geopandas as gpd  # type: ignore
 import numpy as np
 import pandas as pd
 import shapely  # type: ignore
-
 from scipy.spatial import KDTree
 
 WGS84 = "EPSG:4326"
@@ -30,6 +30,7 @@ def make_linestring(x: str) -> shapely.geometry.LineString:
         as_wkt = [shapely.wkt.loads(i) for i in x]
         return shapely.geometry.LineString(as_wkt)
 
+
 def create_point_geometry(
     df: pd.DataFrame,
     longitude_col: str = "stop_lon",
@@ -50,9 +51,7 @@ def create_point_geometry(
     crs: str, coordinate reference system for point geometry
     """
     # Default CRS for stop_lon, stop_lat is WGS84
-    df = df.assign(
-        geometry=gpd.points_from_xy(df[longitude_col], df[latitude_col], crs=WGS84)
-    )
+    df = df.assign(geometry=gpd.points_from_xy(df[longitude_col], df[latitude_col], crs=WGS84))
 
     # ALlow projection to different CRS
     gdf = gpd.GeoDataFrame(df).to_crs(crs)
@@ -129,9 +128,7 @@ def explode_segments(
 
     gdf_exploded = gdf_exploded.assign(
         segment_sequence=(
-            gdf_exploded.groupby(
-                group_cols, observed=True, group_keys=False
-            ).temp_index.transform("rank")
+            gdf_exploded.groupby(group_cols, observed=True, group_keys=False).temp_index.transform("rank")
             - 1
             # there are NaNs, but since they're a single segment, just use 0
         )
@@ -158,6 +155,7 @@ def explode_segments(
 # more consistent with the arrays returned
 geo_const_meters = 6_371_000 * np.pi / 180
 geo_const_miles = 3_959_000 * np.pi / 180
+
 
 def try_parallel(geometry):
     try:
@@ -243,9 +241,7 @@ def vp_as_gdf(vp: pd.DataFrame, crs: str = "EPSG:3310") -> gpd.GeoDataFrame:
     Turn vp as a gdf and project to EPSG:3310.
     """
     vp_gdf = (
-        create_point_geometry(vp, longitude_col="x", latitude_col="y", crs=WGS84)
-        .to_crs(crs)
-        .drop(columns=["x", "y"])
+        create_point_geometry(vp, longitude_col="x", latitude_col="y", crs=WGS84).to_crs(crs).drop(columns=["x", "y"])
     )
 
     return vp_gdf
@@ -366,10 +362,7 @@ def draw_line_between_points(gdf: gpd.GeoDataFrame, group_cols: list) -> gpd.Geo
     # Construct linestring with 2 point coordinates
     gdf = (
         gdf.assign(
-            line_geometry=gdf.apply(
-                lambda x: shapely.LineString([x.geometry, x.end_geometry]), 
-                axis=1
-            ).set_crs(WGS84)
+            line_geometry=gdf.apply(lambda x: shapely.LineString([x.geometry, x.end_geometry]), axis=1).set_crs(WGS84)
         )
         .drop(columns=["geometry", "end_geometry"])
         .rename(columns={"line_geometry": "geometry"})
@@ -378,11 +371,7 @@ def draw_line_between_points(gdf: gpd.GeoDataFrame, group_cols: list) -> gpd.Geo
     return gdf
 
 
-def convert_to_gdf(
-    df: pd.DataFrame, 
-    geom_col: str,
-    geom_type: Literal["point", "line"]
-) -> gpd.GeoDataFrame:
+def convert_to_gdf(df: pd.DataFrame, geom_col: str, geom_type: Literal["point", "line"]) -> gpd.GeoDataFrame:
     """
     For stops, we want to make pt_geom a point.
     For vp_path and shapes, we want to make pt_array a linestring.
@@ -393,10 +382,6 @@ def convert_to_gdf(
     elif geom_type == "line":
         df["geometry"] = df[geom_col].apply(make_linestring)
 
-    gdf = gpd.GeoDataFrame(
-        df.drop(columns = geom_col), geometry="geometry", 
-        crs="EPSG:4326"
-    )
+    gdf = gpd.GeoDataFrame(df.drop(columns=geom_col), geometry="geometry", crs="EPSG:4326")
 
     return gdf
-

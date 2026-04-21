@@ -2,6 +2,7 @@
 Utility functions related to publishing datasets.
 Ex: writing out data to public GCS bucket
 """
+
 import os
 from pathlib import Path
 from typing import Union
@@ -13,6 +14,7 @@ credentials, _ = google.auth.default()
 
 fs = gcsfs.GCSFileSystem()
 PUBLIC_BUCKET = "gs://calitp-publish-data-analysis/"
+
 
 def write_to_public_gcs(
     original_filename_object: Union[str, Path],
@@ -53,4 +55,3 @@ def if_exists_then_delete(filepath: str):
             fs.rm(filepath)
 
     return
-

@@ -1,13 +1,14 @@
 """
 pandas_gbq utils to download Big Query tables
 """
-from google.cloud import bigquery
+
 from typing import Literal
 
 import geopandas as gpd
 import google.auth
 import pandas as pd
 import pandas_gbq
+from google.cloud import bigquery
 from gtfs_curator_shared_utils import geography_utils
 
 credentials, project = google.auth.default()
@@ -20,10 +21,10 @@ def basic_sql_query(project_name: str, dataset_name: str, table_name: str, colum
     if isinstance(columns, list):
         subset_columns_as_string = list_as_string(list(columns))
         sql_query = f"SELECT {subset_columns_as_string} FROM `{project_name}`.`{dataset_name}`.`{table_name}`"
-        
+
     else:
-        sql_query = f"SELECT * FROM  `{project_name}`.`{dataset_name}`.`{table_name}`"        
-    
+        sql_query = f"SELECT * FROM  `{project_name}`.`{dataset_name}`.`{table_name}`"
+
     return sql_query
 
 
@@ -77,9 +78,10 @@ def download_table(
 
     if geom_col is not None:
 
-        df = geo_utils.convert_to_gdf(df, geom_col, geom_type)
+        df = geography_utils.convert_to_gdf(df, geom_col, geom_type)
 
     return df
+
 
 def download_table_custom_filter(
     project_name: str = "cal-itp-data-infra",
@@ -91,7 +93,7 @@ def download_table_custom_filter(
     columns: list = None,
     geom_col: str = None,
     geom_type: Literal["point", "line"] = None,
-    custom_filter_statement: str = ""
+    custom_filter_statement: str = "",
 ) -> Literal[pd.DataFrame, gpd.GeoDataFrame]:
     """
     Set up a basic query and use pandas_gbq to import.
@@ -99,7 +101,7 @@ def download_table_custom_filter(
     """
     basic_query = basic_sql_query(project_name, dataset_name, table_name, columns)
     date_condition = add_sql_date_filter(date_col, start_date, end_date)
-    
+
     if date_col is None:
         sql_query_statement = f"{basic_query} WHERE {custom_filter_statement}"
     if custom_filter_statement != "":
@@ -119,8 +121,7 @@ def download_table_custom_filter(
 
 
 def bq_faster_download(sql_query: str) -> pd.DataFrame:
-    """
-    """
+    """ """
     client = bigquery.Client()
 
     query_job = client.query(sql_query)

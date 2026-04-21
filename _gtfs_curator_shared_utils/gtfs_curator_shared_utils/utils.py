@@ -1,6 +1,7 @@
 """
 General utility functions.
 """
+
 import base64
 import os
 import shutil
@@ -9,8 +10,8 @@ from typing import Literal, Optional, Union
 
 import dask_geopandas as dg  # type: ignore
 import fsspec  # type: ignore
-import geopandas as gpd  # type: ignore
 import gcsfs
+import geopandas as gpd  # type: ignore
 import requests  # type: ignore
 
 fs = gcsfs.GCSFileSystem()
