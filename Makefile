@@ -4,4 +4,8 @@ add_precommit:
 	#pre-commit run --all-files
 
 install_env:
-	cd _gtfs_curator_shared_utils/ && pip install -r requirements.txt && cd ../
+	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
+
+
+setup_uv:
+	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
