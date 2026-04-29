@@ -5,6 +5,7 @@ add_precommit:
 
 install_env:
 	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
+	cd _rt_msa_utils/ && pip install -r requirements.txt && cd ../
 
 
 setup_uv:
