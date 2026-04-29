@@ -6,7 +6,7 @@ PREDICTIONS_GCS = "gs://calitp-analytics-data/data-analyses/rt_predictions/"
 VP_GCS = "gs://calitp-analytics-data/data-analyses/rt_vehicle_positions/"
 
 
-def get_catalog(catalog_name="rt_msa_catalog") -> Path:
+def get_catalog(catalog_name="catalog") -> Path:
     """
     Grab GTFS RT MSA catalog (uses OmegaConf yaml parser).
     """
@@ -15,6 +15,6 @@ def get_catalog(catalog_name="rt_msa_catalog") -> Path:
     return OmegaConf.load(catalog_path)
 
 
-RT_MSA_DICT = get_catalog("rt_msa_catalog")
+RT_MSA_DICT = get_catalog("catalog")
 stop_report_month = "2026-01-01"
 operator_report_month = "2026-01-01"

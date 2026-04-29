@@ -2,11 +2,11 @@
 Chart and map functions for report.
 """
 
-import _color_palette
 import altair as alt
 import folium
 import geopandas as gpd
 import pandas as pd
+from gtfs_curator_utils import _color_palette
 
 alt.data_transformers.enable("vegafusion")
 alt.data_transformers.enable(consolidate_datasets=True)

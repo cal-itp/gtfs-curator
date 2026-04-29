@@ -12,7 +12,7 @@ import gcsfs
 import geopandas as gpd
 import google.auth
 import pandas as pd
-from rt_msa_utils import PREDICTIONS_GCS, RT_MSA_DICT
+from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 
 credentials, project = google.auth.default()
 

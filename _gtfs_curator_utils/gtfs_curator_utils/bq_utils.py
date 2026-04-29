@@ -9,7 +9,7 @@ import google.auth
 import pandas as pd
 import pandas_gbq
 from google.cloud import bigquery
-from gtfs_curator_shared_utils import geography_utils
+from gtfs_curator_utils import geography_utils
 
 credentials, project = google.auth.default()
 

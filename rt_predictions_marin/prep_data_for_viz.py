@@ -9,8 +9,8 @@ import google.auth
 import outlier_detection
 import pandas as pd
 import report_utils
-from calitp_data_analysis import utils
-from rt_msa_utils import PREDICTIONS_GCS, RT_MSA_DICT
+from gtfs_curator_utils import utils
+from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 
 credentials, project = google.auth.default()
 
