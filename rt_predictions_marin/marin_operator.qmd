@@ -1,0 +1,506 @@
+---
+title: Marin Swiftly & Equans RT Operator Metrics
+execute:
+  echo: false
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.19.1
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+```{python}
+import warnings
+warnings.filterwarnings("ignore")
+
+import altair as alt
+import gcsfs
+import gt_extras as gte
+import pandas as pd
+
+from great_tables import GT
+
+import chart_utils_for_operators as chart_utils
+import prep_operator_data
+from gtfs_curator_utils import _color_palette
+from shared_vars import PREDICTIONS_GCS
+
+one_month = pd.to_datetime("2026-02-01")
+date_format = "%b %Y" # gtfs_digest/_new_operator_report_utils.py
+one_month_formatted = one_month.strftime(date_format)
+```
+
+```{python}
+operator_cols = ["tu_name", "day_type"]
+
+schedule_cols = [
+    "daily_trips", "daily_service_hours", "n_routes", "n_shapes",
+    "n_stops", "num_stop_times", "daily_arrivals", 'n_days_schedule_and_rt'
+]
+
+tu_cols = [
+    'tu_messages_per_minute',
+    'n_tu_trips', 'pct_tu_trips',
+    'pct_tu_routes']
+
+# split prediction cols into 2 separate tables so comparison is clearer
+tu_prediction_cols1 = [
+    "bus_catch_likelihood",
+    "pct_tu_complete_minutes",
+    "p50", "n_predictions"
+]
+tu_prediction_cols2 = [
+    "p25", "p75", "iqr",
+    "prediction_padding_minutes", "avg_prediction_spread_minutes"
+]
+```
+
+```{python}
+equans = "Marin EQUANS Trip Update"
+swiftly = "Marin Swiftly Trip Update"
+mtc = "Bay Area 511 Marin TripUpdates"
+
+df = pd.read_parquet(
+    f"{PREDICTIONS_GCS}monthly_operator_summary_marin.parquet",
+    filesystem=gcsfs.GCSFileSystem(),
+    filters = [[("tu_name", "in", [equans, swiftly, mtc])]],
+).pipe(prep_operator_data.merge_in_operator_percentiles)
+```
+
+```{python}
+# Set variables for color bars used across maps, route dropdown, and great tables
+PREDICTION_ERROR_COLORS =list(_color_palette.PREDICTION_ERROR_COLOR_PALETTE.values())
+PREDICTION_ERROR_INDEX = [-5, -3, -1, 1, 3, 5]
+PREDICTION_ERROR_LEGEND_CAPTION = "minutes (negative = late; positive = early)"
+
+POS_BAR_COLOR = _color_palette.get_color("blueberry")
+NEG_BAR_COLOR = _color_palette.get_color("vivid_cerise")
+```
+
+### Schedule + RT Summary Stats
+
+**Takeaways**
+
+**1. GTFS schedule metrics are the same**
+
+The Bay Area 511 feed is provided as a baseline for expected values for schedule data.
+Swiftly and Equans share the same schedule feed (Optibus), and we captured 23 days of RT data from Equans, but 28 days from Swiftly and Bay Area 511.
+
+Note: The Optibus feed might be ultimately what feeds into the Bay Area 511 feed. In our warehouse, the GMV Synchromatics has a separate name, been versioned as historic, and is not present in Feb 2026. It does seem like the Bay Area 511 and Swiftly RT feeds are the same.
+
+High-level schedule metrics (# trips, stops, routes, shapes, etc) are the same, with differences in total scheduled arrivals (stop_times) coming from fewer days captured with Equans.
+
+```{python}
+schedule_table = (
+    GT(df[["schedule_name"] + operator_cols + schedule_cols])
+    .cols_label(
+        schedule_name = "Schedule Feed",
+        daily_trips = "Daily Trips",
+        daily_service_hours = "Daily Service Hours",
+        n_routes = "# Routes",
+        n_shapes = "# Shapes",
+        n_stops = "# Stops",
+        num_stop_times = "Total Scheduled Arrivals",
+        daily_arrivals = "Daily Scheduled Arrivals",
+        n_days_schedule_and_rt = "# days with both RT",
+    ).fmt_integer(
+        columns = [
+            "daily_trips", "n_routes", "n_shapes", "n_stops",
+            "num_stop_times", "daily_arrivals", "n_days_schedule_and_rt"]
+    ).fmt_number(
+        columns = ["daily_service_hours"], decimals=1
+    ).tab_spanner(
+        label="Schedule",
+        columns = schedule_cols
+    ).tab_header(
+        title = "Schedule + RT Summary Metrics",
+        subtitle = f"{one_month_formatted}"
+    )
+)
+
+chart_utils.format_great_table(schedule_table, day_type_grouping = False).tab_stub(
+    groupname_col="tu_name", rowname_col = "day_type")
+```
+
+### General RT Metrics
+
+<span style="color:#4477aa">**Update Availability Goal 1:** 2+ vehicle positions or trip updates messages per minute.</span>
+
+<span style="color:#4477aa">**Update Availability Goal 2:** 100% routes are covered by RT, and 75%+ of trips have RT.</span>
+
+**2. Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn't show the same pattern in our Jan 2026 report.**
+
+*How schedule and RT are combined in our data warehouse*
+
+Schedule data comes from a GTFS feed that is active for a given time period.
+
+RT data is streamed in every 20 or 30 seconds, parsed from the json and unpacked as a table.
+
+To link schedule with RT data, we create a composite key across the schedule feed's `base64_url`, `service_date`, `trip_id`, and `iteration_num (trip_start_time)` (for frequency-based trips) to create a scheduled_trip-to-RT_trip pairing.
+
+*Swiftly and Equans both overcount RT trips in Feb 2026 only*
+
+An innocuous reason could be there are trips that were not scheduled, but later added. This is one way where we would not be able to link schedule data.
+
+The Jan 2026 **[Swiftly report](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-marin-swiftly-trip-update/operator-report-name-marin-swiftly-trip-update/index.html)** does not show this pattern (the RT trip counts are slightly under schedule trip counts, showing that a couple of scheduled trips were missing RT data, and this is expected).
+It is also not seen in the **[Bay Area 511 report](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html)**.
+
+**3. Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.**
+
+Trip updates per minute is a measure of *completeness of trip updates* over the trip duration.
+
+Within each trip, a measure of how frequency of `StopTimeMessages` per minute is calculated for this metric, and a goal of at least 2 (every 30 seconds) is desirable.
+
+It is not affected by whether RT trips are overcounted or undercounted against schedule trips.
+
+```{python}
+rt_table1 = (
+    GT(df[["schedule_name"] + operator_cols + ["n_trips"] + tu_cols])
+    .cols_label(
+        schedule_name = "Schedule",
+        n_trips = "# Scheduled Trips",
+        n_tu_trips = "# Trips (Trip Updates)",
+        tu_messages_per_minute = "Messages per Minute",
+        pct_tu_trips = "% Trips",
+        pct_tu_routes = "% Routes",
+    ).fmt_number(
+        columns = ["tu_messages_per_minute"], decimals=1
+    ).fmt_percent(
+        columns=["pct_tu_trips", "pct_tu_routes"], decimals=1
+    ).fmt_integer(columns = ["n_trips", "n_tu_trips"]
+    ).tab_stub(rowname_col="day_type", groupname_col="tu_name")
+    .cols_hide(columns=["tu_name"])
+)
+
+chart_utils.format_great_table(rt_table1, day_type_grouping = False).pipe(
+    gte.gt_color_box,
+    columns=["tu_messages_per_minute"],
+    palette="Blues",
+    domain=[1, 3]
+).pipe(
+    gte.gt_hulk_col_numeric,
+    columns=["pct_tu_trips", "pct_tu_routes"],
+    palette=[_color_palette.get_color("light_goldenrod"),
+             _color_palette.get_color("pastel_peppermint")],
+    domain=[0, 1],
+    na_color="black", # with opacity at 0.1, this is basically gray
+    alpha=0.1
+)
+```
+
+### Prediction Accuracy Metrics
+
+These metrics are derived entirely from RT trip updates (no comparison with schedule data).
+
+**4. Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.**
+
+Bus catch likelihood is the sum of early and on-time predictions.
+
+Prediction error gives a sense of which way the errors tend to lean (on-time predictions would be close to 0, early predictions would be positive, late predictions would be negative).
+They can be interpreted together to understand the relative proprotions of early, on-time, and late predictions. Early and on-time predictions, however, are more desirable than late predictions.
+
+* Equans has higher bus catch likelihood (nearly 90%) with an average prediction error of 2 minutes. More predictions are in the early / on-time group, and predictions tend to be early, with riders waiting about 2 minutes. About 10% of the predictions are late.
+* Swiftly has a bus catch likelihood around 70-80%, with an average prediction error of <1 minute.
+On average, it tends to get its predictions into the narrower definition of "accurate" or "on-time". Late predictions make up 20-30% of the predictions.
+
+*Predictions are on-time based on the last observed predicted time of arrival*
+
+We use the last observed predicted time of arrival as when the bus arrived, **not the scheduled time of arrival**. When there is traffic, the predictions will continue to adjust to account for a delayed bus arrival.
+
+On-time predictions use [this definition](https://analysis.dds.dot.ca.gov/rt_operator_metrics/#reliable-prediction-accuracy), where predictions 5 minutes before must fall within narrower bounds to be considered on-time, compared to predictions 30 minutes out.
+
+```{python}
+rt_table2 = (
+    GT(df[operator_cols + tu_prediction_cols1])
+    .cols_label(
+        pct_tu_complete_minutes = "% Minutes with 2+ Predictions",
+        bus_catch_likelihood = "Bus Catch Likelihood (Early + On-time)",
+        p50 = "Prediction Error",
+        n_predictions = "# Predictions",
+    ).fmt_percent(columns=["bus_catch_likelihood", "pct_tu_complete_minutes"], decimals=1)
+    .fmt_number(columns=["p50"], decimals=1)
+    .fmt_integer(columns=["n_predictions"])
+    .tab_header(
+        title = f"Trip Update Prediction Accuracy Metrics",
+        subtitle = "units are in minutes")
+).cols_hide(
+    columns=["tu_name"]
+).pipe(
+    chart_utils.format_great_table
+).tab_stub(
+    rowname_col="day_type", groupname_col="tu_name"
+)
+
+rt_table2.pipe(
+    gte.gt_hulk_col_numeric,
+    columns=["bus_catch_likelihood", "pct_tu_complete_minutes"],
+    palette=[_color_palette.get_color("light_goldenrod"),
+             _color_palette.get_color("pastel_peppermint")],
+    domain=[0, 1],
+    alpha=0.1
+).pipe(
+    gte.gt_color_box,
+    columns=["p50"],
+    palette=PREDICTION_ERROR_COLORS,
+    domain=[-5, 5]
+).cols_move_to_end(columns=["n_predictions"])
+```
+
+```{python}
+# The distribution of early / on-time/ late might be interesting
+def reshape_to_long(df: pd.DataFrame) -> pd.DataFrame:
+    df2 = df.melt(
+        id_vars=["tu_name", "day_type"],
+        value_vars=["pct_predictions_early",
+                    "pct_predictions_ontime", "pct_predictions_late"],
+        var_name = "prediction_category",
+        value_name = "pct"
+    )
+
+    df2 = df2.assign(
+        prediction_category = df2.prediction_category.str.replace("pct_predictions_", ""),
+        pct = df2.pct * 100
+    )
+
+    return df2
+
+
+pct_df = pd.read_parquet(
+    f"{PREDICTIONS_GCS}monthly_operator_summary_marin.parquet",
+    filesystem=gcsfs.GCSFileSystem(),
+    filters = [[("tu_name", "in", [equans, swiftly, mtc])]],
+    columns = [
+        "tu_name", "day_type",
+        "pct_predictions_early", "pct_predictions_ontime", "pct_predictions_late"]
+).pipe(reshape_to_long)
+```
+
+```{python}
+alt.Chart(pct_df).mark_bar().encode(
+    x=alt.X(
+        'day_type',
+        title = "", sort=["Weekday", "Saturday", "Sunday"]
+    ),
+    y=alt.Y('pct', title="Percent"),
+    color=alt.Color(
+        'prediction_category:N',
+        title="Prediction Category",
+        sort=["early", "ontime", "late"],
+        scale=alt.Scale(range=[
+            _color_palette.get_color("light_cadmium_yellow"),
+            _color_palette.get_color("electric_orange"),
+            _color_palette.get_color("aquatic")
+        ])
+    ),
+    column=alt.Column("tu_name", title = ""),
+    tooltip=["tu_name", "day_type", "prediction_category", "pct"]
+).interactive().properties(
+    title = "Predictions by Category",
+    width=150, height = 200
+)
+```
+
+**5. Swiftly has less variable predictions, but riders pad the prediction more, due to higher prevalence of late predictions; Equans has more variable predictions, but because those predictions tend to be early, riders don't pad predictions as much.**
+
+Predictions, on average, can be on-time, with high variability, which would be frustrating for riders. These metrics untangle that variability riders might face.
+
+* Equans predictions tend to be more variable. The variability (75th percentile - 25th percentile) is over 4 minutes.
+   * A quarter of the riders will experience late to on-time predictions (25th percentile is 0.2 minutes)
+   * A quarter of riders will experience 4+ minute early predictions (75th percentile is 4.3 minutes).
+   * The middle half of riders experience predictions from 4 minute early to on-time predictions (25th to 75th percentile).
+* Swiftly predictions tend to be on-time with little variability.
+   * A quarter of the riders will experience late to on-time predictions (25th percentile is 0 minutes)
+   * A quarter of riders will experience 2.5+ minute early predictions (75th percentile is 2.5 minutes).
+   * The middle half of riders experience predictions from 2.5 minute early to on-time predictions (25th to 75th percentile).
+
+*How we untangle variability riders experience*
+These metrics provide perspective on the distribution of prediction errors. If the average error is small and the variability is small, that is indeed promising.
+
+The column `Variability` is the interquartile range (IQR). The IQR is difference between the 75th percentile and 25th percentile of prediction error.
+
+Prediction spread is a measure of the wobble in the predictions provided (higher = predictions change more = worse rider experience).
+
+Prediction padding is the absolute value of the 5th percentile of the prediction errors (lower = riders add less time to prevent missing bus = better).
+The idea is that riders get used to predictions always being late, and adjust their behavior to account for that. Late predictions (negative prediction error values) become the *time a rider adds to make sure they don't miss the bus*.
+
+```{python}
+rt_table3 = (
+    GT(df[operator_cols + ["p50"] + tu_prediction_cols2])
+    .cols_label(
+        p50 = "Prediction Error",
+        avg_prediction_spread_minutes = "Prediction Spread / Wobble",
+        prediction_padding_minutes = "Prediction Padding",
+        iqr = "Variability"
+    )
+    .fmt_number(columns=["p50", "avg_prediction_spread_minutes", "prediction_padding_minutes"], decimals=1)
+    .tab_header(title = f"Trip Update Prediction Accuracy Metrics",
+                subtitle = "units are in minutes")
+).pipe(
+    chart_utils.format_great_table
+).tab_stub(
+    rowname_col="day_type", groupname_col="tu_name"
+)
+
+
+rt_table3.pipe(
+    gte.gt_color_box,
+    columns=["p50"],
+    palette=PREDICTION_ERROR_COLORS,
+    domain=[-5, 5]
+).pipe(
+    gte.gt_plt_dumbbell,
+    col1='p25',
+    col2='p75',
+    label = "IQR",
+    num_decimals=1,
+    col1_color=_color_palette.get_color("valentino"),
+    col2_color=_color_palette.get_color("lizard_green"),
+    width=100, height=50, # check these each time
+    font_size=8
+).pipe(
+    gte.gt_color_box,
+    columns=["iqr"],
+    palette="YlOrRd"
+).pipe(
+    gte.gt_color_box,
+    columns=["prediction_padding_minutes", "avg_prediction_spread_minutes"],
+    palette="BuPu"
+)
+```
+
+### Prediction Error Percentiles
+
+#### Distribution of Prediction Errors
+
+The 50th percentile is the typical or median rider experience, and it can show that, on average, this transit agency is roughly on-time.
+* If the 10th percentile is fairly close to the 50th percentile, it means that the transit agency is consistent and reliable in its predictions.
+* Extreme values for the 10th percentile would indicate that predictions fluctuate, or, are somewhat unreliable.
+* Steeper lines indicate fairly reliable predictions for the rider.
+
+#### Accuracy Loss
+Ratio of the 10th to 50th percentiles
+
+* Newmark's paper on a small sample of transit agencies suggests that the positive prediction errors typically have ratios of 4.
+* Late predictions (negative prediction errors) have ratios around 3.
+* Steeper lines = less accuracy loss = better
+
+**6. Swiftly has tighter bounds and steeper curves for percentiles for both late and early predictions.**
+
+* Swiftly's distribution of early and late predictions are tighter and steeper, which means that most of the predictions are on-time and don't vary as much.
+    * The left and right curves mirror each other. The prediction algorithm seems agnostic to both early and late predictions.
+    * Lower accuracy loss (ratio of 10th to 50th percentile) for late predictions compared to Equans.
+* Equans's tails are longer, which mean the 10th percentiles are further out, both earlier for early predictions and later for late predictions.
+    * Lower accuracy loss (ratio of 10th to 50th percentile) for early predictions compared to Swiftly.
+
+```{python}
+decile_cols = [
+    "month_first_day", "day_type",
+    "schedule_name", "tu_name",
+    'pos_prediction_error_sec_array', 'pos_prediction_error_sec_percentile_array',
+    'neg_prediction_error_sec_array', 'prediction_error_sec_percentile_array'
+]
+
+operator_deciles_df = pd.read_parquet(
+    f"{PREDICTIONS_GCS}monthly_operator_summary_marin.parquet",
+    filesystem=gcsfs.GCSFileSystem(),
+    filters = [[("tu_name", "in", [equans, swiftly, mtc])]],
+    columns = decile_cols
+).pipe(
+    prep_operator_data.operator_deciles_for_chart
+)
+```
+
+```{python}
+def percentile_chart_for_day_type(
+    operator_deciles_df: pd.DataFrame,
+    day_type: str
+) -> alt.Chart:
+    """
+    Create a percentile chart for each day_type + 3 feeds in the legend.
+    """
+    subset_df = operator_deciles_df[operator_deciles_df.day_type==day_type]
+
+    percentile_chart = chart_utils.fig5and6_prediction_error_plots(
+        subset_df, color_col="tu_name"
+    ).properties(title=day_type, height=200, width=200)
+
+    return percentile_chart
+```
+
+```{python}
+day_types = ["Weekday", "Saturday", "Sunday"]
+
+chart_list = [
+    percentile_chart_for_day_type(operator_deciles_df, d)
+    for d in day_types
+]
+
+alt.hconcat(*chart_list).properties(
+    title={
+        "text": "Prediction Error Percentiles - Feed Comparison",
+        "subtitle": "use legend to select feed"
+    }
+)
+```
+
+```{python}
+operator_cols = ["tu_name", "day_type"]
+percentile_chart_cols = [
+    "pos_p10", "pos_p50", "pos_error_ratio",
+    "neg_p10", "neg_p50", "neg_error_ratio"
+]
+
+mini_df = df[operator_cols + percentile_chart_cols]
+
+# convert the 10th, 50th percentile columns to minutes
+seconds_cols = ["pos_p10", "pos_p50", "neg_p10", "neg_p50"]
+mini_df[seconds_cols] = mini_df[seconds_cols].divide(60).round(2)
+```
+
+```{python}
+mini_p10_p50_table = (
+    GT(mini_df)
+    .cols_label(
+        pos_p10 = "10th percentile ",
+        neg_p10 = "10th percentile",
+        pos_p50 = "50th percentile",
+        neg_p50 = "50th percentile",
+        pos_error_ratio = "Accuracy Loss",
+        neg_error_ratio = "Accuracy Loss",
+    ).fmt_number(
+        columns=["pos_error_ratio", "neg_error_ratio"], decimals=1
+    ).tab_spanner(
+        label="Early Predictions (Positive Prediction Error)",
+        columns=["pos_p10", "pos_p50", "pos_error_ratio"]
+    ).tab_spanner(
+        label="Late Predictions (Negative Prediction Error)",
+        columns = ["neg_p10", "neg_p50", "neg_error_ratio"]
+    )
+    .tab_header(
+        title = "Accuracy Loss = Ratio of 10th to 50th percentile error",
+        subtitle = "units are in minutes (lower = less accuracy loss)"
+    )
+).pipe(
+    gte.gt_color_box,
+    columns=["pos_p10", "pos_p50", "neg_p10", "neg_p50"],
+    palette=PREDICTION_ERROR_COLORS,
+    domain=[-5, 5]
+).pipe(
+    gte.gt_color_box,
+    columns=["pos_error_ratio", "neg_error_ratio"],
+    palette="YlOrRd"
+)
+
+chart_utils.format_great_table(mini_p10_p50_table).pipe(
+    chart_utils.format_great_table,
+    day_type_grouping=False
+).tab_stub(
+    rowname_col="day_type", groupname_col="tu_name"
+)
+```

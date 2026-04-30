@@ -18,3 +18,19 @@ def get_catalog(catalog_name="catalog") -> Path:
 RT_MSA_DICT = get_catalog("catalog")
 stop_report_month = "2026-01-01"
 operator_report_month = "2026-01-01"
+
+"""
+execute:
+  echo: false
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.19.1
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+"""

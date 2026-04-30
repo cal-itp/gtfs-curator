@@ -15,3 +15,5 @@ create_marin_bq_tables:
 
 marin_report:
 	python download_warehouse_tables.py
+	quarto convert marin_operator.ipynb # update the yaml snippet
+	quarto render marin_operator.qmd
