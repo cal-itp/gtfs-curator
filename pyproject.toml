@@ -40,7 +40,7 @@ dependencies = [
 
 [tool.uv.workspace]
 members = [
-    "_gtfs_curator_shared_utils",
+    "_gtfs_curator_utils",
 ]
 
 [tool.uv]
@@ -55,4 +55,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-gtfs-curator-shared-utils = { workspace = true }
+gtfs-curator-utils = { workspace = true }

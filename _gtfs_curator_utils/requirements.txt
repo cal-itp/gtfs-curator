@@ -1,3 +1,4 @@
+-e.
 altair==6.0.0
 altair-transform==0.2.0
 dask>=2024.10.0,<2025.4.0

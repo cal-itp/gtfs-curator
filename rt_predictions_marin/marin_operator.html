@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Marin Swiftly &amp; Equans RT Operator Metrics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="marin_operator_files/libs/clipboard/clipboard.min.js"></script>
+<script src="marin_operator_files/libs/quarto-html/quarto.js"></script>
+<script src="marin_operator_files/libs/quarto-html/popper.min.js"></script>
+<script src="marin_operator_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="marin_operator_files/libs/quarto-html/anchor.min.js"></script>
+<link href="marin_operator_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="marin_operator_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="marin_operator_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="marin_operator_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="marin_operator_files/libs/bootstrap/bootstrap-a91742faa536f46f9eecfbdb6e86b344.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Marin Swiftly &amp; Equans RT Operator Metrics</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+
+
+
+  </div>
+
+
+
+</header>
+
+
+<section id="feb-2026-summary" class="level2">
+<h2 class="anchored" data-anchor-id="feb-2026-summary">Feb 2026 Summary</h2>
+<p>Generally, we want better transit user experience. Specifically, the performance metrics we can derive from GTFS RT Trip Updates distills into the following objectives:</p>
+<ul>
+<li>Increase prediction reliability and accuracy</li>
+<li>Increase the availability and completeness of GTFS RT</li>
+<li>Decrease the inconsistency and fluctuations of predictions</li>
+</ul>
+</section>
+<section id="comparison-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-takeaways">Comparison Takeaways</h2>
+<p>These are developed in each section accompanying the charts and tables for each prediction accuracy metric.</p>
+<ol type="1">
+<li>GTFS schedule metrics are the same.</li>
+<li>Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn’t show the same pattern in our Jan 2026 report.</li>
+<li>Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.</li>
+<li>Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.</li>
+<li>Swiftly has less variable predictions, but riders pad the prediction more, due to higher prevalence of late predictions; Equans has more variable predictions, but because those predictions tend to be early, riders don’t pad predictions as much.</li>
+<li>Swiftly has tighter bounds and steeper curves for percentiles for both late and early predictions.</li>
+</ol>
+<section id="references" class="level3">
+<h3 class="anchored" data-anchor-id="references">References</h3>
+<ul>
+<li><a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/">README - Intro and Definitions</a></li>
+<li><a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-marin-swiftly-trip-update/operator-report-name-marin-swiftly-trip-update/index.html">Swiftly - Jan 2026</a></li>
+<li><a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html">Bay Area 511 - Jan 2026</a></li>
+</ul>
+</section>
+<section id="schedule-rt-summary-stats" class="level3">
+<h3 class="anchored" data-anchor-id="schedule-rt-summary-stats">Schedule + RT Summary Stats</h3>
+<p><strong>Takeaways</strong></p>
+<p><strong>1. GTFS schedule metrics are the same</strong></p>
+<p>The Bay Area 511 feed is provided as a baseline for expected values for schedule data. Swiftly and Equans share the same schedule feed (Optibus), and we captured 23 days of RT data from Equans, but 28 days from Swiftly and Bay Area 511.</p>
+<p>Note: The Optibus feed might be ultimately what feeds into the Bay Area 511 feed. In our warehouse, the GMV Synchromatics has a separate name, been versioned as historic, and is not present in Feb 2026. It does seem like the Bay Area 511 and Swiftly RT feeds are the same.</p>
+<p>High-level schedule metrics (# trips, stops, routes, shapes, etc) are the same, with differences in total scheduled arrivals (stop_times) coming from fewer days captured with Equans.</p>
+<div id="adbd2d76" class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div id="ckflviiygm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#ckflviiygm table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#ckflviiygm thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#ckflviiygm p { margin: 0; padding: 0; }
+ #ckflviiygm .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 11px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: 100%; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #ckflviiygm .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #ckflviiygm .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #ckflviiygm .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #ckflviiygm .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ckflviiygm .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ckflviiygm .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ckflviiygm .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #ckflviiygm .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #ckflviiygm .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #ckflviiygm .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #ckflviiygm .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #ckflviiygm .gt_spanner_row { border-bottom-style: hidden; }
+ #ckflviiygm .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #ckflviiygm .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #ckflviiygm .gt_from_md> :first-child { margin-top: 0; }
+ #ckflviiygm .gt_from_md> :last-child { margin-bottom: 0; }
+ #ckflviiygm .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #ckflviiygm .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #ckflviiygm .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #ckflviiygm .gt_row_group_first td { border-top-width: 2px; }
+ #ckflviiygm .gt_row_group_first th { border-top-width: 2px; }
+ #ckflviiygm .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #ckflviiygm .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ckflviiygm .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #ckflviiygm .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #ckflviiygm .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #ckflviiygm .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #ckflviiygm .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #ckflviiygm .gt_left { text-align: left; }
+ #ckflviiygm .gt_center { text-align: center; }
+ #ckflviiygm .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #ckflviiygm .gt_font_normal { font-weight: normal; }
+ #ckflviiygm .gt_font_bold { font-weight: bold; }
+ #ckflviiygm .gt_font_italic { font-style: italic; }
+ #ckflviiygm .gt_super { font-size: 65%; }
+ #ckflviiygm .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #ckflviiygm .gt_asterisk { font-size: 100%; vertical-align: 0; }
+
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_heading header">
+<th colspan="10" class="gt_heading gt_title gt_font_normal">Schedule + RT Summary Metrics</th>
+</tr>
+<tr class="gt_heading even">
+<th colspan="10" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">Feb 2026</th>
+</tr>
+<tr class="gt_col_headings gt_spanner_row header">
+<th rowspan="2" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th rowspan="2" id="schedule_name" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Schedule Feed</th>
+<th colspan="8" id="Schedule" class="gt_center gt_columns_top_border gt_column_spanner_outer" data-quarto-table-cell-role="th" scope="colgroup"><span class="gt_column_spanner">Schedule</span></th>
+</tr>
+<tr class="gt_col_headings even">
+<th id="daily_trips" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Daily Trips</th>
+<th id="daily_service_hours" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Daily Service Hours</th>
+<th id="n_routes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Routes</th>
+<th id="n_shapes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Shapes</th>
+<th id="n_stops" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Stops</th>
+<th id="num_stop_times" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Total Scheduled Arrivals</th>
+<th id="daily_arrivals" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Daily Scheduled Arrivals</th>
+<th id="n_days_schedule_and_rt" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># days with both RT</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row odd">
+<td colspan="10" class="gt_group_heading" data-quarto-table-cell-role="th">Bay Area 511 Marin TripUpdates</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">630</td>
+<td class="gt_row gt_center">449.4</td>
+<td class="gt_row gt_center">19</td>
+<td class="gt_row gt_center">58</td>
+<td class="gt_row gt_center">550</td>
+<td class="gt_row gt_center">320,191</td>
+<td class="gt_row gt_center">16,010</td>
+<td class="gt_row gt_center">20</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">472</td>
+<td class="gt_row gt_center">319.7</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">44,580</td>
+<td class="gt_row gt_center">11,145</td>
+<td class="gt_row gt_center">4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">470</td>
+<td class="gt_row gt_center">318.1</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">44,352</td>
+<td class="gt_row gt_center">11,088</td>
+<td class="gt_row gt_center">4</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="10" class="gt_group_heading" data-quarto-table-cell-role="th">Marin EQUANS Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">627</td>
+<td class="gt_row gt_center">447.3</td>
+<td class="gt_row gt_center">19</td>
+<td class="gt_row gt_center">58</td>
+<td class="gt_row gt_center">550</td>
+<td class="gt_row gt_center">254,924</td>
+<td class="gt_row gt_center">15,933</td>
+<td class="gt_row gt_center">16</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">472</td>
+<td class="gt_row gt_center">319.7</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">44,580</td>
+<td class="gt_row gt_center">11,145</td>
+<td class="gt_row gt_center">4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">470</td>
+<td class="gt_row gt_center">318.1</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">33,264</td>
+<td class="gt_row gt_center">11,088</td>
+<td class="gt_row gt_center">3</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="10" class="gt_group_heading" data-quarto-table-cell-role="th">Marin Swiftly Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">630</td>
+<td class="gt_row gt_center">449.4</td>
+<td class="gt_row gt_center">19</td>
+<td class="gt_row gt_center">58</td>
+<td class="gt_row gt_center">550</td>
+<td class="gt_row gt_center">320,191</td>
+<td class="gt_row gt_center">16,010</td>
+<td class="gt_row gt_center">20</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">472</td>
+<td class="gt_row gt_center">319.7</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">44,580</td>
+<td class="gt_row gt_center">11,145</td>
+<td class="gt_row gt_center">4</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">470</td>
+<td class="gt_row gt_center">318.1</td>
+<td class="gt_row gt_center">14</td>
+<td class="gt_row gt_center">37</td>
+<td class="gt_row gt_center">478</td>
+<td class="gt_row gt_center">44,352</td>
+<td class="gt_row gt_center">11,088</td>
+<td class="gt_row gt_center">4</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+
+</div>
+</div>
+</section>
+<section id="general-rt-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="general-rt-metrics">General RT Metrics</h3>
+<p><span style="color:#4477aa"><strong>Update Availability Goal 1:</strong> 2+ vehicle positions or trip updates messages per minute.</span></p>
+<p><span style="color:#4477aa"><strong>Update Availability Goal 2:</strong> 100% routes are covered by RT, and 75%+ of trips have RT.</span></p>
+<p><strong>2. Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn’t show the same pattern in our Jan 2026 report.</strong></p>
+<p><em>How schedule and RT are combined in our data warehouse</em></p>
+<p>Schedule data comes from a GTFS feed that is active for a given time period.</p>
+<p>RT data is streamed in every 20 or 30 seconds, parsed from the json and unpacked as a table.</p>
+<p>To link schedule with RT data, we create a composite key across the schedule feed’s <code>base64_url</code>, <code>service_date</code>, <code>trip_id</code>, and <code>iteration_num (trip_start_time)</code> (for frequency-based trips) to create a scheduled_trip-to-RT_trip pairing.</p>
+<p><em>Swiftly and Equans both overcount RT trips in Feb 2026 only</em></p>
+<p>An innocuous reason could be there are trips that were not scheduled, but later added. This is one way where we would not be able to link schedule data.</p>
+<p>The Jan 2026 <strong><a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-marin-swiftly-trip-update/operator-report-name-marin-swiftly-trip-update/index.html">Swiftly report</a></strong> does not show this pattern (the RT trip counts are slightly under schedule trip counts, showing that a couple of scheduled trips were missing RT data, and this is expected). It is also not seen in the <strong><a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html">Bay Area 511 report</a></strong>.</p>
+<p><strong>3. Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.</strong></p>
+<p>Trip updates per minute is a measure of <em>completeness of trip updates</em> over the trip duration.</p>
+<p>Within each trip, a measure of how frequency of <code>StopTimeMessages</code> per minute is calculated for this metric, and a goal of at least 2 (every 30 seconds) is desirable.</p>
+<p>It is not affected by whether RT trips are overcounted or undercounted against schedule trips.</p>
+<div id="7be060ac" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div id="wszdgxjaxz" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#wszdgxjaxz table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#wszdgxjaxz thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#wszdgxjaxz p { margin: 0; padding: 0; }
+ #wszdgxjaxz .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 11px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: 100%; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #wszdgxjaxz .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #wszdgxjaxz .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #wszdgxjaxz .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #wszdgxjaxz .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #wszdgxjaxz .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #wszdgxjaxz .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #wszdgxjaxz .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #wszdgxjaxz .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #wszdgxjaxz .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #wszdgxjaxz .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #wszdgxjaxz .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #wszdgxjaxz .gt_spanner_row { border-bottom-style: hidden; }
+ #wszdgxjaxz .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #wszdgxjaxz .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #wszdgxjaxz .gt_from_md> :first-child { margin-top: 0; }
+ #wszdgxjaxz .gt_from_md> :last-child { margin-bottom: 0; }
+ #wszdgxjaxz .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #wszdgxjaxz .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #wszdgxjaxz .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #wszdgxjaxz .gt_row_group_first td { border-top-width: 2px; }
+ #wszdgxjaxz .gt_row_group_first th { border-top-width: 2px; }
+ #wszdgxjaxz .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #wszdgxjaxz .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #wszdgxjaxz .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #wszdgxjaxz .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #wszdgxjaxz .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #wszdgxjaxz .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #wszdgxjaxz .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #wszdgxjaxz .gt_left { text-align: left; }
+ #wszdgxjaxz .gt_center { text-align: center; }
+ #wszdgxjaxz .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #wszdgxjaxz .gt_font_normal { font-weight: normal; }
+ #wszdgxjaxz .gt_font_bold { font-weight: bold; }
+ #wszdgxjaxz .gt_font_italic { font-style: italic; }
+ #wszdgxjaxz .gt_super { font-size: 65%; }
+ #wszdgxjaxz .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #wszdgxjaxz .gt_asterisk { font-size: 100%; vertical-align: 0; }
+
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="gt_col_headings header">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th id="schedule_name" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Schedule</th>
+<th id="n_trips" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Scheduled Trips</th>
+<th id="tu_messages_per_minute" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Messages per Minute</th>
+<th id="n_tu_trips" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Trips (Trip Updates)</th>
+<th id="pct_tu_trips" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">% Trips</th>
+<th id="pct_tu_routes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">% Routes</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Bay Area 511 Marin TripUpdates</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">12,602</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">12,530</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5df">99.4%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">1,888</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">1,880</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.6%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Bay Area 511 Marin Schedule</td>
+<td class="gt_row gt_center">1,880</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">1,866</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5df">99.3%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Marin EQUANS Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">10,038</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#084a9233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#084a92; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.8
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">15,126</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">150.7%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">1,888</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">2,802</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">148.4%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">1,410</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#083d7f33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#083d7f; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.9
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">2,059</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">146.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Marin Swiftly Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">12,602</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">17,642</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">140.1%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">1,888</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">2,818</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">149.3%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center">Marin Optibus Schedule</td>
+<td class="gt_row gt_center">1,880</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#08306b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#08306b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.0
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">2,535</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #00000019">134.9%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">100.0%</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+
+</div>
+</div>
+</section>
+<section id="prediction-accuracy-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="prediction-accuracy-metrics">Prediction Accuracy Metrics</h3>
+<p>These metrics are derived entirely from RT trip updates (no comparison with schedule data).</p>
+<p><strong>4. Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.</strong></p>
+<p>Bus catch likelihood is the sum of early and on-time predictions.</p>
+<p>Prediction error gives a sense of which way the errors tend to lean (on-time predictions would be close to 0, early predictions would be positive, late predictions would be negative). They can be interpreted together to understand the relative proprotions of early, on-time, and late predictions. Early and on-time predictions, however, are more desirable than late predictions.</p>
+<ul>
+<li>Equans has higher bus catch likelihood (nearly 90%) with an average prediction error of 2 minutes. More predictions are in the early / on-time group, and predictions tend to be early, with riders waiting about 2 minutes. About 10% of the predictions are late.</li>
+<li>Swiftly has a bus catch likelihood around 70-80%, with an average prediction error of &lt;1 minute. On average, it tends to get its predictions into the narrower definition of “accurate” or “on-time”. Late predictions make up 20-30% of the predictions.</li>
+</ul>
+<p><em>Predictions are on-time based on the last observed predicted time of arrival</em></p>
+<p>We use the last observed predicted time of arrival as when the bus arrived, <strong>not the scheduled time of arrival</strong>. When there is traffic, the predictions will continue to adjust to account for a delayed bus arrival.</p>
+<p>On-time predictions use <a href="https://analysis.dds.dot.ca.gov/rt_operator_metrics/#reliable-prediction-accuracy">this definition</a>, where predictions 5 minutes before must fall within narrower bounds to be considered on-time, compared to predictions 30 minutes out.</p>
+<div id="3555d424" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="22">
+<div id="urxeszvgei" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#urxeszvgei table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#urxeszvgei thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#urxeszvgei p { margin: 0; padding: 0; }
+ #urxeszvgei .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 11px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: 100%; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #urxeszvgei .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #urxeszvgei .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #urxeszvgei .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #urxeszvgei .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #urxeszvgei .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #urxeszvgei .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #urxeszvgei .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #urxeszvgei .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #urxeszvgei .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #urxeszvgei .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #urxeszvgei .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #urxeszvgei .gt_spanner_row { border-bottom-style: hidden; }
+ #urxeszvgei .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #urxeszvgei .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #urxeszvgei .gt_from_md> :first-child { margin-top: 0; }
+ #urxeszvgei .gt_from_md> :last-child { margin-bottom: 0; }
+ #urxeszvgei .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #urxeszvgei .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #urxeszvgei .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #urxeszvgei .gt_row_group_first td { border-top-width: 2px; }
+ #urxeszvgei .gt_row_group_first th { border-top-width: 2px; }
+ #urxeszvgei .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #urxeszvgei .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #urxeszvgei .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #urxeszvgei .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #urxeszvgei .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #urxeszvgei .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #urxeszvgei .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #urxeszvgei .gt_left { text-align: left; }
+ #urxeszvgei .gt_center { text-align: center; }
+ #urxeszvgei .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #urxeszvgei .gt_font_normal { font-weight: normal; }
+ #urxeszvgei .gt_font_bold { font-weight: bold; }
+ #urxeszvgei .gt_font_italic { font-style: italic; }
+ #urxeszvgei .gt_super { font-size: 65%; }
+ #urxeszvgei .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #urxeszvgei .gt_asterisk { font-size: 100%; vertical-align: 0; }
+
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="gt_heading header">
+<th colspan="5" class="gt_heading gt_title gt_font_normal">Trip Update Prediction Accuracy Metrics</th>
+</tr>
+<tr class="gt_heading even">
+<th colspan="5" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">units are in minutes</th>
+</tr>
+<tr class="gt_col_headings header">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th id="bus_catch_likelihood" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Bus Catch Likelihood (Early + On-time)</th>
+<th id="pct_tu_complete_minutes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">% Minutes with 2+ Predictions</th>
+<th id="p50" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Prediction Error</th>
+<th id="n_predictions" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"># Predictions</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row odd">
+<td colspan="5" class="gt_group_heading" data-quarto-table-cell-role="th">Bay Area 511 Marin TripUpdates</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #ebf3cd">78.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.7%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2bd6533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c2bd65; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.97
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">31,741,231</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #ecf2c8">72.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.9%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d4ba4a33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d4ba4a; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">3,958,001</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #edf2c7">71.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.8%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d7ba4633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d7ba46; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.62
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">4,366,998</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="5" class="gt_group_heading" data-quarto-table-cell-role="th">Marin EQUANS Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e8f4d7">89.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5df">99.3%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#82c7c433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#82c7c4; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.03
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">17,010,856</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e8f4d7">89.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5df">99.3%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80c8c733; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#80c8c7; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.07
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">2,418,942</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e8f4d7">89.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5df">99.3%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#88c7bb33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#88c7bb; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.93
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">1,994,737</td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="5" class="gt_group_heading" data-quarto-table-cell-role="th">Marin Swiftly Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #ebf3cd">78.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.8%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2bd6433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c2bd64; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.96
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">31,753,971</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #ecf2c8">72.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.8%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d4ba4a33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d4ba4a; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">3,959,140</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #edf2c7">71.0%</td>
+<td class="gt_row gt_center" style="color: #000000; background-color: #e5f5e0">99.9%</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d8ba4433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d8ba44; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center">4,366,019</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+
+</div>
+</div>
+<div id="af94cf0e" class="cell" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="24">
+
+<style>
+  #altair-viz-136faa679cd942a2b9083fdc8a9ffd23.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #altair-viz-136faa679cd942a2b9083fdc8a9ffd23.vega-embed details,
+  #altair-viz-136faa679cd942a2b9083fdc8a9ffd23.vega-embed details summary {
+    position: relative;
+  }
+</style>
+<div id="altair-viz-136faa679cd942a2b9083fdc8a9ffd23"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-136faa679cd942a2b9083fdc8a9ffd23") {
+      outputDiv = document.getElementById("altair-viz-136faa679cd942a2b9083fdc8a9ffd23");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.1.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.1.0"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-91dc50154b0224d5f51a7222d7145135"}, "mark": {"type": "bar"}, "encoding": {"color": {"field": "prediction_category", "scale": {"range": ["#fcb40e", "#fc5c04", "#66ccee"]}, "sort": ["early", "ontime", "late"], "title": "Prediction Category", "type": "nominal"}, "column": {"field": "tu_name", "title": "", "type": "nominal"}, "tooltip": [{"field": "tu_name", "type": "nominal"}, {"field": "day_type", "type": "nominal"}, {"field": "prediction_category", "type": "nominal"}, {"field": "pct", "type": "quantitative"}], "x": {"field": "day_type", "sort": ["Weekday", "Saturday", "Sunday"], "title": "", "type": "nominal"}, "y": {"field": "pct", "title": "Percent", "type": "quantitative"}}, "height": 200, "params": [{"name": "param_1e9efca18e7a2868", "select": {"type": "interval", "encodings": ["x", "y"]}, "bind": "scales"}], "title": "Predictions by Category", "width": 150, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json", "datasets": {"data-91dc50154b0224d5f51a7222d7145135": [{"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Weekday", "prediction_category": "early", "pct": 75.7}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Weekday", "prediction_category": "early", "pct": 75.6}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Sunday", "prediction_category": "early", "pct": 68.5}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Sunday", "prediction_category": "early", "pct": 68.5}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Saturday", "prediction_category": "early", "pct": 69.8}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Saturday", "prediction_category": "early", "pct": 69.8}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Saturday", "prediction_category": "early", "pct": 79.5}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Weekday", "prediction_category": "early", "pct": 78.2}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Sunday", "prediction_category": "early", "pct": 77.3}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Weekday", "prediction_category": "ontime", "pct": 1.9}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Weekday", "prediction_category": "ontime", "pct": 2.0}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Sunday", "prediction_category": "ontime", "pct": 2.1999999999999997}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Sunday", "prediction_category": "ontime", "pct": 2.1999999999999997}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Saturday", "prediction_category": "ontime", "pct": 2.5}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Saturday", "prediction_category": "ontime", "pct": 2.5}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Saturday", "prediction_category": "ontime", "pct": 9.2}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Weekday", "prediction_category": "ontime", "pct": 11.200000000000001}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Sunday", "prediction_category": "ontime", "pct": 12.0}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Weekday", "prediction_category": "late", "pct": 22.400000000000002}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Weekday", "prediction_category": "late", "pct": 22.5}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Sunday", "prediction_category": "late", "pct": 29.5}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Sunday", "prediction_category": "late", "pct": 29.5}, {"tu_name": "Marin Swiftly Trip Update", "day_type": "Saturday", "prediction_category": "late", "pct": 27.500000000000004}, {"tu_name": "Bay Area 511 Marin TripUpdates", "day_type": "Saturday", "prediction_category": "late", "pct": 27.500000000000004}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Saturday", "prediction_category": "late", "pct": 11.5}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Weekday", "prediction_category": "late", "pct": 10.4}, {"tu_name": "Marin EQUANS Trip Update", "day_type": "Sunday", "prediction_category": "late", "pct": 10.7}]}}, {"mode": "vega-lite"});
+</script>
+</div>
+</div>
+<p><strong>5. Swiftly has less variable predictions, but riders pad the prediction more, due to higher prevalence of late predictions; Equans has more variable predictions, but because those predictions tend to be early, riders don’t pad predictions as much.</strong></p>
+<p>Predictions, on average, can be on-time, with high variability, which would be frustrating for riders. These metrics untangle that variability riders might face.</p>
+<ul>
+<li>Equans predictions tend to be more variable. The variability (75th percentile - 25th percentile) is over 4 minutes.
+<ul>
+<li>A quarter of the riders will experience late to on-time predictions (25th percentile is 0.2 minutes)</li>
+<li>A quarter of riders will experience 4+ minute early predictions (75th percentile is 4.3 minutes).</li>
+<li>The middle half of riders experience predictions from 4 minute early to on-time predictions (25th to 75th percentile).</li>
+</ul></li>
+<li>Swiftly predictions tend to be on-time with little variability.
+<ul>
+<li>A quarter of the riders will experience late to on-time predictions (25th percentile is 0 minutes)</li>
+<li>A quarter of riders will experience 2.5+ minute early predictions (75th percentile is 2.5 minutes).</li>
+<li>The middle half of riders experience predictions from 2.5 minute early to on-time predictions (25th to 75th percentile).</li>
+</ul></li>
+</ul>
+<p><em>How we untangle variability riders experience</em> These metrics provide perspective on the distribution of prediction errors. If the average error is small and the variability is small, that is indeed promising.</p>
+<p>The column <code>Variability</code> is the interquartile range (IQR). The IQR is difference between the 75th percentile and 25th percentile of prediction error.</p>
+<p>Prediction spread is a measure of the wobble in the predictions provided (higher = predictions change more = worse rider experience).</p>
+<p>Prediction padding is the absolute value of the 5th percentile of the prediction errors (lower = riders add less time to prevent missing bus = better). The idea is that riders get used to predictions always being late, and adjust their behavior to account for that. Late predictions (negative prediction error values) become the <em>time a rider adds to make sure they don’t miss the bus</em>.</p>
+<div id="1ecb7b84" class="cell" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="25">
+<div id="ubugsyaiig" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#ubugsyaiig table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#ubugsyaiig thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#ubugsyaiig p { margin: 0; padding: 0; }
+ #ubugsyaiig .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 11px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: 100%; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #ubugsyaiig .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #ubugsyaiig .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #ubugsyaiig .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #ubugsyaiig .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ubugsyaiig .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ubugsyaiig .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ubugsyaiig .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #ubugsyaiig .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #ubugsyaiig .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #ubugsyaiig .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #ubugsyaiig .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #ubugsyaiig .gt_spanner_row { border-bottom-style: hidden; }
+ #ubugsyaiig .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #ubugsyaiig .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #ubugsyaiig .gt_from_md> :first-child { margin-top: 0; }
+ #ubugsyaiig .gt_from_md> :last-child { margin-bottom: 0; }
+ #ubugsyaiig .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #ubugsyaiig .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #ubugsyaiig .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #ubugsyaiig .gt_row_group_first td { border-top-width: 2px; }
+ #ubugsyaiig .gt_row_group_first th { border-top-width: 2px; }
+ #ubugsyaiig .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #ubugsyaiig .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ubugsyaiig .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #ubugsyaiig .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #ubugsyaiig .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #ubugsyaiig .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #ubugsyaiig .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #ubugsyaiig .gt_left { text-align: left; }
+ #ubugsyaiig .gt_center { text-align: center; }
+ #ubugsyaiig .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #ubugsyaiig .gt_font_normal { font-weight: normal; }
+ #ubugsyaiig .gt_font_bold { font-weight: bold; }
+ #ubugsyaiig .gt_font_italic { font-style: italic; }
+ #ubugsyaiig .gt_super { font-size: 65%; }
+ #ubugsyaiig .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #ubugsyaiig .gt_asterisk { font-size: 100%; vertical-align: 0; }
+
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="gt_heading header">
+<th colspan="6" class="gt_heading gt_title gt_font_normal">Trip Update Prediction Accuracy Metrics</th>
+</tr>
+<tr class="gt_heading even">
+<th colspan="6" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">units are in minutes</th>
+</tr>
+<tr class="gt_col_headings header">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th id="p50" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Prediction Error</th>
+<th id="p25" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">IQR</th>
+<th id="iqr" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Variability</th>
+<th id="prediction_padding_minutes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Prediction Padding</th>
+<th id="avg_prediction_spread_minutes" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Prediction Spread / Wobble</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row odd">
+<td colspan="6" class="gt_group_heading" data-quarto-table-cell-role="th">Bay Area 511 Marin TripUpdates</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2bd6533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c2bd65; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.97
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="11.200716845878137" y="26.5" width="43.9068100358423" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="11.200716845878137" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="55.10752688172044" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="11.200716845878137" y="19.75">0</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="55.10752688172044" y="19.75">2.5</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fee28933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fee289; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.45
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#8c83bd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#8c83bd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.42
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7fcfd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f7fcfd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.2
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d4ba4a33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d4ba4a; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="8.870967741935486" y="26.5" width="37.096774193548384" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="8.870967741935486" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="45.96774193548387" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="8.870967741935486" y="19.75">-0.1</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="45.96774193548387" y="19.75">2</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fffbc333; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fffbc3; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.07
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#81107d33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#81107d; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.82
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#9dbad933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#9dbad9; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.8
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d7ba4633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d7ba46; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.62
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="8.333333333333334" y="26.5" width="36.02150537634408" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="8.333333333333334" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="44.354838709677416" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="8.333333333333334" y="19.75">-0.1</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="44.354838709677416" y="19.75">1.9</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fffeca33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fffeca; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.02
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d004b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d004b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.98
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7fcfd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f7fcfd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.2
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="6" class="gt_group_heading" data-quarto-table-cell-role="th">Marin EQUANS Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#82c7c433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#82c7c4; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.03
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="14.78494623655914" y="26.5" width="76.88172043010752" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="14.78494623655914" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="91.66666666666666" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="14.78494623655914" y="19.75">0.2</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="91.66666666666666" y="19.75">4.5</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#800026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.28
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f0f7fa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f0f7fa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.77
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#eef6fa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#eef6fa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.4
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80c8c733; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#80c8c7; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.07
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="15.681003584229394" y="26.5" width="75.08960573476702" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="15.681003584229394" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="90.77060931899642" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="15.681003584229394" y="19.75">0.3</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="90.77060931899642" y="19.75">4.5</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#95002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#950026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.18
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#dfecf433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#dfecf4; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.88
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d004b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d004b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.4
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#88c7bb33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#88c7bb; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.93
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="14.24731182795699" y="26.5" width="72.58064516129033" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="14.24731182795699" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="86.82795698924733" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="14.24731182795699" y="19.75">0.2</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="86.82795698924733" y="19.75">4.2</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#b1002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#b10026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.05
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7fcfd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f7fcfd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.72
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#eef6fa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#eef6fa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.4
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="6" class="gt_group_heading" data-quarto-table-cell-role="th">Marin Swiftly Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2bd6433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c2bd64; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.96
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="11.200716845878137" y="26.5" width="43.72759856630826" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="11.200716845878137" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="54.92831541218639" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="11.200716845878137" y="19.75">0</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="54.92831541218639" y="19.75">2.5</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fee38a33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fee38a; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.44
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#8c88bf33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#8c88bf; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.4
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7fcfd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f7fcfd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.2
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d4ba4a33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d4ba4a; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="8.870967741935486" y="26.5" width="36.738351254480285" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="8.870967741935486" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="45.60931899641577" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="8.870967741935486" y="19.75">-0.1</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="45.60931899641577" y="19.75">1.9</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fffcc633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fffcc6; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.05
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#81107d33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#81107d; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.82
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#9ab3d533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#9ab3d5; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.9
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#d8ba4433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#d8ba44; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div style="display: flex;">
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+<rect x="8.333333333333334" y="26.5" width="36.02150537634408" height="5.0" rx="2" fill="grey"></rect><circle stroke="white" stroke-width="2.5" cx="8.333333333333334" cy="29.0" r="6.25" fill="#7a378b"></circle><circle stroke="white" stroke-width="2.5" cx="44.354838709677416" cy="29.0" r="6.25" fill="#6e8b3d"></circle><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a378b" x="8.333333333333334" y="19.75">-0.1</text><text dominant-baseline="lower" text-anchor="middle" font-size="8" font-weight="bold" fill="#6e8b3d" x="44.354838709677416" y="19.75">1.9</text>
+</svg>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#ffffcc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#ffffcc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.01
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d004b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d004b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.98
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7fcfd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f7fcfd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+0.2
+</div>
+</div>
+</div></td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+
+</div>
+</div>
+</section>
+<section id="prediction-error-percentiles" class="level3">
+<h3 class="anchored" data-anchor-id="prediction-error-percentiles">Prediction Error Percentiles</h3>
+<section id="distribution-of-prediction-errors" class="level4">
+<h4 class="anchored" data-anchor-id="distribution-of-prediction-errors">Distribution of Prediction Errors</h4>
+<p>The 50th percentile is the typical or median rider experience, and it can show that, on average, this transit agency is roughly on-time. * If the 10th percentile is fairly close to the 50th percentile, it means that the transit agency is consistent and reliable in its predictions. * Extreme values for the 10th percentile would indicate that predictions fluctuate, or, are somewhat unreliable. * Steeper lines indicate fairly reliable predictions for the rider.</p>
+</section>
+<section id="accuracy-loss" class="level4">
+<h4 class="anchored" data-anchor-id="accuracy-loss">Accuracy Loss</h4>
+<p>Ratio of the 10th to 50th percentiles</p>
+<ul>
+<li>Newmark’s paper on a small sample of transit agencies suggests that the positive prediction errors typically have ratios of 4.</li>
+<li>Late predictions (negative prediction errors) have ratios around 3.</li>
+<li>Steeper lines = less accuracy loss = better</li>
+</ul>
+<p><strong>6. Swiftly has tighter bounds and steeper curves for percentiles for both late and early predictions.</strong></p>
+<ul>
+<li>Swiftly’s distribution of early and late predictions are tighter and steeper, which means that most of the predictions are on-time and don’t vary as much.
+<ul>
+<li>The left and right curves mirror each other. The prediction algorithm seems agnostic to both early and late predictions.</li>
+<li>Lower accuracy loss (ratio of 10th to 50th percentile) for late predictions compared to Equans.<br>
+</li>
+</ul></li>
+<li>Equans’s tails are longer, which mean the 10th percentiles are further out, both earlier for early predictions and later for late predictions.
+<ul>
+<li>Lower accuracy loss (ratio of 10th to 50th percentile) for early predictions compared to Swiftly.</li>
+</ul></li>
+</ul>
+<div id="fb21a1d4" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="28">
+
+<style>
+  #altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800.vega-embed details,
+  #altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800.vega-embed details summary {
+    position: relative;
+  }
+</style>
+<div id="altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800") {
+      outputDiv = document.getElementById("altair-viz-fe9da0f7f57b4acb86aa39a48f2b1800");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.1.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.1.0"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "hconcat": [{"layer": [{"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "neg_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "neg_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}, "name": "view_63236d24b1a6bd5b_0"}, {"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "pos_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "pos_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}}, {"mark": {"type": "rule", "color": "gray", "size": 2, "strokeDash": [12, 6]}, "encoding": {"x": {"datum": 0}}}], "data": {"name": "data-95e9c43a5731ac92e35127e9460a7103"}, "height": 200, "resolve": {"scale": {"y": "shared"}}, "title": "Weekday", "width": 200}, {"layer": [{"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "neg_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "neg_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}, "name": "view_63236d24b1a6bd5b_0"}, {"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "pos_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "pos_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}}, {"mark": {"type": "rule", "color": "gray", "size": 2, "strokeDash": [12, 6]}, "encoding": {"x": {"datum": 0}}}], "data": {"name": "data-3fd6a27a09e985d3266f23a230efaf2c"}, "height": 200, "resolve": {"scale": {"y": "shared"}}, "title": "Saturday", "width": 200}, {"layer": [{"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "neg_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "neg_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}, "name": "view_63236d24b1a6bd5b_0"}, {"mark": {"type": "line", "interpolate": "natural", "point": true}, "encoding": {"color": {"field": "tu_name", "scale": {"range": ["#ccbb44", "#765fec", "#7a378b"]}, "sort": ["Weekday", "Saturday", "Sunday"], "title": "Tu Name", "type": "nominal"}, "opacity": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 1}], "value": 0.2}, "strokeWidth": {"condition": [{"param": "param_fd3948ebdfa986b0", "value": 2}], "value": 1}, "tooltip": [{"field": "pos_prediction_error_minutes", "type": "quantitative"}, {"field": "percentile", "type": "quantitative"}, {"field": "tu_name", "type": "nominal"}], "x": {"field": "pos_prediction_error_minutes", "title": "Prediction Error (minutes)", "type": "quantitative"}, "y": {"field": "percentile", "scale": {"domain": [0, 100]}, "title": "Percentiles", "type": "quantitative"}}}, {"mark": {"type": "rule", "color": "gray", "size": 2, "strokeDash": [12, 6]}, "encoding": {"x": {"datum": 0}}}], "data": {"name": "data-ccb5d265d24808aacaa1aff8de7989af"}, "height": 200, "resolve": {"scale": {"y": "shared"}}, "title": "Sunday", "width": 200}], "params": [{"name": "param_fd3948ebdfa986b0", "select": {"type": "point", "fields": ["tu_name"]}, "bind": "legend", "views": ["view_63236d24b1a6bd5b_0"]}, {"name": "param_1e9efca18e7a2868", "select": {"type": "interval", "encodings": ["x", "y"]}, "bind": "scales", "views": ["view_63236d24b1a6bd5b_0"]}], "title": {"text": "Prediction Error Percentiles - Feed Comparison", "subtitle": "use legend to select feed"}, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json", "datasets": {"data-95e9c43a5731ac92e35127e9460a7103": [{"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 15.3, "percentile": 90, "pos_prediction_error_minutes": 0.26, "neg_prediction_error_sec": -5.0, "neg_prediction_error_minutes": -0.08}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 32.0, "percentile": 80, "pos_prediction_error_minutes": 0.53, "neg_prediction_error_sec": -11.0, "neg_prediction_error_minutes": -0.18}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 50.0, "percentile": 70, "pos_prediction_error_minutes": 0.83, "neg_prediction_error_sec": -17.7, "neg_prediction_error_minutes": -0.3}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 71.0, "percentile": 60, "pos_prediction_error_minutes": 1.18, "neg_prediction_error_sec": -26.0, "neg_prediction_error_minutes": -0.43}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 95.0, "percentile": 50, "pos_prediction_error_minutes": 1.58, "neg_prediction_error_sec": -36.0, "neg_prediction_error_minutes": -0.6}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 124.0, "percentile": 40, "pos_prediction_error_minutes": 2.07, "neg_prediction_error_sec": -48.7, "neg_prediction_error_minutes": -0.81}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 161.0, "percentile": 30, "pos_prediction_error_minutes": 2.68, "neg_prediction_error_sec": -66.0, "neg_prediction_error_minutes": -1.1}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 213.3, "percentile": 20, "pos_prediction_error_minutes": 3.56, "neg_prediction_error_sec": -92.0, "neg_prediction_error_minutes": -1.53}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 303.0, "percentile": 10, "pos_prediction_error_minutes": 5.05, "neg_prediction_error_sec": -143.0, "neg_prediction_error_minutes": -2.38}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 15.0, "percentile": 90, "pos_prediction_error_minutes": 0.25, "neg_prediction_error_sec": -5.0, "neg_prediction_error_minutes": -0.08}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 31.3, "percentile": 80, "pos_prediction_error_minutes": 0.52, "neg_prediction_error_sec": -10.7, "neg_prediction_error_minutes": -0.18}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 50.0, "percentile": 70, "pos_prediction_error_minutes": 0.83, "neg_prediction_error_sec": -17.0, "neg_prediction_error_minutes": -0.28}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 71.0, "percentile": 60, "pos_prediction_error_minutes": 1.18, "neg_prediction_error_sec": -25.0, "neg_prediction_error_minutes": -0.42}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 94.7, "percentile": 50, "pos_prediction_error_minutes": 1.58, "neg_prediction_error_sec": -35.0, "neg_prediction_error_minutes": -0.58}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 123.7, "percentile": 40, "pos_prediction_error_minutes": 2.06, "neg_prediction_error_sec": -48.0, "neg_prediction_error_minutes": -0.8}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 160.7, "percentile": 30, "pos_prediction_error_minutes": 2.68, "neg_prediction_error_sec": -65.7, "neg_prediction_error_minutes": -1.1}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 213.0, "percentile": 20, "pos_prediction_error_minutes": 3.55, "neg_prediction_error_sec": -91.0, "neg_prediction_error_minutes": -1.52}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 302.0, "percentile": 10, "pos_prediction_error_minutes": 5.03, "neg_prediction_error_sec": -142.0, "neg_prediction_error_minutes": -2.37}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 31.0, "percentile": 90, "pos_prediction_error_minutes": 0.52, "neg_prediction_error_sec": -5.3, "neg_prediction_error_minutes": -0.09}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 63.0, "percentile": 80, "pos_prediction_error_minutes": 1.05, "neg_prediction_error_sec": -11.3, "neg_prediction_error_minutes": -0.19}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 98.0, "percentile": 70, "pos_prediction_error_minutes": 1.63, "neg_prediction_error_sec": -18.7, "neg_prediction_error_minutes": -0.31}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 136.3, "percentile": 60, "pos_prediction_error_minutes": 2.27, "neg_prediction_error_sec": -28.0, "neg_prediction_error_minutes": -0.47}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 178.0, "percentile": 50, "pos_prediction_error_minutes": 2.97, "neg_prediction_error_sec": -40.3, "neg_prediction_error_minutes": -0.67}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 226.0, "percentile": 40, "pos_prediction_error_minutes": 3.77, "neg_prediction_error_sec": -57.7, "neg_prediction_error_minutes": -0.96}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 282.0, "percentile": 30, "pos_prediction_error_minutes": 4.7, "neg_prediction_error_sec": -84.0, "neg_prediction_error_minutes": -1.4}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 353.7, "percentile": 20, "pos_prediction_error_minutes": 5.9, "neg_prediction_error_sec": -130.3, "neg_prediction_error_minutes": -2.17}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Weekday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 462.7, "percentile": 10, "pos_prediction_error_minutes": 7.71, "neg_prediction_error_sec": -252.7, "neg_prediction_error_minutes": -4.21}], "data-3fd6a27a09e985d3266f23a230efaf2c": [{"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 13.0, "percentile": 90, "pos_prediction_error_minutes": 0.22, "neg_prediction_error_sec": -5.7, "neg_prediction_error_minutes": -0.1}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 27.0, "percentile": 80, "pos_prediction_error_minutes": 0.45, "neg_prediction_error_sec": -12.0, "neg_prediction_error_minutes": -0.2}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 43.0, "percentile": 70, "pos_prediction_error_minutes": 0.72, "neg_prediction_error_sec": -19.0, "neg_prediction_error_minutes": -0.32}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 61.0, "percentile": 60, "pos_prediction_error_minutes": 1.02, "neg_prediction_error_sec": -28.0, "neg_prediction_error_minutes": -0.47}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 81.7, "percentile": 50, "pos_prediction_error_minutes": 1.36, "neg_prediction_error_sec": -39.0, "neg_prediction_error_minutes": -0.65}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 105.7, "percentile": 40, "pos_prediction_error_minutes": 1.76, "neg_prediction_error_sec": -53.0, "neg_prediction_error_minutes": -0.88}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 137.7, "percentile": 30, "pos_prediction_error_minutes": 2.3, "neg_prediction_error_sec": -71.3, "neg_prediction_error_minutes": -1.19}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 182.0, "percentile": 20, "pos_prediction_error_minutes": 3.03, "neg_prediction_error_sec": -100.0, "neg_prediction_error_minutes": -1.67}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 261.0, "percentile": 10, "pos_prediction_error_minutes": 4.35, "neg_prediction_error_sec": -154.0, "neg_prediction_error_minutes": -2.57}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 13.0, "percentile": 90, "pos_prediction_error_minutes": 0.22, "neg_prediction_error_sec": -5.7, "neg_prediction_error_minutes": -0.1}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 27.0, "percentile": 80, "pos_prediction_error_minutes": 0.45, "neg_prediction_error_sec": -12.0, "neg_prediction_error_minutes": -0.2}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 43.0, "percentile": 70, "pos_prediction_error_minutes": 0.72, "neg_prediction_error_sec": -19.7, "neg_prediction_error_minutes": -0.33}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 61.0, "percentile": 60, "pos_prediction_error_minutes": 1.02, "neg_prediction_error_sec": -28.3, "neg_prediction_error_minutes": -0.47}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 82.0, "percentile": 50, "pos_prediction_error_minutes": 1.37, "neg_prediction_error_sec": -39.0, "neg_prediction_error_minutes": -0.65}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 106.0, "percentile": 40, "pos_prediction_error_minutes": 1.77, "neg_prediction_error_sec": -53.0, "neg_prediction_error_minutes": -0.88}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 138.0, "percentile": 30, "pos_prediction_error_minutes": 2.3, "neg_prediction_error_sec": -72.0, "neg_prediction_error_minutes": -1.2}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 183.0, "percentile": 20, "pos_prediction_error_minutes": 3.05, "neg_prediction_error_sec": -100.7, "neg_prediction_error_minutes": -1.68}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 262.0, "percentile": 10, "pos_prediction_error_minutes": 4.37, "neg_prediction_error_sec": -155.0, "neg_prediction_error_minutes": -2.58}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 31.0, "percentile": 90, "pos_prediction_error_minutes": 0.52, "neg_prediction_error_sec": -5.3, "neg_prediction_error_minutes": -0.09}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 63.7, "percentile": 80, "pos_prediction_error_minutes": 1.06, "neg_prediction_error_sec": -11.7, "neg_prediction_error_minutes": -0.19}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 98.0, "percentile": 70, "pos_prediction_error_minutes": 1.63, "neg_prediction_error_sec": -19.3, "neg_prediction_error_minutes": -0.32}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 135.3, "percentile": 60, "pos_prediction_error_minutes": 2.26, "neg_prediction_error_sec": -29.0, "neg_prediction_error_minutes": -0.48}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 176.0, "percentile": 50, "pos_prediction_error_minutes": 2.93, "neg_prediction_error_sec": -42.0, "neg_prediction_error_minutes": -0.7}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 223.0, "percentile": 40, "pos_prediction_error_minutes": 3.72, "neg_prediction_error_sec": -61.0, "neg_prediction_error_minutes": -1.02}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 276.5, "percentile": 30, "pos_prediction_error_minutes": 4.61, "neg_prediction_error_sec": -89.0, "neg_prediction_error_minutes": -1.48}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 346.0, "percentile": 20, "pos_prediction_error_minutes": 5.77, "neg_prediction_error_sec": -136.7, "neg_prediction_error_minutes": -2.28}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Saturday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 454.0, "percentile": 10, "pos_prediction_error_minutes": 7.57, "neg_prediction_error_sec": -241.0, "neg_prediction_error_minutes": -4.02}], "data-ccb5d265d24808aacaa1aff8de7989af": [{"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 12.0, "percentile": 90, "pos_prediction_error_minutes": 0.2, "neg_prediction_error_sec": -5.3, "neg_prediction_error_minutes": -0.09}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 25.3, "percentile": 80, "pos_prediction_error_minutes": 0.42, "neg_prediction_error_sec": -11.3, "neg_prediction_error_minutes": -0.19}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 41.0, "percentile": 70, "pos_prediction_error_minutes": 0.68, "neg_prediction_error_sec": -19.0, "neg_prediction_error_minutes": -0.32}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 57.3, "percentile": 60, "pos_prediction_error_minutes": 0.96, "neg_prediction_error_sec": -28.3, "neg_prediction_error_minutes": -0.47}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 77.0, "percentile": 50, "pos_prediction_error_minutes": 1.28, "neg_prediction_error_sec": -40.3, "neg_prediction_error_minutes": -0.67}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 102.0, "percentile": 40, "pos_prediction_error_minutes": 1.7, "neg_prediction_error_sec": -56.0, "neg_prediction_error_minutes": -0.93}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 134.0, "percentile": 30, "pos_prediction_error_minutes": 2.23, "neg_prediction_error_sec": -76.0, "neg_prediction_error_minutes": -1.27}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 179.0, "percentile": 20, "pos_prediction_error_minutes": 2.98, "neg_prediction_error_sec": -107.0, "neg_prediction_error_minutes": -1.78}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin Swiftly Trip Update", "pos_prediction_error_sec": 257.7, "percentile": 10, "pos_prediction_error_minutes": 4.3, "neg_prediction_error_sec": -167.0, "neg_prediction_error_minutes": -2.78}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 12.0, "percentile": 90, "pos_prediction_error_minutes": 0.2, "neg_prediction_error_sec": -5.7, "neg_prediction_error_minutes": -0.1}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 26.0, "percentile": 80, "pos_prediction_error_minutes": 0.43, "neg_prediction_error_sec": -12.0, "neg_prediction_error_minutes": -0.2}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 41.0, "percentile": 70, "pos_prediction_error_minutes": 0.68, "neg_prediction_error_sec": -19.0, "neg_prediction_error_minutes": -0.32}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 58.0, "percentile": 60, "pos_prediction_error_minutes": 0.97, "neg_prediction_error_sec": -29.0, "neg_prediction_error_minutes": -0.48}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 78.0, "percentile": 50, "pos_prediction_error_minutes": 1.3, "neg_prediction_error_sec": -41.0, "neg_prediction_error_minutes": -0.68}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 102.7, "percentile": 40, "pos_prediction_error_minutes": 1.71, "neg_prediction_error_sec": -56.0, "neg_prediction_error_minutes": -0.93}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 134.3, "percentile": 30, "pos_prediction_error_minutes": 2.24, "neg_prediction_error_sec": -77.0, "neg_prediction_error_minutes": -1.28}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 179.0, "percentile": 20, "pos_prediction_error_minutes": 2.98, "neg_prediction_error_sec": -107.0, "neg_prediction_error_minutes": -1.78}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Bay Area 511 Marin Schedule", "tu_name": "Bay Area 511 Marin TripUpdates", "pos_prediction_error_sec": 259.0, "percentile": 10, "pos_prediction_error_minutes": 4.32, "neg_prediction_error_sec": -168.3, "neg_prediction_error_minutes": -2.8}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 31.0, "percentile": 90, "pos_prediction_error_minutes": 0.52, "neg_prediction_error_sec": -5.3, "neg_prediction_error_minutes": -0.09}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 62.3, "percentile": 80, "pos_prediction_error_minutes": 1.04, "neg_prediction_error_sec": -11.0, "neg_prediction_error_minutes": -0.18}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 95.3, "percentile": 70, "pos_prediction_error_minutes": 1.59, "neg_prediction_error_sec": -18.0, "neg_prediction_error_minutes": -0.3}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 131.0, "percentile": 60, "pos_prediction_error_minutes": 2.18, "neg_prediction_error_sec": -27.3, "neg_prediction_error_minutes": -0.46}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 170.0, "percentile": 50, "pos_prediction_error_minutes": 2.83, "neg_prediction_error_sec": -39.7, "neg_prediction_error_minutes": -0.66}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 213.0, "percentile": 40, "pos_prediction_error_minutes": 3.55, "neg_prediction_error_sec": -57.0, "neg_prediction_error_minutes": -0.95}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 266.3, "percentile": 30, "pos_prediction_error_minutes": 4.44, "neg_prediction_error_sec": -84.0, "neg_prediction_error_minutes": -1.4}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 334.3, "percentile": 20, "pos_prediction_error_minutes": 5.57, "neg_prediction_error_sec": -138.3, "neg_prediction_error_minutes": -2.31}, {"month_first_day": "2026-02-01T00:00:00", "day_type": "Sunday", "schedule_name": "Marin Optibus Schedule", "tu_name": "Marin EQUANS Trip Update", "pos_prediction_error_sec": 440.0, "percentile": 10, "pos_prediction_error_minutes": 7.33, "neg_prediction_error_sec": -303.3, "neg_prediction_error_minutes": -5.06}]}}, {"mode": "vega-lite"});
+</script>
+</div>
+</div>
+<div id="dba09d2e" class="cell" data-execution_count="15">
+<div class="cell-output cell-output-display" data-execution_count="30">
+<div id="ezzdowiayr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#ezzdowiayr table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#ezzdowiayr thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#ezzdowiayr p { margin: 0; padding: 0; }
+ #ezzdowiayr .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 11px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: 100%; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #ezzdowiayr .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #ezzdowiayr .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #ezzdowiayr .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #ezzdowiayr .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ezzdowiayr .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ezzdowiayr .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ezzdowiayr .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #ezzdowiayr .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #ezzdowiayr .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #ezzdowiayr .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #ezzdowiayr .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #ezzdowiayr .gt_spanner_row { border-bottom-style: hidden; }
+ #ezzdowiayr .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #ezzdowiayr .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #ezzdowiayr .gt_from_md> :first-child { margin-top: 0; }
+ #ezzdowiayr .gt_from_md> :last-child { margin-bottom: 0; }
+ #ezzdowiayr .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #ezzdowiayr .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #ezzdowiayr .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #ezzdowiayr .gt_row_group_first td { border-top-width: 2px; }
+ #ezzdowiayr .gt_row_group_first th { border-top-width: 2px; }
+ #ezzdowiayr .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #ezzdowiayr .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ezzdowiayr .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #ezzdowiayr .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #ezzdowiayr .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #ezzdowiayr .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #ezzdowiayr .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #ezzdowiayr .gt_left { text-align: left; }
+ #ezzdowiayr .gt_center { text-align: center; }
+ #ezzdowiayr .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #ezzdowiayr .gt_font_normal { font-weight: normal; }
+ #ezzdowiayr .gt_font_bold { font-weight: bold; }
+ #ezzdowiayr .gt_font_italic { font-style: italic; }
+ #ezzdowiayr .gt_super { font-size: 65%; }
+ #ezzdowiayr .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #ezzdowiayr .gt_asterisk { font-size: 100%; vertical-align: 0; }
+
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="gt_heading header">
+<th colspan="7" class="gt_heading gt_title gt_font_normal">Accuracy Loss = Ratio of 10th to 50th percentile error</th>
+</tr>
+<tr class="gt_heading even">
+<th colspan="7" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border">units are in minutes (lower = less accuracy loss)</th>
+</tr>
+<tr class="gt_col_headings gt_spanner_row header">
+<th rowspan="2" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"></th>
+<th colspan="3" id="Early-Predictions-(Positive-Prediction-Error)" class="gt_center gt_columns_top_border gt_column_spanner_outer" data-quarto-table-cell-role="th" scope="colgroup"><span class="gt_column_spanner">Early Predictions (Positive Prediction Error)</span></th>
+<th colspan="3" id="Late-Predictions-(Negative-Prediction-Error)" class="gt_center gt_columns_top_border gt_column_spanner_outer" data-quarto-table-cell-role="th" scope="colgroup"><span class="gt_column_spanner">Late Predictions (Negative Prediction Error)</span></th>
+</tr>
+<tr class="gt_col_headings even">
+<th id="pos_p10" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">10th percentile</th>
+<th id="pos_p50" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">50th percentile</th>
+<th id="pos_error_ratio" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Accuracy Loss</th>
+<th id="neg_p10" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">10th percentile</th>
+<th id="neg_p50" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">50th percentile</th>
+<th id="neg_error_ratio" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">Accuracy Loss</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Bay Area 511 Marin TripUpdates</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4477aa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4477aa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+5.05
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#9dc39c33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#9dc39c; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.58
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2042533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c20425; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.2
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc600433; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc6004; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.38
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9f0c33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9f0c; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fffbc233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fffbc2; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.0
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d8cbb33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d8cbb; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.37
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#aac18933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#aac189; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.37
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2042533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c20425; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.2
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fb5a0833; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fb5a08; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.58
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9d0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9d0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.65
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fffbc233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fffbc2; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.0
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d8ebc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d8ebc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.32
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#aec08233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#aec082; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.3
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#800026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.3
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f8551333; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f85513; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.8
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9c0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9c0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.68
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fff7b933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fff7b9; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.1
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Marin EQUANS Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4477aa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4477aa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+7.71
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#60bce133; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#60bce1; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.97
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#ffffcc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#ffffcc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#e7345733; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#e73457; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-4.21
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9c0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9c0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f7442733; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f74427; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+6.3
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4477aa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4477aa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+7.57
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#60bde233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#60bde2; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.93
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#ffffcc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#ffffcc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#e9384e33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#e9384e; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-4.02
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9b0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9b0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.7
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fd913e33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fd913e; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+5.7
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4477aa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4477aa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+7.33
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#62c1e533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#62c1e5; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.83
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#ffffcc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#ffffcc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+2.6
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#dd217d33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#dd217d; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-5.06
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9d0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9d0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.66
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#800026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+7.6
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="gt_group_heading_row odd">
+<td colspan="7" class="gt_group_heading" data-quarto-table-cell-role="th">Marin Swiftly Trip Update</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Weekday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4477aa33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4477aa; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+5.03
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#9dc39c33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#9dc39c; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.58
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2042533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c20425; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.2
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc610533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc6105; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.37
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fca00c33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fca00c; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.58
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fff7b933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fff7b9; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.1
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Saturday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4d8dbc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4d8dbc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.35
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#aac18833; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#aac188; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.36
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#c2042533; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#c20425; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.2
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fb5a0733; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fb5a07; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.57
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9d0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9d0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.65
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#ffffcc33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#ffffcc; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.9
+</div>
+</div>
+</div></td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left gt_stub" data-quarto-table-cell-role="th">Sunday</td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#4e8fbd33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#4e8fbd; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.3
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#afc08133; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#afc081; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+1.28
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#80002633; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#800026; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+3.3
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#f9551233; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#f95512; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-2.78
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fc9c0b33; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fc9c0b; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+-0.67
+</div>
+</div>
+</div></td>
+<td class="gt_row gt_center"><div>
+<div style="min-height:20px; min-width:70px;background-color:#fff7b933; display:flex; border-radius:5px;align-items:center; padding:0px 7.0px;">
+<div style="height:13.0px; width:13.0px;background-color:#fff7b9; display:flex; border-radius:4px;">
+
+</div>
+<div style="line-height:20px; margin-left: 7.0px;font-weight:normal; white-space:nowrap;">
+4.1
+</div>
+</div>
+</div></td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+
+</div>
+</div>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button,
+        { trigger: "manual",
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config);
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined;
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            }
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          }
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
