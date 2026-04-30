@@ -13,11 +13,31 @@ jupyter:
     display_name: Python 3 (ipykernel)
     language: python
     name: python3
-format:
-  html:
-    theme: cosmo
-    mainfont: sans-serif
 ---
+
+## Feb 2026 Summary
+
+Generally, we want better transit user experience. Specifically, the performance metrics we can derive from GTFS RT Trip Updates distills into the following objectives:
+
+* Increase prediction reliability and accuracy
+* Increase the availability and completeness of GTFS RT
+* Decrease the inconsistency and fluctuations of predictions
+
+## Comparison Takeaways
+
+These are developed in each section accompanying the charts and tables for each prediction accuracy metric.
+
+1. GTFS schedule metrics are the same.
+2. Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn't show the same pattern in our Jan 2026 report.
+3. Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.
+4. Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.
+5. Swiftly has less variable predictions, but riders pad the prediction more, due to higher prevalence of late predictions; Equans has more variable predictions, but because those predictions tend to be early, riders don't pad predictions as much.
+6. Swiftly has tighter bounds and steeper curves for percentiles for both late and early predictions.
+
+### References
+* [README - Intro and Definitions](https://analysis.dds.dot.ca.gov/rt_operator_metrics/)
+* [Swiftly - Jan 2026](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-marin-swiftly-trip-update/operator-report-name-marin-swiftly-trip-update/index.html)
+* [Bay Area 511 - Jan 2026](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html)
 
 ```{python}
 import warnings
