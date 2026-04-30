@@ -15,6 +15,30 @@ jupyter:
     name: python3
 ---
 
+## Feb 2026 Summary
+
+Generally, we want better transit user experience. Specifically, the performance metrics we can derive from GTFS RT Trip Updates distills into the following objectives:
+
+* Increase prediction reliability and accuracy
+* Increase the availability and completeness of GTFS RT
+* Decrease the inconsistency and fluctuations of predictions
+
+## Comparison Takeaways
+
+These are developed in each section accompanying the charts and tables for each prediction accuracy metric.
+
+1. GTFS schedule metrics are the same.
+2. Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn't show the same pattern in our Jan 2026 report.
+3. Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.
+4. Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.
+5. Swiftly has less variable predictions, but riders pad the prediction more, due to higher prevalence of late predictions; Equans has more variable predictions, but because those predictions tend to be early, riders don't pad predictions as much.
+6. Swiftly has tighter bounds and steeper curves for percentiles for both late and early predictions.
+
+### References
+* [README - Intro and Definitions](https://analysis.dds.dot.ca.gov/rt_operator_metrics/)
+* [Swiftly - Jan 2026](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-marin-swiftly-trip-update/operator-report-name-marin-swiftly-trip-update/index.html)
+* [Bay Area 511 - Jan 2026](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html)
+
 ```{python}
 import warnings
 warnings.filterwarnings("ignore")
@@ -92,7 +116,7 @@ NEG_BAR_COLOR = _color_palette.get_color("vivid_cerise")
 The Bay Area 511 feed is provided as a baseline for expected values for schedule data.
 Swiftly and Equans share the same schedule feed (Optibus), and we captured 23 days of RT data from Equans, but 28 days from Swiftly and Bay Area 511.
 
-Note: The Optibus feed might be ultimately what feeds into the Bay Area 511 feed. In our warehouse, the GMV Synchromatics has a separate name, been versioned as historic, and is not present in Feb 2026. It does seem like the Bay Area 511 and Swiftly RT feeds are the same.
+*Note:* The Optibus feed might be ultimately what feeds into the Bay Area 511 feed. In our warehouse, the GMV Synchromatics has a separate name, been versioned as historic, and is not present in Feb 2026. It does seem like the Bay Area 511 and Swiftly RT feeds are the same.
 
 High-level schedule metrics (# trips, stops, routes, shapes, etc) are the same, with differences in total scheduled arrivals (stop_times) coming from fewer days captured with Equans.
 
@@ -130,10 +154,6 @@ chart_utils.format_great_table(schedule_table, day_type_grouping = False).tab_st
 
 ### General RT Metrics
 
-<span style="color:#4477aa">**Update Availability Goal 1:** 2+ vehicle positions or trip updates messages per minute.</span>
-
-<span style="color:#4477aa">**Update Availability Goal 2:** 100% routes are covered by RT, and 75%+ of trips have RT.</span>
-
 **2. Swiftly and Equans both counted more RT trips than the Bay Area 511 feed. This is seen in Feb 2026 data, though Swiftly doesn't show the same pattern in our Jan 2026 report.**
 
 *How schedule and RT are combined in our data warehouse*
@@ -152,6 +172,14 @@ The Jan 2026 **[Swiftly report](https://analysis.dds.dot.ca.gov/rt_operator_metr
 It is also not seen in the **[Bay Area 511 report](https://analysis.dds.dot.ca.gov/rt_operator_metrics/name-bay-area-511-marin-tripupdates/operator-report-name-bay-area-511-marin-tripupdate/index.html)**.
 
 **3. Swiftly and Equans perform similarly across messages per minute and % trips and % routes with RT trip updates data.**
+
+<span style="color:#4477aa">**Update Availability Goal 1:** 2+ vehicle positions or trip updates messages per minute.</span>
+
+* Swiftly and Equans both meet this goal.
+
+<span style="color:#4477aa">**Update Availability Goal 2:** 100% routes are covered by RT, and 75%+ of trips have RT.</span>
+
+* Swiftly and Equans both meet this goal.
 
 Trip updates per minute is a measure of *completeness of trip updates* over the trip duration.
 
@@ -198,9 +226,17 @@ chart_utils.format_great_table(rt_table1, day_type_grouping = False).pipe(
 
 These metrics are derived entirely from RT trip updates (no comparison with schedule data).
 
+<span style="color:#4477aa">**Update Availability Goal 3:** 90%+ of minutes has predicted arrival information.</span>
+
+* Swiftly and Equans both meet this goal.
+
 **4. Equans favors early predictions and very few late predictions; Swiftly favors on-time predictions and has more late predictions.**
 
 Bus catch likelihood is the sum of early and on-time predictions.
+
+<span style="color:#4477aa">**Bus Catch Likelihood Goal:** 75%+ of predictions result in catching the bus.</span>
+
+<span style="color:#4477aa">**Prediction Error Goal:** Closer to zero or smaller positive values (early predictions). Late predictions = negative values = riders miss bus.</span>
 
 Prediction error gives a sense of which way the errors tend to lean (on-time predictions would be close to 0, early predictions would be positive, late predictions would be negative).
 They can be interpreted together to understand the relative proprotions of early, on-time, and late predictions. Early and on-time predictions, however, are more desirable than late predictions.
@@ -209,7 +245,7 @@ They can be interpreted together to understand the relative proprotions of early
 * Swiftly has a bus catch likelihood around 70-80%, with an average prediction error of <1 minute.
 On average, it tends to get its predictions into the narrower definition of "accurate" or "on-time". Late predictions make up 20-30% of the predictions.
 
-*Predictions are on-time based on the last observed predicted time of arrival*
+*Predictions are categorized as on-time when compared to the last observed predicted time of arrival (not scheduled stop arrival).*
 
 We use the last observed predicted time of arrival as when the bus arrived, **not the scheduled time of arrival**. When there is traffic, the predictions will continue to adjust to account for a delayed bus arrival.
 
