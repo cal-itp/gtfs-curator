@@ -17,3 +17,11 @@ marin_report:
 	python download_warehouse_tables.py
 	quarto convert marin_operator.ipynb # update the yaml snippet
 	quarto render marin_operator.qmd
+
+
+test_operator_report:
+	cd ../ && python portfolio/portfolio.py clean test_tu
+	cd ../ && python portfolio/portfolio.py build test_tu
+	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra
+	cd ../ && python portfolio/portfolio.py build test_tu --no-execute-papermill --hide-title-block --deploy --target staging
+	cd ../ && python portfolio/portfolio.py index --deploy --no-prod
