@@ -9,6 +9,7 @@ install_env:
 
 install_env_uv:
 	pip install uv && uv sync
+	make add_precommit
 
 # Build and Deploy Production Portfolio Site with:
 # make build_production_portfolio_site site='MY_SITE_IDENTIFIER'
@@ -48,9 +49,12 @@ build_staging_portfolio_site_uv:
 	uv run python portfolio/portfolio.py build $(site)
 	uv run python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target staging
 	#make build_staging_portfolio_index
+<<<<<<< HEAD
 
 # need this to make sure index properly builds
 # the index includes sites that others have deployed, and I'm making changes to just 1 site
 # do this first, then make changes to 1 site for deploy
 copy_portfolio_sites_for_index:
 	cp ../data-analyses/portfolio/sites/ portfolio/ -r
+=======
+>>>>>>> 436a6a8 (make sure precommit is installed always)
