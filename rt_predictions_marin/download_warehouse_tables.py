@@ -4,7 +4,7 @@ Download tables for creating Marin's RT operator report.
 
 import gcsfs
 import google.auth
-from gtfs_curator_shared_utils import bq_utils
+from gtfs_curator_utils import bq_utils
 
 credentials, project = google.auth.default()
 
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     )
 
     monthly_operator_summary.to_parquet(
-        f"{PREDICTIONS_GCS}monthly_operator_summary_marin.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{PREDICTIONS_GCS}TEST2_monthly_operator_summary_marin.parquet", filesystem=gcsfs.GCSFileSystem()
     )
