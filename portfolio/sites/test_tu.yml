@@ -1,0 +1,8 @@
+directory: ./rt_predictions/
+notebook: ./rt_predictions/operator_report.ipynb
+parts:
+- chapters:
+  - params:
+      name: Antelope Valley Transit Authority Trip Updates
+readme: ./rt_predictions/README.md
+title: GTFS Real-Time Operator Summary Metrics
