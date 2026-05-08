@@ -20,8 +20,4 @@ marin_report:
 
 
 test_operator_report:
-	cd ../ && python portfolio/portfolio.py clean test_tu
-	cd ../ && python portfolio/portfolio.py build test_tu
-	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra
-	cd ../ && python portfolio/portfolio.py build test_tu --no-execute-papermill --hide-title-block --deploy --target staging
-	cd ../ && python portfolio/portfolio.py index --deploy --no-prod
+	cd ../ && make build_staging_portfolio_site site='test_tu'
