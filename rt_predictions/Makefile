@@ -17,3 +17,7 @@ marin_report:
 	python download_warehouse_tables.py
 	quarto convert marin_operator.ipynb # update the yaml snippet
 	quarto render marin_operator.qmd
+
+
+test_operator_report:
+	cd ../ && make build_staging_portfolio_site site='test_tu'

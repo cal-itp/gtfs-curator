@@ -5,7 +5,49 @@ add_precommit:
 
 install_env:
 	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
+	make add_precommit
 
 
 setup_uv:
 	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
+	make add_precommit
+
+
+# Build and Deploy Production Portfolio Site with:
+# make build_production_portfolio_site site='MY_SITE_IDENTIFIER'
+build_production_portfolio_site:
+	cd portfolio/ && pip install -r requirements.txt
+	python portfolio/portfolio.py clean $(site)
+	python portfolio/portfolio.py build $(site)
+	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra
+	python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target production
+	git add portfolio/sites/$(site).yml
+	#make build_production_portfolio_index
+
+# Build and Deploy Staging Portfolio Site with:
+# make build_staging_portfolio_site site='MY_SITE_IDENTIFIER'
+build_staging_portfolio_site:
+	cd portfolio/ && pip install -r requirements.txt
+	python portfolio/portfolio.py clean $(site)
+	gcloud auth login --login-config=iac/login.json
+	python portfolio/portfolio.py build $(site)
+	#python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target staging
+	#make build_staging_portfolio_index
+
+
+build_production_portfolio_site_uv:
+	uv sync --group portfolio
+	uv run python portfolio/portfolio.py clean $(site)
+	uv run python portfolio/portfolio.py build $(site)
+	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra
+	uv run python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target production
+	git add portfolio/sites/$(site).yml
+	#make build_production_portfolio_index
+
+build_staging_portfolio_site_uv:
+	uv sync --group portfolio
+	uv run python portfolio/portfolio.py clean $(site)
+	gcloud auth login --login-config=iac/login.json
+	uv run python portfolio/portfolio.py build $(site)
+	uv run python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target staging
+	#make build_staging_portfolio_index
