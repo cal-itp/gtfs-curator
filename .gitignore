@@ -140,12 +140,7 @@ dmypy.json
 
 # Portfolio sites
 portfolio/*
-!portfolio/sites
-!portfolio/templates
 !portfolio/*.gif
-!portfolio/*.md
 !portfolio/*.png
 !portfolio/*.py
 !portfolio/*.txt
-!portfolio/*.toml
-!portfolio/*.yml
