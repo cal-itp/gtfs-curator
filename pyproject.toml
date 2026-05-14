@@ -39,11 +39,13 @@ dependencies = [
     "vegafusion==2.0.3",
     "vl-convert-python>=1.9.0.post1",
     "xmltodict>=0.13.0",
+    "portfolio",
 ]
 
 [tool.uv.workspace]
 members = [
     "_gtfs_curator_utils",
+    "portfolio",
 ]
 
 [tool.uv]
@@ -62,9 +64,11 @@ portfolio = [
     "nbformat~=5.8",
     "papermill~=2.4",
     "pydantic>=2.0",
+	"python-slugify>=8.0.0",
     "typer~=0.9",
 ]
 
 
 [tool.uv.sources]
 gtfs-curator-utils = { workspace = true }
+portfolio = { workspace = true }

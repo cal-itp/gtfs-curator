@@ -1,0 +1,15 @@
+directory: ./gtfs_digest/
+notebook: ./gtfs_digest/report_operator_mini.ipynb
+parts:
+- caption: District 01-Eureka
+  chapters:
+  - params:
+      analysis_name: Lake Transit Authority
+  - params:
+      analysis_name: Yurok Tribe
+- caption: District 12-Orange County
+  chapters:
+  - params:
+      analysis_name: Orange County Transportation Authority
+readme: ./gtfs_digest/README.md
+title: GTFS Digest
