@@ -21,3 +21,4 @@ marin_report:
 
 test_operator_report:
 	cd ../ && make build_staging_portfolio_site site='test_tu'
+	python portfolio/portfolio.py index --deploy --no-prod

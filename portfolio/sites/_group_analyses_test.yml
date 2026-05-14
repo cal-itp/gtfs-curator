@@ -1,0 +1,8 @@
+title: Group Analyses Test
+directory: ./fixtures/portfolio/
+readme: ./fixtures/portfolio/README.md
+parts:
+  - caption: Introduction
+    chapters:
+      - notebook: ./tests/fixtures/portfolio/notebook_1.ipynb
+      - notebook: ./tests/fixtures/portfolio/notebook_2.ipynb
