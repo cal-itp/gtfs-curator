@@ -139,7 +139,7 @@ dmypy.json
 .DS_Store
 
 # Portfolio sites
-portfolio/*
+portfolio/*/build/
 !portfolio/*.gif
 !portfolio/*.png
 !portfolio/*.py
