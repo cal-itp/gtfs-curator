@@ -49,12 +49,9 @@ build_staging_portfolio_site_uv:
 	uv run python portfolio/portfolio.py build $(site)
 	uv run python portfolio/portfolio.py build $(site) --no-execute-papermill --deploy --target staging
 	#make build_staging_portfolio_index
-<<<<<<< HEAD
 
 # need this to make sure index properly builds
 # the index includes sites that others have deployed, and I'm making changes to just 1 site
 # do this first, then make changes to 1 site for deploy
 copy_portfolio_sites_for_index:
 	cp ../data-analyses/portfolio/sites/ portfolio/ -r
-=======
->>>>>>> 436a6a8 (make sure precommit is installed always)
