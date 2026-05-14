@@ -8,7 +8,7 @@ install_env:
 	make add_precommit
 
 install_env_uv:
-	pip install uv && uv sync
+	pip install uv && uv sync --all-groups
 	make add_precommit
 
 # Build and Deploy Production Portfolio Site with:

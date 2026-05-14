@@ -5,7 +5,7 @@ from IPython.core.magic import register_cell_magic
 
 
 @register_cell_magic
-def capture_parameters(cell, magic_name="capture_parameters"):
+def capture_parameters(line, cell):
     shell = get_ipython()
     shell.run_cell(cell, silent=True)
     # We assume the last line is a tuple
