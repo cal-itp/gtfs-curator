@@ -7,11 +7,9 @@ install_env:
 	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
 	make add_precommit
 
-
-setup_uv:
-	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
+install_env_uv:
+	pip install uv && uv sync --all-groups
 	make add_precommit
-
 
 # Build and Deploy Production Portfolio Site with:
 # make build_production_portfolio_site site='MY_SITE_IDENTIFIER'
