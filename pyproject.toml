@@ -4,10 +4,13 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11.0, <3.12.0"
+# click<8.3: click 8.3 added strict flag validation that's incompatible with
+# typer's boolean-flag generation. See cal-itp/data-analyses#2044.
 dependencies = [
     "altair>=6.0.0",
     "altair-transform>=0.2.0",
     "branca>=0.8.2",
+	"click<8.3",
     "dask>=2026.3.0",
     "dask-geopandas>=0.5.0",
     "geopandas>=0.14.0,<0.15.0",
@@ -18,14 +21,16 @@ dependencies = [
     "gtfs-segments>=2.1.7",
     "humanize~=4.6",
     "intake>=2.0.9",
+    "intake-geopandas>=0.3.0",
     "ipython==9.6.0",
     "itables>=2.7.3",
-    "jinja2>=3.1.3",
+    "jinja2>=3.1.3,<4.0.0",
     "loguru>=0.6.0",
     "mapclassify>=2.8.0",
     "movingpandas>=0.22.4",
     "nbformat~=5.8",
     "numba>=0.62.1",
+    "numpy>=1.26.4,<2.0.0",
     "pandas>=2.0.0,<3.0.0",
     "pandas-gbq==0.35",
     "omegaconf>=2.3.0",
@@ -37,9 +42,8 @@ dependencies = [
     "shapely>=2.0.1,<3.0.0",
     "stonesoup==1.8",
     "vegafusion==2.0.3",
-    "vl-convert-python>=1.9.0.post1",
-    "xmltodict>=0.13.0",
-    "portfolio",
+    "vl-convert-python>=1.6.0",
+    "xmltodict>=0.13.0,<0.14",
 ]
 
 [tool.uv.workspace]
@@ -57,15 +61,15 @@ dev = [
     "black==24.10.0",
     "isort==5.10.1",
     "pre-commit>=2.18.1",
+	"pyproject-local-kernel",
 ]
 
 portfolio = [
     "jupyter-book==2.1.1",
-    "nbformat~=5.8",
     "papermill~=2.4",
     "pydantic>=2.0",
 	"python-slugify>=8.0.0",
-    "typer~=0.9",
+    "typer~=0.9.0",
 ]
 
 

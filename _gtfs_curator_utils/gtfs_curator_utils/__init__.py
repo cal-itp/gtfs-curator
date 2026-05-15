@@ -13,7 +13,7 @@ __all__ = [
     "bq_utils",
     "catalog_utils",
     "geography_utils",
-    # "magics",
+    "magics",
     "portfolio_utils",
     "publish_utils",
     "sql",
@@ -24,4 +24,4 @@ __all__ = [
 import sys
 
 if "ipykernel" in sys.modules:
-    import magics
+    from . import magics
