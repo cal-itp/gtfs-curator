@@ -144,7 +144,7 @@ if __name__ == "__main__":
     PROD_MART = "mart_gtfs_rollup"
     MONTH_DATE_COL = "month_first_day"
 
-    schedule_rt_route_direction_summary = load_schedule_rt_route_direction_summary(
+    load_schedule_rt_route_direction_summary(
         project_name=PROD_PROJECT,
         date_col=MONTH_DATE_COL,
         dataset_name=PROD_MART,
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         end_date=analysis_month,
     )
 
-    monthly_operator_summary_df = load_operator_summary(
+    load_operator_summary(
         project_name=PROD_PROJECT,
         date_col=MONTH_DATE_COL,
         dataset_name=PROD_MART,
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         end_date=analysis_month,
     )
 
-    monthly_routes_gdf = load_fct_monthly_routes(
+    load_fct_monthly_routes(
         project_name=PROD_PROJECT,
         date_col=MONTH_DATE_COL,
         dataset_name=PROD_MART,
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         end_date=analysis_month,
     )
 
-    fct_operator_hourly_summary = load_fct_operator_hourly_summary(
+    load_fct_operator_hourly_summary(
         project_name=PROD_PROJECT,
         date_col=MONTH_DATE_COL,
         dataset_name=PROD_MART,

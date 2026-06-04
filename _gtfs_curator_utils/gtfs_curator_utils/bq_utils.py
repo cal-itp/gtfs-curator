@@ -40,7 +40,10 @@ def add_sql_date_filter(date_col: str, start_date: str, end_date: str) -> str:
     """
     Add a where condition to filter by date, coerce the dates so sql_query is read correctly.
     """
-    where_condition = f"{date_col} >= DATE('{start_date}') AND {date_col} <= DATE('{end_date}')"
+    if start_date == "" and end_date == "":
+        where_condition = ""
+    else:
+        where_condition = f"{date_col} >= DATE('{start_date}') AND {date_col} <= DATE('{end_date}')"
 
     return where_condition
 
@@ -99,10 +102,10 @@ def download_table(
     basic_query = basic_sql_query(project_name, dataset_name, table_name)
     date_condition = add_sql_date_filter(date_col, start_date, end_date)
 
-    if date_condition != "":
-        sql_query_statement = f"{basic_query} WHERE {date_condition}"
-    if date_condition == "":
+    if date_col is None:
         sql_query_statement = basic_query
+    if (date_col is not None) and (date_condition != ""):
+        sql_query_statement = f"{basic_query} WHERE {date_condition}"
 
     df = pandas_gbq.read_gbq(sql_query_statement, project_id=project_name, dialect="standard", credentials=credentials)
 
