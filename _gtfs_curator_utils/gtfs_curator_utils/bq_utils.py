@@ -129,7 +129,12 @@ def bq_faster_download(sql_query: str, **kwargs) -> pd.DataFrame:
 
     docs.cloud.google.com/bigquery/docs/parameterized-queries
     """
-    client = bigquery.Client(credentials=credentials)
+    if "project" in kwargs:
+        project = kwargs.pop("project")
+    if "credentials" in kwargs:
+        credentials = kwargs.pop("credentials")
+
+    client = bigquery.Client(project=project, credentials=credentials)
 
     query_job = client.query(sql_query, **kwargs)
 
@@ -164,12 +169,23 @@ def set_bq_query_params(
 
     if scalar_query_parameter is not None:
         for column_name, column_value in scalar_query_parameter.items():
-            one_param = bigquery.ScalarQueryParameter(column_name, "STRING", column_value)
+            if isinstance(column_value, str):
+                one_param = bigquery.ScalarQueryParameter(column_name, "STRING", column_value)
+
+            elif isinstance(column_value, int):
+                one_param = bigquery.ScalarQueryParameter(column_name, "INT64", column_value)
+
             query_params.append(one_param)
 
     if array_query_parameter is not None:
         for column_name, column_list_of_values in array_query_parameter.items():
-            one_param = bigquery.ArrayQueryParameter(column_name, "STRING", column_list_of_values)
+            first_value = column_list_of_values[0]
+            if isinstance(first_value, str):
+                one_param = bigquery.ArrayQueryParameter(column_name, "STRING", column_list_of_values)
+
+            elif isinstance(first_value, int):
+                one_param = bigquery.ArrayQueryParameter(column_name, "INT64", column_list_of_values)
+
             query_params.append(one_param)
 
     return query_params
