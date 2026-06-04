@@ -9,7 +9,7 @@ import google.auth
 import pandas as pd
 import pandas_gbq
 from google.cloud import bigquery
-from ridership_utils import geography_utils
+from gtfs_curator_utils import geography_utils
 
 credentials, project = google.auth.default()
 
@@ -99,22 +99,14 @@ def download_table(
     basic_query = basic_sql_query(project_name, dataset_name, table_name)
     date_condition = add_sql_date_filter(date_col, start_date, end_date)
 
-    if (date_col is None) and (date_condition != ""):
+    if date_condition != "":
         sql_query_statement = f"{basic_query} WHERE {date_condition}"
-    if (date_col is None) and (date_condition == ""):
+    if date_condition == "":
         sql_query_statement = basic_query
 
-    if date_col is None:
-        df = pandas_gbq.read_gbq(basic_query, project_id=project_name, dialect="standard", credentials=credentials)
+    df = pandas_gbq.read_gbq(sql_query_statement, project_id=project_name, dialect="standard", credentials=credentials)
 
-        print(f"query: {basic_query}")
-
-    if date_col is not None:
-        df = pandas_gbq.read_gbq(
-            sql_query_statement, project_id=project_name, dialect="standard", credentials=credentials
-        ).astype({date_col: "datetime64[ns]"})
-
-        print(f"query: {sql_query_statement}")
+    print(f"query: {sql_query_statement}")
 
     if geom_col is not None:
 
