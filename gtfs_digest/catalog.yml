@@ -1,0 +1,14 @@
+# GTFS Digest Catalog
+gcs_paths:
+  GCS: gs://calitp-analytics-data/data-analyses/
+  DIGEST_GCS: ${.GCS}test_gtfs_digest/
+  PUBLIC_GCS: "gs://calitp-publish-data-analysis/"
+
+gtfs_digest_rollup:
+  dir: ${gcs_paths.DIGEST_GCS}
+  schedule_rt_route_direction: "fct_monthly_schedule_rt_route_direction_summary"
+  route_map: "fct_monthly_routes"
+  operator_summary: "fct_monthly_operator_summary"
+  hourly_day_type_summary: "fct_operator_hourly_summary"
+  ntd_profile: "ntd_profile"
+  crosswalk: "crosswalk"
