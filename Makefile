@@ -3,11 +3,11 @@ add_precommit:
 	pre-commit install
 	#pre-commit run --all-files
 
-install_env:
+install_env_pip:
 	cd _gtfs_curator_utils/ && pip install -r requirements.txt && cd ../
 	make add_precommit
 
-install_env_uv:
+install_env:
 	pip install uv && uv sync --all-groups
 	make add_precommit
 
