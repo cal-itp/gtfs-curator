@@ -99,6 +99,15 @@ service_data_and_operating_expenses_time_series_by_mode AS (
         int_ga.opexp_ga AS operating_expenses_general_administration,
         int_total.opexp_total AS operating_expenses_total,
 
+        -- check these
+        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_vrh.vrh), 2) AS opex_per_vrh, -- should these be inflation-adjusted?
+        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_vrm.vrm, 2) AS opex_per_vrm,
+        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_upt.upt, 2) AS opex_per_upt,
+        ROUND(SAFE_DIVIDE(int_upt.upt, int_vrh.vrh, 2) AS upt_per_vrh,
+        ROUND(SAFE_DIVIDE(int_upt.upt, int_vrm.vrm, 2) AS upt_per_vrm,
+        --TODO: add fares
+        --ROUND(SAFE_DIVIDE(int_upt.fares, int_vrm.opexp_total, 2) AS farebox_recovery_ratio,
+
         int_agency_information.agency_status,
         int_agency_information.census_year,
         int_agency_information.last_report_year,
@@ -211,3 +220,6 @@ agency_identifiers AS (
     UNION DISTINCT SELECT * FROM opexp_agency_identifiers
 )
 SELECT * FROM agency_identifiers
+
+----------------------------------------------------------
+----------------------------------------------------------
