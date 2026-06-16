@@ -2,9 +2,14 @@
 
 **Goal**: describe what each script does, then replicate with streamlined and consolidated dbt models.
 Make sure models adhere to grains in the warehouse and capture as much of the needed columns as possible.
-* monthly ridership: TODO URL
-* annual ridership: TODO URL
-* UCLA performance metrics: TODO URL
+* monthly ridership: https://github.com/cal-itp/data-analyses/blob/main/ntd/monthly_ridership_report/monthly_ridership_by_rtpa.py
+* annual ridership: https://github.com/cal-itp/data-analyses/blob/main/ntd/annual_ridership_report/annual_ridership_script.py
+* UCLA performance metrics: https://github.com/cal-itp/data-analyses/blob/main/ntd/new_transit_metrics/new_transit_metrics_utils.py
+* utils: https://github.com/cal-itp/data-analyses/blob/main/ntd/ridership_report_utils/_01_ntd_ridership_utils.py
+* annual tables (annual ridership + UCLA performance metrics) came from different time-series sheets, so from `stg -> int`, these are separate models for each metric.
+   * `fct` doesn't need to maintain the fanout, it can be brought together, so metrics can be calculated with needed columns side-by-side.
+   * currently, `fct` just merges in `dim_agency_information` and filters out bad keys, and does this repeatedly, across 10 models. the `int` models can be brought in together to 1 `fct` table, eliminate sprawl.
+   * `fct` tables constructed this way wasn't a request based on use, so this can get refactored to match how it's used.
 
 ## Monthly Ridership by RTPA
 1. monthly ridership agency-mode-tos grain data: `mart_ntd_ridership.fct_complete_monthly_ridership_with_adjustments_and_estimates`
