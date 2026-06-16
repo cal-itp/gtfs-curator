@@ -1,9 +1,10 @@
 ----------------------------------------------------------
 -- (1) tiffany_mart_ntd_explore.fct_service_data_time_series_by_mode
--- fct_service_data_and_operating_expenses_time_series_by_mode_upt/voms/vrh feel repetitive
+-- fct_service_data_and_operating_expenses_time_series_by_mode_[one_excel_sheet] feel repetitive
+-- service values: upt, vrh, vrm, voms, pmt
+-- funding values: vo, vm, nvm, ga, total
 -- what's there: noticed that intermediate tables all use `dim_agency_information`
 -- what I want to change: combine the intermediate tables, then bring in dim_agency_information, and filter out bad keys
-
 ----------------------------------------------------------
 WITH int_upt AS (
     SELECT *
@@ -35,46 +36,115 @@ int_pmt AS (
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_pmt') }}
 ),
 
+-- funding
+int_vo AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vo`
+    --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vo') }}
+),
+
+int_vm AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vm`
+    --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vm') }}
+),
+
+int_ga AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_ga`
+    --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_ga') }}
+),
+
+int_nvm AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_nvm`
+    --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_nvm') }}
+),
+
+int_total AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total`
+    --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total') }}
+),
+
+-- do this here, because int_ tables fix some values, such as NTD_ID
+-- grab upt and opexp_total as representatives
+agency_identifiers AS (
+    SELECT
+        key,
+        ntd_id,
+        mode,
+        year,
+        type_of_service,
+
+        agency_status,
+        census_year,
+        last_report_year,
+        mode_status,
+        reporter_type,
+        reporting_module,
+        uace_code,
+        uza_area_sq_miles,
+        primary_uza_name,
+        uza_population,
+        agency_name AS source_agency,
+        city AS source_city,
+        state AS source_state,
+        dt,
+        execution_ts,
+    FROM int_upt
+    UNION ALL
+    SELECT * int_total
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+),
+
 t1 AS (
     SELECT
-        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key) AS key,
-        COALESCE(int_upt.ntd_id, int_vrh.ntd_id, int_vrm.ntd_id, int_voms.ntd_id, int_pmt.ntd_id) AS ntd_id,
-        COALESCE(int_upt.year, int_vrh.year, int_vrm.year, int_voms.year, int_pmt.year) AS year,
+        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_vp.key, int_vm.key, int_nvm.key, int_ga.key, int_total.key) AS key,
+        agency_identifiers.ntd_id,
+        agency_identifiers.mode,
+        agency_identifiers.year,
+        agency_identifiers.type_of_service,
 
-        COALESCE(int_upt.mode, int_vrh.mode, int_vrm.mode, int_voms.mode, int_pmt.mode) AS mode,
-        COALESCE(int_upt.type_of_service, int_vrh.type_of_service, int_vrm.type_of_service, int_voms.type_of_service, int_pmt.type_of_service) AS type_of_service,
-        COALESCE(int_upt.agency_status, int_vrh.agency_status, int_vrm.agency_status, int_voms.agency_status, int_pmt.agency_status) AS agency_status,
-        COALESCE(int_upt.census_year, int_vrh.census_year, int_vrm.census_year, int_voms.census_year, int_pmt.census_year) AS census_year,
-        COALESCE(int_upt.last_report_year, int_vrh.last_report_year, int_vrm.last_report_year, int_voms.last_report_year, int_pmt.last_report_year) AS last_report_year,
-        COALESCE(int_upt.mode_status, int_vrh.mode_status, int_vrm.mode_status, int_voms.mode_status, int_pmt.mode_status) AS mode_status,
-        COALESCE(int_upt.reporter_type, int_vrh.reporter_type, int_vrm.reporter_type, int_voms.reporter_type, int_pmt.reporter_type) AS reporter_type,
-        COALESCE(int_upt.reporting_module, int_vrh.reporting_module, int_vrm.reporting_module, int_voms.reporting_module, int_pmt.reporting_module) AS reporting_module,
-        COALESCE(int_upt.uace_code, int_vrh.uace_code, int_vrm.uace_code, int_voms.uace_code, int_pmt.uace_code) AS uace_code,
-        COALESCE(int_upt.uza_area_sq_miles, int_vrh.uza_area_sq_miles, int_vrm.uza_area_sq_miles, int_voms.uza_area_sq_miles, int_pmt.uza_area_sq_miles) AS uza_area_sq_miles,
-        COALESCE(int_upt.primary_uza_name, int_vrh.primary_uza_name, int_vrm.primary_uza_name, int_voms.primary_uza_name, int_pmt.primary_uza_name) AS primary_uza_name,
-        COALESCE(int_upt.uza_population, int_vrh.uza_population, int_vrm.uza_population, int_voms.uza_population, int_pmt.uza_population) AS uza_population,
+        int_upt.upt AS unlinked_passenger_trips,
+        int_vrh.vrh AS vehicle_revenue_hours,
+        int_vrm.vrm AS vehicle_revenue_miles,
+        int_voms.voms AS vehicles_operated_in_maxiumum_service,
+        int_pmt.pmt AS passenger_miles_traveled,
 
-        int_upt.upt,
-        int_vrh.vrh,
-        int_vrm.vrm,
-        int_voms.voms,
-        int_pmt.pmt,
+        int_vo.opexp_vo AS operating_expenses_vehicle_operations,
+        int_vm.opexp_vm AS operating_expenses_vehicle_maintenance,
+        int_nvm.opexp_nvm AS operating_expenses_nonvehicle_maintenance,
+        int_ga.opexp_ga AS operating_expenses_general_administration,
+        int_total.opexp_total AS operating_expenses_total,
 
-        COALESCE(int_upt.agency_name, int_vrh.agency_name, int_vrm.agency_name, int_voms.agency_name, int_pmt.agency_name) AS source_agency,
-        COALESCE(int_upt.city, int_vrh.city, int_vrm.city, int_voms.city, int_pmt.city) AS source_city,
-        COALESCE(int_upt.state, int_vrh.state, int_vrm.state, int_voms.state, int_pmt.state) AS source_state,
-        COALESCE(int_upt.dt, int_vrh.dt, int_vrm.dt, int_voms.dt, int_pmt.dt) AS dt, -- are these the same across all the datasets?
-        COALESCE(int_upt.execution_ts, int_vrh.execution_ts, int_vrm.execution_ts, int_voms.execution_ts, int_pmt.execution_ts) AS execution_Ts, -- are these the same across all the datasets?
+        agency_identifiers.agency_status,
+        agency_identifiers.census_year,
+        agency_identifiers.last_report_year,
+        agency_identifiers.mode_status,
+        agency_identifiers.reporter_type,
+        agency_identifiers.reporting_module,
+        agency_identifiers.uace_code,
+        agency_identifiers.uza_area_sq_miles,
+        agency_identifiers.primary_uza_name,
+        agency_identifiers.uza_population,
+        agency_identifiers.source_agency,
+        agency_identifiers.source_city,
+        agency_identifiers.source_state,
+        agency_identifiers.dt,
+        agency_identifiers.execution_ts,
 
     FROM int_upt
-    LEFT JOIN int_vrh
-        USING (key)
-    LEFT JOIN int_vrm
-        USING (key)
-    LEFT JOIN int_voms
-        USING (key)
-    LEFT JOIN int_pmt
-        USING (key)
+    LEFT JOIN int_vrh USING (key)
+    LEFT JOIN int_vrm USING (key)
+    LEFT JOIN int_voms USING (key)
+    LEFT JOIN int_pmt USING (key)
+    LEFT JOIN int_vp USING (key)
+    LEFT JOIN int_vm USING (key)
+    LEFT JOIN int_nvm USING (key)
+    LEFT JOIN int_ga USING (key)
+    LEFT JOIN int_total USING (key)
+    LEFT JOIN agency_identifiers USING (key)
 )
 
 SELECT * FROM t1
