@@ -86,11 +86,18 @@ int_agency_information AS (
 
 service_data_and_operating_expenses_time_series_by_mode AS (
     SELECT
-        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_vo.key, int_vm.key, int_nvm.key, int_ga.key, int_total.key) AS key,
-        COALESCE(int_upt.ntd_id, int_vrh.ntd_id, int_vrm.ntd_id, int_voms.ntd_id, int_pmt.ntd_id, int_vo.ntd_id, int_vm.ntd_id, int_nvm.ntd_id, int_ga.ntd_id, int_total.ntd_id) AS ntd_id,
-        COALESCE(int_upt.mode, int_vrh.mode, int_vrm.mode, int_voms.mode, int_pmt.mode, int_vo.mode, int_vm.mode, int_nvm.mode, int_ga.mode, int_total.mode) AS mode,
-        COALESCE(int_upt.year, int_vrh.year, int_vrm.year, int_voms.year, int_pmt.year, int_vo.year, int_vm.year, int_nvm.year, int_ga.year, int_total.year) AS year,
-        COALESCE(int_upt.type_of_service, int_vrh.type_of_service, int_vrm.type_of_service, int_voms.type_of_service, int_pmt.type_of_service, int_vo.type_of_service, int_vm.type_of_service, int_nvm.type_of_service, int_ga.type_of_service, int_total.type_of_service) AS type_of_service,
+        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_drm.key, 
+            int_vo.key, int_vm.key, int_nvm.key, int_ga.key, int_total.key, int_fares.key) AS key,
+        COALESCE(int_upt.ntd_id, int_vrh.ntd_id, int_vrm.ntd_id, int_voms.ntd_id, int_pmt.ntd_id, int_drm.ntd_id, 
+            int_vo.ntd_id, int_vm.ntd_id, int_nvm.ntd_id, int_ga.ntd_id, int_total.ntd_id, int_fares.ntd_id) AS ntd_id,
+        COALESCE(int_upt.mode, int_vrh.mode, int_vrm.mode, int_voms.mode, int_pmt.mode, int_drm.mode,
+            int_vo.mode, int_vm.mode, int_nvm.mode, int_ga.mode, int_total.mode, int_fares.mode) AS mode,
+        COALESCE(int_upt.year, int_vrh.year, int_vrm.year, int_voms.year, int_pmt.year, int_drm.year,
+            int_vo.year, int_vm.year, int_nvm.year, int_ga.year, int_total.year, int_fares.year) AS year,
+        COALESCE(int_upt.type_of_service, int_vrh.type_of_service, int_vrm.type_of_service, 
+            int_voms.type_of_service, int_pmt.type_of_service, int_drm.type_of_service,
+            int_vo.type_of_service, int_vm.type_of_service, int_nvm.type_of_service, int_ga.type_of_service, 
+            int_total.type_of_service, int_fares.type_of_service) AS type_of_service,
    
         int_upt.upt AS unlinked_passenger_trips,
         int_vrh.vrh AS vehicle_revenue_hours,
