@@ -65,10 +65,32 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
         'vrm':"Vehicle Revenue Miles",
         'vrh':"Vehicle Revenue Hours",
         'opexp_total':"Operating Expense Total",
-        'opex_per_vrh':"Operating Expense per Vehicle Revenue Hours",
-        'opex_per_vrm':"Operating Expense per Vehicle Revenue Miles",
+        'opex_per_vrh':"Operating Expense per Vehicle Revenue Hours", #cost-efficiency
+        'opex_per_vrm':"Operating Expense per Vehicle Revenue Miles", #cost-efficiency
+        #opex_per_vehicle_trip (denominator is GTFS trips) # cost-efficiency
         'opex_per_upt':"Operating Expense per Unlinked Passenger Trips",
-        'upt_per_vrh':"Unlinked Passenger Trips per Vehicle Revenue Hours",
-        'upt_per_vrm':"Unlinked Passenger Trips per Vehicle Revenue Miles",
+        'upt_per_vrh':"Unlinked Passenger Trips per Vehicle Revenue Hours", #service-effectiveness
+        'upt_per_vrm':"Unlinked Passenger Trips per Vehicle Revenue Miles", #service-effectiveness
+         #farebox recovery ratio = fares_revenue/opex
     }
-   ```
+    ```
+
+## Our Warehouse
+* A bunch of these, but can't really distinguish the difference beyond topics, which one is annual and are all the rest monthly?:
+   * `mart_ntd`
+   * `mart_ntd_ridership`
+   * `mart_ntd_annual_reporting`
+   * `mart_ntd_safety_and_security`
+   * `mart_ntd_funding_and_expenses` (some service stuff we want is here, and it's annual?)
+     * Excel workbook with time-series is source: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2
+      * Each sheet is upt, vrm, vrh, etc, and reflected in own intermediate and fct table
+   * `mart_ntd_assets`
+* https://data.transportation.gov/Public-Transit/NTD-Annual-Data-View-Operating-Expenses-by-Functio/i5ki-dc58/about_data
+* Expenses by function:
+   * `vo` = vehicle_operations
+   * `vm` = vehicle_maintenance
+   * `fm` = facilities_maintenance
+   * `ga` = general_administration
+   * `nvm` = non_vehicle_maintenance?
+   * `fares`
+   * `total`
