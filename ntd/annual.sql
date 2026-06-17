@@ -9,74 +9,74 @@
 
 WITH int_upt AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt') }}
 ),
-  
+
 int_vrh AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrh` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrh`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrh') }}
 ),
 
 int_vrm AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrm` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrm`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_vrm') }}
-),  
-  
+),
+
 int_voms AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_voms` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_voms`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_voms') }}
 ),
 
 int_pmt AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_pmt` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_pmt`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_pmt') }}
-), 
+),
 
 int_drm AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_drm` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_drm`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_drm') }}
-), 
+),
 
 -- funding
 int_vo AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vo` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vo`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vo') }}
 ),
 
 int_vm AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vm` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vm`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_vm') }}
 ),
 
 int_ga AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_ga` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_ga`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_ga') }}
 ),
 
 int_nvm AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_nvm` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_nvm`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_nvm') }}
 ),
 
 int_total AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total') }}
 ),
 
 int_fares AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_fares` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_fares`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_fares') }}
 ),
 
@@ -87,41 +87,41 @@ int_agency_information AS (
 
 service_data_and_operating_expenses_time_series_by_mode AS (
     SELECT
-        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_drm.key, 
+        COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_drm.key,
             int_vo.key, int_vm.key, int_nvm.key, int_ga.key, int_total.key, int_fares.key) AS key,
-        COALESCE(int_upt.ntd_id, int_vrh.ntd_id, int_vrm.ntd_id, int_voms.ntd_id, int_pmt.ntd_id, int_drm.ntd_id, 
+        COALESCE(int_upt.ntd_id, int_vrh.ntd_id, int_vrm.ntd_id, int_voms.ntd_id, int_pmt.ntd_id, int_drm.ntd_id,
             int_vo.ntd_id, int_vm.ntd_id, int_nvm.ntd_id, int_ga.ntd_id, int_total.ntd_id, int_fares.ntd_id) AS ntd_id,
         COALESCE(int_upt.mode, int_vrh.mode, int_vrm.mode, int_voms.mode, int_pmt.mode, int_drm.mode,
             int_vo.mode, int_vm.mode, int_nvm.mode, int_ga.mode, int_total.mode, int_fares.mode) AS mode,
         COALESCE(int_upt.year, int_vrh.year, int_vrm.year, int_voms.year, int_pmt.year, int_drm.year,
             int_vo.year, int_vm.year, int_nvm.year, int_ga.year, int_total.year, int_fares.year) AS year,
-        COALESCE(int_upt.type_of_service, int_vrh.type_of_service, int_vrm.type_of_service, 
+        COALESCE(int_upt.type_of_service, int_vrh.type_of_service, int_vrm.type_of_service,
             int_voms.type_of_service, int_pmt.type_of_service, int_drm.type_of_service,
-            int_vo.type_of_service, int_vm.type_of_service, int_nvm.type_of_service, int_ga.type_of_service, 
+            int_vo.type_of_service, int_vm.type_of_service, int_nvm.type_of_service, int_ga.type_of_service,
             int_total.type_of_service, int_fares.type_of_service) AS type_of_service,
-   
+
         int_upt.upt AS unlinked_passenger_trips,
         int_vrh.vrh AS vehicle_revenue_hours,
-        int_vrm.vrm AS vehicle_revenue_miles,          
+        int_vrm.vrm AS vehicle_revenue_miles,
         int_voms.voms AS vehicles_operated_in_maxiumum_service,
         int_pmt.pmt AS passenger_miles_traveled,
-        int_drm.drm AS direction_route_miles, 
-    
+        int_drm.drm AS direction_route_miles,
+
         int_vo.opexp_vo AS operating_expenses_vehicle_operations,
         int_vm.opexp_vm AS operating_expenses_vehicle_maintenance,
         int_nvm.opexp_nvm AS operating_expenses_nonvehicle_maintenance,
         int_ga.opexp_ga AS operating_expenses_general_administration,
         int_total.opexp_total AS operating_expenses_total,
         int_fares.fares AS fare_revenue,
-    
+
         -- check these
-        SAFE_DIVIDE(int_total.opexp_total, int_vrh.vrh) AS opex_per_vrh, 
+        SAFE_DIVIDE(int_total.opexp_total, int_vrh.vrh) AS opex_per_vrh,
         SAFE_DIVIDE(int_total.opexp_total, int_vrm.vrm) AS opex_per_vrm,
         SAFE_DIVIDE(int_total.opexp_total, int_upt.upt) AS opex_per_upt,
         SAFE_DIVIDE(int_upt.upt, int_vrh.vrh) AS upt_per_vrh,
         SAFE_DIVIDE(int_upt.upt, int_vrm.vrm) AS upt_per_vrm,
-        SAFE_DIVIDE(int_fares.fares, int_total.opexp_total) AS farebox_recovery_ratio, 
-    
+        SAFE_DIVIDE(int_fares.fares, int_total.opexp_total) AS farebox_recovery_ratio,
+
         int_agency_information.agency_status,
         int_agency_information.census_year,
         int_agency_information.last_report_year,
@@ -131,17 +131,17 @@ service_data_and_operating_expenses_time_series_by_mode AS (
         int_agency_information.uace_code,
         int_agency_information.uza_area_sq_miles,
         int_agency_information.primary_uza_name,
-        int_agency_information.uza_population,  
+        int_agency_information.uza_population,
         int_agency_information.source_agency,
         int_agency_information.source_city,
         int_agency_information.source_state,
-        
+
     FROM int_upt
     LEFT JOIN int_vrh USING (key)
     LEFT JOIN int_vrm USING (key)
     LEFT JOIN int_voms USING (key)
-    LEFT JOIN int_pmt USING (key)      
-    LEFT JOIN int_drm USING (key)  
+    LEFT JOIN int_pmt USING (key)
+    LEFT JOIN int_drm USING (key)
     LEFT JOIN int_vo USING (key)
     LEFT JOIN int_vm USING (key)
     LEFT JOIN int_nvm USING (key)
@@ -152,15 +152,15 @@ service_data_and_operating_expenses_time_series_by_mode AS (
 ),
 
 fct_service_data_and_operating_expenses_time_series_by_mode AS (
-    SELECT 
-      *, 
+    SELECT
+      *,
       LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
       unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
       ROUND(SAFE_DIVIDE(
           (unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)),
           LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)
       ), 4) AS upt_pct_change_1yr,
-  
+
       -- add mode_full (mode's full name) and service_full (type_of_service mapped)
       --{{ generate_ntd_mode_full_name('mode') }} AS mode_full_name,
       --{{ generate_ntd_mode_type_of_service_full_name('type_of_service') }} AS type_of_service_full_name,
@@ -173,7 +173,7 @@ fct_service_data_and_operating_expenses_time_series_by_mode AS (
 )
 
 SELECT * FROM fct_service_data_and_operating_expenses_time_series_by_mode
--- step 1 sanity check: 
+-- step 1 sanity check:
 -- do all the left joins work? do any rows drop? if nothing, can it be inner join? (did both left and inner join, and both got 47_820 rows)
 -- the keys are dbt_utils.generate_surrogate_key(['ntd_id', 'year', 'mode', 'type_of_service']) }}
 
@@ -188,13 +188,13 @@ SELECT * FROM fct_service_data_and_operating_expenses_time_series_by_mode
 -- grab upt and opexp_total as representatives
 WITH int_upt AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt') }}
 ),
 
 int_total AS (
     SELECT *
-    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total` 
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total`
     --{{ ref('int_ntd__service_data_and_operating_expenses_time_series_by_mode_opexp_total') }}
 ),
 
@@ -210,7 +210,7 @@ upt_agency_identifiers AS (
         uace_code,
         uza_area_sq_miles,
         primary_uza_name,
-        uza_population,  
+        uza_population,
         agency_name AS source_agency,
         city AS source_city,
         state AS source_state,
@@ -231,7 +231,7 @@ opexp_agency_identifiers AS (
         uace_code,
         uza_area_sq_miles,
         primary_uza_name,
-        uza_population,  
+        uza_population,
         agency_name AS source_agency,
         city AS source_city,
         state AS source_state,
@@ -248,38 +248,37 @@ SELECT * FROM agency_identifiers
 
 ----------------------------------------------------------
 -- (3) crosswalk for ntd_id to bridge's ntd_id_2022 for portfolio deploy
+-- tiffany_mart_ntd_explore.ntd_rtpa_crosswalk
 ----------------------------------------------------------
 WITH bridge AS (
-    SELECT 
-        --schedule_gtfs_dataset_name,
-        --analysis_name,
+    SELECT
         organization_name,
         ntd_id_2022,
-        county_geography_name,
+        county_name,
         rtpa_name,
     FROM `cal-itp-data-infra.mart_transit_database.bridge_gtfs_analysis_name_x_ntd`
+    WHERE ntd_id_2022 IS NOT NULL AND rtpa_name IS NOT NULL
     --{{ ref('bridge_gtfs_analysis_name_x_ntd') }}
 ),
 
 bridge_split_out_scag AS (
-    SELECT 
+    SELECT
         *,
-        CASE 
-            WHEN county_geography_name = "Ventura" THEN "Ventura County Transportation Commission"
-            WHEN county_geography_name = "Los Angeles" THEN "Los Angeles County Metropolitan Transportation Authority"
-            WHEN county_geography_name = "San Bernardino" THEN "San Bernardino County Transportation Authority"
-            WHEN county_geography_name = "Riverside" THEN "Riverside County Transportation Commission"
-            WHEN county_geography_name = "Orange" THEN "Orange County Transportation Authority"
-            WHEN county_geography_name = "Imperial" THEN "Imperial County Transportation Commission"
+        CASE
+            WHEN county_name = "Ventura" THEN "Ventura County Transportation Commission"
+            WHEN county_name = "Los Angeles" THEN "Los Angeles County Metropolitan Transportation Authority"
+            WHEN county_name = "San Bernardino" THEN "San Bernardino County Transportation Authority"
+            WHEN county_name = "Riverside" THEN "Riverside County Transportation Commission"
+            WHEN county_name = "Orange" THEN "Orange County Transportation Authority"
+            WHEN county_name = "Imperial" THEN "Imperial County Transportation Commission"
             ELSE rtpa_name
-        END AS rtpa_name
+        END AS rtpa_name_split
     FROM bridge
 )
 
 SELECT * FROM bridge_split_out_scag
-
 ----------------------------------------------------------
--- (4) need macro for mode_full, type_of_service_full 
+-- (4) need macro for mode_full, type_of_service_full
 -- remove seeds: https://github.com/cal-itp/data-infra/blob/main/warehouse/seeds/ntd_modes_to_full_names.csv
 -- use macro and put all NTD classifying together
 -- fct_complete_monthly_ridership_with_adjustments_and_estimates has some service_type classification for fixed_route/demand_response
