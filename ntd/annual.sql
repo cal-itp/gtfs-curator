@@ -222,4 +222,33 @@ agency_identifiers AS (
 SELECT * FROM agency_identifiers
 
 ----------------------------------------------------------
+-- (3) crosswalk for ntd_id to bridge's ntd_id_2022 for portfolio deploy
 ----------------------------------------------------------
+WITH bridge AS (
+    SELECT
+        --schedule_gtfs_dataset_name,
+        --analysis_name,
+        organization_name,
+        ntd_id_2022,
+        county_geography_name,
+        rtpa_name,
+    FROM `cal-itp-data-infra.mart_transit_database.bridge_gtfs_analysis_name_x_ntd`
+    --{{ ref('bridge_gtfs_analysis_name_x_ntd') }}
+),
+
+bridge_split_out_scag AS (
+    SELECT
+        *,
+        CASE
+            WHEN county_geography_name = "Ventura" THEN "Ventura County Transportation Commission"
+            WHEN county_geography_name = "Los Angeles" THEN "Los Angeles County Metropolitan Transportation Authority"
+            WHEN county_geography_name = "San Bernardino" THEN "San Bernardino County Transportation Authority"
+            WHEN county_geography_name = "Riverside" THEN "Riverside County Transportation Commission"
+            WHEN county_geography_name = "Orange" THEN "Orange County Transportation Authority"
+            WHEN county_geography_name = "Imperial" THEN "Imperial County Transportation Commission"
+            ELSE rtpa_name
+        END AS rtpa_name
+    FROM bridge
+)
+
+SELECT * FROM bridge_split_out_scag
