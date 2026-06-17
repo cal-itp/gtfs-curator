@@ -6,6 +6,7 @@
 -- what's there: noticed that intermediate tables all use `dim_agency_information`
 -- what I want to change: combine the intermediate tables, then bring in dim_agency_information, and filter out bad keys
 ----------------------------------------------------------
+
 WITH int_upt AS (
     SELECT *
     FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_by_mode_upt` 
@@ -114,22 +115,12 @@ service_data_and_operating_expenses_time_series_by_mode AS (
         int_fares.fares AS fare_revenue,
     
         -- check these
-        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_vrh.vrh), 2) AS opex_per_vrh, -- should these be inflation-adjusted?
-        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_vrm.vrm, 2) AS opex_per_vrm,
-        ROUND(SAFE_DIVIDE(int_total.opexp_total, int_upt.upt, 2) AS opex_per_upt,
-        ROUND(SAFE_DIVIDE(int_upt.upt, int_vrh.vrh, 2) AS upt_per_vrh,
-        ROUND(SAFE_DIVIDE(int_upt.upt, int_vrm.vrm, 2) AS upt_per_vrm,
-        --ROUND(SAFE_DIVIDE(int_upt.fares, int_vrm.opexp_total, 2) AS farebox_recovery_ratio, 
-
-        --TODO add change and percent change from 1 year ago (upt)
-        --LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
-        upt - LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
-        ROUND(SAFE_DIVIDE(
-            (upt - LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)),
-            LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)
-        ), 4) AS upt_pct_change_1yr,
-    
-        -- add mode_full (mode's full name) and service_full (type_of_service mapped)
+        SAFE_DIVIDE(int_total.opexp_total, int_vrh.vrh) AS opex_per_vrh, 
+        SAFE_DIVIDE(int_total.opexp_total, int_vrm.vrm) AS opex_per_vrm,
+        SAFE_DIVIDE(int_total.opexp_total, int_upt.upt) AS opex_per_upt,
+        SAFE_DIVIDE(int_upt.upt, int_vrh.vrh) AS upt_per_vrh,
+        SAFE_DIVIDE(int_upt.upt, int_vrm.vrm) AS upt_per_vrm,
+        SAFE_DIVIDE(int_fares.fares, int_total.opexp_total) AS farebox_recovery_ratio, 
     
         int_agency_information.agency_status,
         int_agency_information.census_year,
@@ -158,10 +149,21 @@ service_data_and_operating_expenses_time_series_by_mode AS (
     LEFT JOIN int_total USING (key)
     LEFT JOIN int_fares USING (key)
     LEFT JOIN int_agency_information USING (key)
-)
+),
 
 fct_service_data_and_operating_expenses_time_series_by_mode AS (
-    SELECT * 
+    SELECT 
+      *, 
+      LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
+      unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
+      ROUND(SAFE_DIVIDE(
+          (unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)),
+          LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)
+      ), 4) AS upt_pct_change_1yr,
+  
+      -- add mode_full (mode's full name) and service_full (type_of_service mapped)
+      --{{ generate_ntd_mode_full_name('mode') }} AS mode_full_name,
+      --{{ generate_ntd_mode_type_of_service_full_name('type_of_service') }} AS type_of_service_full_name,
     FROM service_data_and_operating_expenses_time_series_by_mode
     WHERE key NOT IN ('e41f3812655066d28ec4bbc851545517','f5f160d19e3753e3a99d9ad55b4f2210','7d3e30725b3fa42c6d1722308f9cc855',
     'da108425cb2696446aa1017bca72340f','a31019318eddb35b747ab79470e10017','98692053a5a16aae8ef8e2579f19b8a3',
@@ -171,7 +173,6 @@ fct_service_data_and_operating_expenses_time_series_by_mode AS (
 )
 
 SELECT * FROM fct_service_data_and_operating_expenses_time_series_by_mode
-
 -- step 1 sanity check: 
 -- do all the left joins work? do any rows drop? if nothing, can it be inner join? (did both left and inner join, and both got 47_820 rows)
 -- the keys are dbt_utils.generate_surrogate_key(['ntd_id', 'year', 'mode', 'type_of_service']) }}
@@ -276,3 +277,48 @@ bridge_split_out_scag AS (
 )
 
 SELECT * FROM bridge_split_out_scag
+
+----------------------------------------------------------
+-- (4) need macro for mode_full, type_of_service_full 
+-- remove seeds: https://github.com/cal-itp/data-infra/blob/main/warehouse/seeds/ntd_modes_to_full_names.csv
+-- use macro and put all NTD classifying together
+-- fct_complete_monthly_ridership_with_adjustments_and_estimates has some service_type classification for fixed_route/demand_response
+----------------------------------------------------------
+{% macro generate_ntd_mode_full_name(mode_abbrev_column) %}
+    CASE
+        WHEN {{ mode_abbrev_column }} == "AG" THEN "Automated Guideway"
+        WHEN {{ mode_abbrev_column }} == "AR" THEN "Alaska Railroad"
+        WHEN {{ mode_abbrev_column }} == "CB"THEN "Commuter Bus"
+        WHEN {{ mode_abbrev_column }} == "CC" THEN "Cable Car"
+        WHEN {{ mode_abbrev_column }} == "CR" THEN "Commuter Rail"
+        WHEN {{ mode_abbrev_column }} == "DR" THEN "Demand Response"
+        WHEN {{ mode_abbrev_column }} == "DT" THEN "Demand Response Taxi"
+        WHEN {{ mode_abbrev_column }} == "FB" THEN "Ferryboat"
+        WHEN {{ mode_abbrev_column }} == "HR" THEN "Heavy Rail"
+        WHEN {{ mode_abbrev_column }} == "IP" THEN "Inclined Plane"
+        WHEN {{ mode_abbrev_column }} == "JT" THEN "Jitney"
+        WHEN {{ mode_abbrev_column }} == "LR" THEN "Light Rail"
+        WHEN {{ mode_abbrev_column }} == "MB" THEN "Motor Bus"
+        WHEN {{ mode_abbrev_column }} == "MG" THEN "Monorail / Automated Guideway" -- monorail/motorguideway
+        WHEN {{ mode_abbrev_column }} == "MO" THEN "Monorail"
+        WHEN {{ mode_abbrev_column }} == "PB" THEN "Publico"
+        WHEN {{ mode_abbrev_column }} == "RB" THEN "Bus Rapid Transit"
+        WHEN {{ mode_abbrev_column }} == "SR" THEN "Streetcar"
+        WHEN {{ mode_abbrev_column }} == "TB" THEN "Trolleybus"
+        WHEN {{ mode_abbrev_column }} == "TR" THEN "Aerial Tramway"
+        WHEN {{ mode_abbrev_column }} == "VP" THEN "Vanpool"
+        WHEN {{ mode_abbrev_column }} == "YR" THEN "Hybrid Rail"
+        ELSE "unknown"
+    END
+
+{% endmacro %}
+
+{% macro generate_ntd_mode_type_of_service_full_name(type_of_service_column) %}
+    CASE
+        WHEN {{ type_of_service_column }} == "DO" THEN "Directly Operated"
+        WHEN {{ type_of_service_column }} == "PT" THEN "Purchased Transportation"
+        WHEN {{ type_of_service_column }} == "TN" THEN "Purchased Transportation - Transportation Network Company"
+        WHEN {{ type_of_service_column }} == "TX" THEN "Purchased Transportation - Taxi"
+    END
+
+{% endmacro %}
