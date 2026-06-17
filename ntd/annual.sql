@@ -121,6 +121,16 @@ service_data_and_operating_expenses_time_series_by_mode AS (
         ROUND(SAFE_DIVIDE(int_upt.upt, int_vrm.vrm, 2) AS upt_per_vrm,
         --ROUND(SAFE_DIVIDE(int_upt.fares, int_vrm.opexp_total, 2) AS farebox_recovery_ratio, 
 
+        --TODO add change and percent change from 1 year ago (upt)
+        --LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
+        upt - LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
+        ROUND(SAFE_DIVIDE(
+            (upt - LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)),
+            LAG(upt) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)
+        ), 4) AS upt_pct_change_1yr,
+    
+        -- add mode_full (mode's full name) and service_full (type_of_service mapped)
+    
         int_agency_information.agency_status,
         int_agency_information.census_year,
         int_agency_information.last_report_year,
