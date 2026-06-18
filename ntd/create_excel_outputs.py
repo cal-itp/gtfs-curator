@@ -39,22 +39,22 @@ def monthly_report_by_rtpa(
         "Tos Full": "Type of Service Full Name",
     }
     for one_rtpa in df.rtpa.unique():
-        rtpa_snakecase = 
+        rtpa_snakecase =
         by_agency = aggregate_by_agency(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
         by_mode = aggregate_by_mode(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
         by_tos = aggregate_by_tos(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-      
+
         with pd.ExcelWriter(f"./{indiv_excel_filename}/{rtpa_snakecase}.xlsx", mode="a") as writer:
             df[df.rtpa==one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
             by_agency.to_excel(writer, sheet_name="Aggregated by Agency", index=False)
             by_mode.to_excel(writer, sheet_name="Aggregated by Mode", index=False)
             by_tos.to_excel(writer, sheet_name="Aggregated by TOS", index=False)
-    
+
 	zip_excel(output_file_name)
     upload_to_gcs()
-    publish_to_public_gcs()   
+    publish_to_public_gcs()
 	remove_local_outputs()
-    
+
     return
 
 def annual_report_by_rtpa(
@@ -70,20 +70,20 @@ def annual_report_by_rtpa(
 
     excel_output_foldername = f"{indiv_excel_filename}_annual_report_data"
 	annual_col_dict = {"source_agency": "agency", "type_of_service": "tos"}
-    
+
 	for one_rtpa in df.rtpa.unique():
-        rtpa_snakecase = 
+        rtpa_snakecase =
         by_agency = aggregate_by_agency(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
         by_mode = aggregate_by_mode(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
         by_tos = aggregate_by_tos(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-      
+
         with pd.ExcelWriter(f"./{indiv_excel_filename}/{rtpa_snakecase}.xlsx", mode="a") as writer:
             df[df.rtpa==one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
             by_agency.to_excel(writer, sheet_name="Aggregated by Agency", index=False)
             by_mode.to_excel(writer, sheet_name="Aggregated by Mode", index=False)
             by_tos.to_excel(writer, sheet_name="Aggregated by TOS", index=False)
             by_reporter_type.to_excel(writer, sheet_name="Aggregated by Reporter Type", index=False)
-    
+
     zip_excel(output_file_name)
     upload_to_gcs()
     publish_to_public_gcs()
@@ -98,9 +98,8 @@ def zip_excel(output_file_name):
 def upload_to_gcs():
     fs.upload(f"./{output_file_name}.zip", f"{update_vars.GCS_FILE_PATH}{year}_{month}.zip")
     return
-    
+
 def publish_to_public_gcs():
-    
+
     fs.upload(f"./{output_file_name}.zip", f"{PUBLIC_GCS}ntd_monthly_ridership/{year}_{month}.zip")
     return
-   
