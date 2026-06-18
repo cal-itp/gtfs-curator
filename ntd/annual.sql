@@ -85,6 +85,11 @@ int_agency_information AS (
     FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.int_ntd__service_data_and_operating_expenses_time_series_agency_identifiers`
 ),
 
+ntd_rtpa_bridge AS (
+    SELECT *
+    FROM `cal-itp-data-infra-staging.tiffany_mart_ntd_explore.ntd_rtpa_crosswalk`
+),
+
 service_data_and_operating_expenses_time_series_by_mode AS (
     SELECT
         COALESCE(int_upt.key, int_vrh.key, int_vrm.key, int_voms.key, int_pmt.key, int_drm.key,
@@ -153,22 +158,27 @@ service_data_and_operating_expenses_time_series_by_mode AS (
 
 fct_service_data_and_operating_expenses_time_series_by_mode AS (
     SELECT
-      *,
-      LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
-      unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
-      ROUND(SAFE_DIVIDE(
+        *,
+        LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_prior_year,
+        unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR) AS upt_change_1yr,
+        ROUND(SAFE_DIVIDE(
           (unlinked_passenger_trips - LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)),
           LAG(unlinked_passenger_trips) OVER (PARTITION BY ntd_id, mode, type_of_service ORDER BY YEAR)
-      ), 4) AS upt_pct_change_1yr,
+        ), 4) AS upt_pct_change_1yr,
+        -- add mode_full (mode's full name) and service_full (type_of_service mapped)
+        --{{ generate_ntd_mode_full_name('mode') }} AS mode_full_name,
+        --{{ generate_ntd_type_of_service_full_name('type_of_service') }} AS type_of_service_full_name,
+        --{{ generate_ntd_mode_service_type('mode') }} AS service_type, -- this one is used in monthly ridership, tag it here too
 
-      -- add mode_full (mode's full name) and service_full (type_of_service mapped)
-      --{{ generate_ntd_mode_full_name('mode') }} AS mode_full_name,
-      --{{ generate_ntd_mode_type_of_service_full_name('type_of_service') }} AS type_of_service_full_name,
+        ntd_rtpa_bridge.* EXCEPT(ntd_id_2022)
+
     FROM service_data_and_operating_expenses_time_series_by_mode
+    LEFT JOIN ntd_rtpa_bridge
+        ON service_data_and_operating_expenses_time_series_by_mode.ntd_id = bridge.ntd_id_2022
     WHERE key NOT IN ('e41f3812655066d28ec4bbc851545517','f5f160d19e3753e3a99d9ad55b4f2210','7d3e30725b3fa42c6d1722308f9cc855',
-    'da108425cb2696446aa1017bca72340f','a31019318eddb35b747ab79470e10017','98692053a5a16aae8ef8e2579f19b8a3',
-    'd6809f84a9d19808f8b1f013fc1cd537','c3ae0b0299c10ffa25e1193404762136','564993fcc3a920cc0800005f3af9fd73',
-    '73f01d2aa1c268ec1dafbcf1fdaa84fc','5b13563073a95faa05c9da4f77c0b3a8','0fab2ef186a2a74edc98d16427d4d61a'
+        'da108425cb2696446aa1017bca72340f','a31019318eddb35b747ab79470e10017','98692053a5a16aae8ef8e2579f19b8a3',
+        'd6809f84a9d19808f8b1f013fc1cd537','c3ae0b0299c10ffa25e1193404762136','564993fcc3a920cc0800005f3af9fd73',
+        '73f01d2aa1c268ec1dafbcf1fdaa84fc','5b13563073a95faa05c9da4f77c0b3a8','0fab2ef186a2a74edc98d16427d4d61a'
     )
 )
 
@@ -256,6 +266,9 @@ WITH bridge AS (
         ntd_id_2022,
         county_name,
         rtpa_name,
+        caltrans_district,
+        caltrans_district_name,
+        caltrans_district_full
     FROM `cal-itp-data-infra.mart_transit_database.bridge_gtfs_analysis_name_x_ntd`
     WHERE ntd_id_2022 IS NOT NULL AND rtpa_name IS NOT NULL
     --{{ ref('bridge_gtfs_analysis_name_x_ntd') }}
