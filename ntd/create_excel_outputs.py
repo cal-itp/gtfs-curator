@@ -69,8 +69,9 @@ def annual_report_by_rtpa(
     geography_cols = ["rtpa_name_split"]
 
     excel_output_foldername = f"{indiv_excel_filename}_annual_report_data"
-
-    for one_rtpa in df.rtpa.unique():
+	annual_col_dict = {"source_agency": "agency", "type_of_service": "tos"}
+    
+	for one_rtpa in df.rtpa.unique():
         rtpa_snakecase = 
         by_agency = aggregate_by_agency(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
         by_mode = aggregate_by_mode(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
