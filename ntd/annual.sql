@@ -312,7 +312,7 @@ SELECT * FROM bridge_split_out_scag
 
 {% endmacro %}
 
-{% macro generate_ntd_mode_type_of_service_full_name(type_of_service_column) %}
+{% macro generate_ntd_type_of_service_full_name(type_of_service_column) %}
     CASE
         WHEN {{ type_of_service_column }} == "DO" THEN "Directly Operated"
         WHEN {{ type_of_service_column }} == "PT" THEN "Purchased Transportation"
@@ -320,4 +320,14 @@ SELECT * FROM bridge_split_out_scag
         WHEN {{ type_of_service_column }} == "TX" THEN "Purchased Transportation - Taxi"
     END
 
+{% endmacro %}
+
+
+{% macro generate_ntd_mode_service_type(mode_abbrev_column) %}
+    CASE
+        WHEN {{ mode_abbrev_column }} IN ('AG', 'AR', 'CB', 'CC', 'CR', 'FB', 'HR', 'IP', 'IP', 'LR', 'MB', 'MG', 'MO', 'RB', 'SR', 'TB', 'TR', 'YR')
+            THEN "Fixed Route"
+        WHEN {{ mode_abbrev_column }} IN ('DR', 'DT', 'VP', 'JT', 'PB') THEN 'Demand Response'
+        ELSE "Unknown" -- mode is null sometimes
+    END
 {% endmacro %}
