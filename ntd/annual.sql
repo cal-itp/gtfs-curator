@@ -304,6 +304,7 @@ orgs_with_geog AS (
     GROUP BY organization_source_record_id
 ),
 
+-- annual model will still break LA up into LACMTA and LA County DPW and won't use SCAG
 bridge_split_out_scag AS (
     SELECT
         *,
@@ -317,6 +318,8 @@ bridge_split_out_scag AS (
             ELSE rtpa_name
         END AS rtpa_name_split
     FROM orgs_with_geog
+    WHERE ntd_id_2022 IS NOT NULL
+    -- remove orgs that do not have ntd_id populated
 )
 
 SELECT * FROM bridge_split_out_scag
