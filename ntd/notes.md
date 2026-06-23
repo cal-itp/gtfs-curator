@@ -46,6 +46,19 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
    * Loop through RTPAs to create Excel worksheet for each
 1. Upload to public GCS
 
+### Sanity Check Notes
+* Use `rtpa_name_split` + a bit extra to get annual RTPA list set up (this list is different than monthly RTPA list, LACDPW (LA County Dept of Public Works) is split out from LA Metro / LA County overall)
+* One NTD that needed to be included in LACDPW wasn't in there before, and was still sorted into LA Metro, this is the difference from existing, but this is correct
+   * `Los Angeles County - Department of Public Works, Transit Operations, East Los Angeles MB and DR`
+   * due to variety of how these strings show up, use 2 different ways to tag LADPW rows and re-categorize.
+   * **validated all other results**, upt values for indiv agencies match, sum of upt by RTPA, sum of agencies by RTPA match
+* Use new bridge table to be crosswalk - do not start with GTFS operators, because this will filter out NTD agencies if they don't have GTFS
+   * Use very similar crosswalk as `bridge_gtfs_analysis_name_x_ntd` (universe of GTFS operators, bring in NTD IDs for those). Adapt it.
+   * NTD bridge will be universe of NTD ID agencies, label it with necessary columns, add as much RTPA cleaning as possible
+* **TODO**
+   * add macros and get the columns that are needed into dbt model ahead of time - columns are either created or renamed 3 or 4 times, streamline this and remove need for dictionary to map full names
+   * identify which columns belong to annual report vs UCLA report, these share same model now
+
 ## UCLA NTD Performance Metrics
 1. annual operating expenses (agency-mode grain data): `mart_ntd_funding_and_expenses.fct_service_data_and_operating_expenses_time_series_by_mode_opexp_total`
    * filter for years (2018-), state (CA) using UZA, non-nulls
