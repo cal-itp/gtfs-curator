@@ -46,6 +46,19 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
    * Loop through RTPAs to create Excel worksheet for each
 1. Upload to public GCS
 
+### Sanity Check Notes
+* Use `rtpa_name_split` + a bit extra to get annual RTPA list set up (this list is different than monthly RTPA list, LACDPW (LA County Dept of Public Works) is split out from LA Metro / LA County overall)
+* One NTD that needed to be included in LACDPW wasn't in there before, and was still sorted into LA Metro, this is the difference from existing, but this is correct
+   * `Los Angeles County - Department of Public Works, Transit Operations, East Los Angeles MB and DR`
+   * due to variety of how these strings show up, use 2 different ways to tag LADPW rows and re-categorize.
+   * **validated all other results**, upt values for indiv agencies match, sum of upt by RTPA, sum of agencies by RTPA match
+* Use new bridge table to be crosswalk - do not start with GTFS operators, because this will filter out NTD agencies if they don't have GTFS
+   * Use very similar crosswalk as `bridge_gtfs_analysis_name_x_ntd` (universe of GTFS operators, bring in NTD IDs for those). Adapt it.
+   * NTD bridge will be universe of NTD ID agencies, label it with necessary columns, add as much RTPA cleaning as possible
+* **TODO**
+   * add macros and get the columns that are needed into dbt model ahead of time - columns are either created or renamed 3 or 4 times, streamline this and remove need for dictionary to map full names
+   * identify which columns belong to annual report vs UCLA report, these share same model now
+
 ## UCLA NTD Performance Metrics
 1. annual operating expenses (agency-mode grain data): `mart_ntd_funding_and_expenses.fct_service_data_and_operating_expenses_time_series_by_mode_opexp_total`
    * filter for years (2018-), state (CA) using UZA, non-nulls
@@ -65,10 +78,32 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
         'vrm':"Vehicle Revenue Miles",
         'vrh':"Vehicle Revenue Hours",
         'opexp_total':"Operating Expense Total",
-        'opex_per_vrh':"Operating Expense per Vehicle Revenue Hours",
-        'opex_per_vrm':"Operating Expense per Vehicle Revenue Miles",
+        'opex_per_vrh':"Operating Expense per Vehicle Revenue Hours", #cost-efficiency
+        'opex_per_vrm':"Operating Expense per Vehicle Revenue Miles", #cost-efficiency
+        #opex_per_vehicle_trip (denominator is GTFS trips) # cost-efficiency
         'opex_per_upt':"Operating Expense per Unlinked Passenger Trips",
-        'upt_per_vrh':"Unlinked Passenger Trips per Vehicle Revenue Hours",
-        'upt_per_vrm':"Unlinked Passenger Trips per Vehicle Revenue Miles",
+        'upt_per_vrh':"Unlinked Passenger Trips per Vehicle Revenue Hours", #service-effectiveness
+        'upt_per_vrm':"Unlinked Passenger Trips per Vehicle Revenue Miles", #service-effectiveness
+         #farebox recovery ratio = fares_revenue/opex
     }
-   ```
+    ```
+
+## Our Warehouse
+* A bunch of these, but can't really distinguish the difference beyond topics, which one is annual and are all the rest monthly?:
+   * `mart_ntd`
+   * `mart_ntd_ridership`
+   * `mart_ntd_annual_reporting`
+   * `mart_ntd_safety_and_security`
+   * `mart_ntd_funding_and_expenses` (some service stuff we want is here, and it's annual?)
+     * Excel workbook with time-series is source: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2
+      * Each sheet is upt, vrm, vrh, etc, and reflected in own intermediate and fct table
+   * `mart_ntd_assets`
+* https://data.transportation.gov/Public-Transit/NTD-Annual-Data-View-Operating-Expenses-by-Functio/i5ki-dc58/about_data
+* Expenses by function:
+   * `vo` = vehicle_operations
+   * `vm` = vehicle_maintenance
+   * `fm` = facilities_maintenance
+   * `ga` = general_administration
+   * `nvm` = non_vehicle_maintenance?
+   * `fares`
+   * `total`
