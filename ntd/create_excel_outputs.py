@@ -10,14 +10,19 @@ save_rtpa_outputs():
    - annual: 5 sheets: full df, by_agency, by_mode, by_tos, by_reporter_type
    - both: zip Excel workbook, need public_filename, cover_sheet, upload, remove_local_outputs
 """
+
 import pandas as pd
+
+
+def snakecase_function(my_string):
+    return
 
 
 def monthly_report_by_rtpa(
     df,
-    cover_sheet_path = "cover_sheet_template.xlsx",
-    cover_sheet_index_col = "**NTD Monthly Ridership by RTPA**"
-    indiv_excel_filename = f"{update_vars.YEAR}_{update_vars.MONTH}",
+    cover_sheet_path="cover_sheet_template.xlsx",
+    cover_sheet_index_col="**NTD Monthly Ridership by RTPA**",
+    indiv_excel_filename=f"{update_vars.YEAR}_{update_vars.MONTH}",
 ):
     time_cols = ["period_year", "period_month", "period_year_month", "month_first_day"]
     previous_upt_col = "previous_y_m_upt"
@@ -39,29 +44,30 @@ def monthly_report_by_rtpa(
         "Tos Full": "Type of Service Full Name",
     }
     for one_rtpa in df.rtpa.unique():
-        rtpa_snakecase =
-        by_agency = aggregate_by_agency(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-        by_mode = aggregate_by_mode(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-        by_tos = aggregate_by_tos(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
+        rtpa_snakecase = snakecase_function(one_rtpa)
+        by_agency = aggregate_by_agency(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
+        by_mode = aggregate_by_mode(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
+        by_tos = aggregate_by_tos(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
 
         with pd.ExcelWriter(f"./{indiv_excel_filename}/{rtpa_snakecase}.xlsx", mode="a") as writer:
-            df[df.rtpa==one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
+            df[df.rtpa == one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
             by_agency.to_excel(writer, sheet_name="Aggregated by Agency", index=False)
             by_mode.to_excel(writer, sheet_name="Aggregated by Mode", index=False)
             by_tos.to_excel(writer, sheet_name="Aggregated by TOS", index=False)
 
-	zip_excel(output_file_name)
+    zip_excel(output_file_name)
     upload_to_gcs()
     publish_to_public_gcs()
-	remove_local_outputs()
+    remove_local_outputs()
 
     return
 
+
 def annual_report_by_rtpa(
     df,
-    cover_sheet_path = "annual_cover_sheet_template.xlsx",
-    cover_sheet_index_col = "**NTD Annual Ridership by RTPA**"
-    indiv_excel_filename = f"{update_vars.YEAR}_{update_vars.MONTH}",
+    cover_sheet_path="annual_cover_sheet_template.xlsx",
+    cover_sheet_index_col="**NTD Annual Ridership by RTPA**",
+    indiv_excel_filename=f"{update_vars.YEAR}_{update_vars.MONTH}",
 ):
     time_cols = ["year"]
     previous_upt_col = "previous_y_upt"
@@ -69,16 +75,16 @@ def annual_report_by_rtpa(
     geography_cols = ["rtpa_name_split"]
 
     excel_output_foldername = f"{indiv_excel_filename}_annual_report_data"
-	annual_col_dict = {"source_agency": "agency", "type_of_service": "tos"}
+    annual_col_dict = {"source_agency": "agency", "type_of_service": "tos"}
 
-	for one_rtpa in df.rtpa.unique():
-        rtpa_snakecase =
-        by_agency = aggregate_by_agency(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-        by_mode = aggregate_by_mode(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
-        by_tos = aggregate_by_tos(df[df.rtpa==one_rtpa], previous_upt_col, time_cols, geography_cols)
+    for one_rtpa in df.rtpa.unique():
+        rtpa_snakecase = snakecase_function(one_rtpa)
+        by_agency = aggregate_by_agency(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
+        by_mode = aggregate_by_mode(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
+        by_tos = aggregate_by_tos(df[df.rtpa == one_rtpa], previous_upt_col, time_cols, geography_cols)
 
         with pd.ExcelWriter(f"./{indiv_excel_filename}/{rtpa_snakecase}.xlsx", mode="a") as writer:
-            df[df.rtpa==one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
+            df[df.rtpa == one_rtpa].to_excel(writer, sheet_name="RTPA Ridership", index=False)
             by_agency.to_excel(writer, sheet_name="Aggregated by Agency", index=False)
             by_mode.to_excel(writer, sheet_name="Aggregated by Mode", index=False)
             by_tos.to_excel(writer, sheet_name="Aggregated by TOS", index=False)
@@ -87,7 +93,7 @@ def annual_report_by_rtpa(
     zip_excel(output_file_name)
     upload_to_gcs()
     publish_to_public_gcs()
-	remove_local_outputs()
+    remove_local_outputs()
     return
 
 
@@ -95,9 +101,11 @@ def zip_excel(output_file_name):
     shutil.make_archive(f"./{output_file_name}", "zip", output_file_name)
     return
 
+
 def upload_to_gcs():
     fs.upload(f"./{output_file_name}.zip", f"{update_vars.GCS_FILE_PATH}{year}_{month}.zip")
     return
+
 
 def publish_to_public_gcs():
 
