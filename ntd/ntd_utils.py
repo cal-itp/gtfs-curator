@@ -27,8 +27,8 @@ def aggregate_by_agency(df, previous_upt_col, time_cols, geography_cols):
     return (
         sum_by_group_new(
             df,
-            group_cols=["ntd_id", "agency"] + time_cols + geography_cols,
-            sum_cols=["upt", previous_upt_col, "change_1yr"],
+            group_cols=["ntd_id", "source_agency"] + time_cols + geography_cols,
+            sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
         .sort_values(time_cols + geography_cols + ["ntd_id"])
@@ -41,7 +41,7 @@ def aggregate_by_mode(df, previous_upt_col, time_cols, geography_cols):
         sum_by_group_new(
             df,
             group_cols=["mode", "mode_full_name"] + time_cols + geography_cols,
-            sum_cols=["upt", previous_upt_col, "change_1yr"],
+            sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
         .sort_values(time_cols + geography_cols + ["mode"])
@@ -54,7 +54,7 @@ def aggregate_by_tos(df, previous_upt_col, time_cols, geography_cols):
         sum_by_group_new(
             df,
             group_cols=["type_of_service", "type_of_service_full_name"] + time_cols + geography_cols,
-            sum_cols=["upt", previous_upt_col, "change_1yr"],
+            sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
         .sort_values(time_cols + geography_cols + ["type_of_service"])
@@ -67,9 +67,53 @@ def aggregate_by_reporter_type(df, previous_upt_col, time_cols, geography_cols):
         sum_by_group_new(
             df,
             group_cols=["reporter_type"] + time_cols + geography_cols,
-            sum_cols=["upt", previous_upt_col, "change_1yr"],
+            sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
         .sort_values(time_cols + geography_cols + ["reporter_type"])
         .reset_index(drop=True)
     )
+
+
+def extra_annual_rtpa_splitting(row):
+    """
+    Replace LA County Public Works agencies with their own RTPA
+    For SCAG, use rtpa_name_split that mirrors each county.
+    """
+    # previously, used list to tag, but one NTD ID: 90271 was missing
+    # use string to tag instead for resiliency
+    # Los Angeles County - Department of Public Works, Transit Operations, East Los Angeles MB and DR
+    # this was previously part of LACMTA, so now counts willl differ
+    # lacdpw_list = [
+    #    "90269", "90270", "90272", "90273", "90274",
+    #    "90275", "90276", "90277", "90278", "90279",
+    # ]
+
+    # use 2 conditions to tag, since string can show with LACDPW before hyphen
+    if ("Los Angeles County - Department of Public Works" in row.source_agency) or ("LACDPW" in row.source_agency):
+        return "Los Angeles County Department of Public Works"
+    elif row.rtpa_name == "Southern California Association of Governments":
+        return row.rtpa_name_split
+    else:
+        return row.rtpa_name
+
+
+# Define color palette here - easier to switch to DDS ones
+# if needed, without importing yet another dependency
+CALITP_CATEGORY_BRIGHT_COLORS = [
+    "#2EA8CE",  # darker blue
+    "#EB9F3C",  # orange
+    "#F4D837",  # yellow
+    "#51BF9D",  # green
+    "#8CBCCB",  # lighter blue
+    "#9487C0",  # purple
+]
+
+CALITP_CATEGORY_BOLD_COLORS = [
+    "#136C97",  # darker blue
+    "#E16B26",  # orange
+    "#F6BF16",  # yellow
+    "#00896B",  # green
+    "#7790A3",  # lighter blue
+    "#5B559C",  # purple
+]
