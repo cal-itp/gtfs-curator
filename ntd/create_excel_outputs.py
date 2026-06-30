@@ -2,17 +2,12 @@
 Functions for exporting Excel files
 """
 
-import os
 import shutil
 from pathlib import Path
 
 import gcsfs
 import pandas as pd
-from gtfs_curator_utils import publish_utils
 from update_vars import GCS_FILE_PATH
-
-PUBLIC_GCS = "gs://calitp-publish-data-analysis/"
-fs = gcsfs.GCSFileSystem()
 
 
 def readable_rtpa(rtpa_name: str) -> str:
@@ -84,6 +79,7 @@ def export_aggregations_as_excel_sheets(report_aggregation, rtpa_excel_filename,
             )
 
     return
+
 
 def zip_excel(output_file_name):
     shutil.make_archive(f"./{output_file_name}", "zip", output_file_name)
