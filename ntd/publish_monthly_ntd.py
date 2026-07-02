@@ -58,12 +58,13 @@ def monthly_report_by_rtpa(
 
     fs.put(f"{excel_output_foldername}.zip", f"{GCS_FILE_PATH}publish/{excel_output_foldername}.zip")
 
-    # os.remove(f"{excel_output_foldername}.zip")
+    os.remove(f"{excel_output_foldername}.zip")
 
-    # publish_utils.write_to_public_gcs(
-    #    f"{GCS_FILE_PATH}publish/{excel_output_foldername}.zip",
-    #    f"ntd_monthly_ridership/{excel_output_foldername}",  # what is the name of this file in public bucket?
-    #    excel_utils.PUBLIC_GCS,
+    publish_utils.write_to_public_gcs(
+        f"{GCS_FILE_PATH}publish/{excel_output_foldername}.zip",
+        f"ntd_monthly_ridership/{excel_output_foldername}",  # what is the name of this file in public bucket?
+        excel_utils.PUBLIC_GCS,
+    )
     return
 
 
