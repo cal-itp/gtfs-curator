@@ -13,6 +13,47 @@ from update_vars import GCS_FILE_PATH
 PUBLIC_GCS = "gs://calitp-publish-data-analysis/"
 fs = gcsfs.GCSFileSystem()
 
+# list columns to keep for Excel, in order they should appear
+ANNUAL_COLS = [
+    # NTD identifier columns
+    "source_agency",
+    "ntd_id",
+    "year",
+    "mode",
+    "mode_full_name",
+    "type_of_service",
+    "type_of_service_full_name",
+    "reporter_type",
+    "agency_status",
+    "primary_uza_name",
+    # metric cols
+    "upt",
+    "upt_prior_year",
+    "upt_change_1yr",
+    "upt_pct_change_1yr",
+    # RTPA
+    "rtpa_name_split",
+]
+
+"""
+this is the order in Excel
+    agency_name
+    agency_status
+    ntd_id
+    primary_uza_name
+    reporter_type
+    mode
+    service
+    year
+    upt
+    RTPA
+    previous_y_upt
+    change_1yr
+    pct_change_1yr
+    mode_full
+    service_full
+"""
+
 
 def annual_data_to_publish(report_aggregation: str = "annual"):
     """
@@ -21,15 +62,21 @@ def annual_data_to_publish(report_aggregation: str = "annual"):
     Annual ridership and UCLA performance metrics both use the same warehouse table,
     but not every column needs to be published for Excel. Only the relevant upt columns should be published.
     """
-    df = pd.read_parquet(
-        f"{GCS_FILE_PATH}{report_aggregation}_with_crosswalk.parquet", filesystem=gcsfs.GCSFileSystem()
-    ).dropna(subset="rtpa_name")
+    df = (
+        pd.read_parquet(
+            f"{GCS_FILE_PATH}{report_aggregation}_with_crosswalk.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+            columns=ANNUAL_COLS,
+        )
+        .reindex(columns=ANNUAL_COLS)
+        .dropna(subset="rtpa_name")
+    )
 
     # TODO: if this is what columns should be, then we should rename in downloaded table, when it's merged with crosswalk
     # whatever is downloaded here should be renamed already
     annual_col_dict = {"source_agency": "agency", "type_of_service": "tos"}
 
-    df = df.rename(columns=annual_col_dict).dropna(subset="rtpa_name")
+    df = df.rename(columns=annual_col_dict)  # .sort_values() sorting should be handled within aggregation
 
     return df
 
@@ -61,6 +108,7 @@ def annual_report_by_rtpa(
     )
 
     return
+
 
 if __name__ == "__main__":
 
