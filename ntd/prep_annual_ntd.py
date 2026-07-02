@@ -1,13 +1,13 @@
-""" 
+"""
 Merge annual NTD data with RTPA crosswalk.
 
 Aggregate by agency, mode, type of service, reporter_type
 and save out parquets.
 Filter these parquets in zipped Excel files.
 """
+
 import gcsfs
 import pandas as pd
-
 import prep_data_utils
 from update_vars import ANNUAL_GCS, GCS_FILE_PATH
 
@@ -52,7 +52,7 @@ def merge_ntd_with_rtpa_crosswalk(report_aggregation: str) -> pd.DataFrame:
 
     if report_aggregation == "annual":
         # for annual, use rtpa_name_split
-        df = df.assign(rtpa_name=df.apply(ntd_utils.extra_annual_rtpa_splitting, axis=1)).rename(
+        df = df.assign(rtpa_name=df.apply(prep_data_utils.extra_annual_rtpa_splitting, axis=1)).rename(
             columns={"unlinked_passenger_trips": "upt"}
         )
 
@@ -64,13 +64,13 @@ def merge_ntd_with_rtpa_crosswalk(report_aggregation: str) -> pd.DataFrame:
 def aggregate_annual_and_export(
     df: pd.DataFrame,
 ):
-    """ 
+    """
     For annual NTD data, need aggregations:
     - by agency
     - by mode
     - by type of service
     - by reporter_type (not in monthly)
-    
+
     Save exports in GCS bucket.
     - annual aggregations saved in GCS_FILE_PATH/annual
     - monthly aggregations saved in GCS_FILE_PATH/monthly
@@ -78,7 +78,7 @@ def aggregate_annual_and_export(
     - aggregations are used for easier visualizations and Excel outputs (can filter by RTPA)
     """
     # TODO: make sure groupby includes all the columns that are needed
-    # TODO: make sure sorting matches what we want in Excel 
+    # TODO: make sure sorting matches what we want in Excel
     prep_data_utils.aggregate_by_agency(
         df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa_name"]
     ).to_parquet(f"{ANNUAL_GCS}agency.parquet", filesystem=gcsfs.GCSFileSystem())
@@ -104,7 +104,7 @@ def aggregate_annual_and_export(
 if __name__ == "__main__":
 
     # Since annual and monthly NTD pipelines are run at different cadences
-    # set up different scripts. 
-    # Share structure with `prep_data_utils` 
+    # set up different scripts.
+    # Share structure with `prep_data_utils`
     df = merge_ntd_with_rtpa_crosswalk("annual")
     aggregate_annual_and_export(df)

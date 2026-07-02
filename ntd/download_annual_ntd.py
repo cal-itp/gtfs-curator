@@ -48,7 +48,7 @@ def download_ntd_crosswalk(
     dataset_name: str,
     table_name: str = "",
 ):
-    """ 
+    """
     Download bridge_ntd_x_geography,
     which labels each ntd_id with RTPA, Caltrans District, and county.
     """

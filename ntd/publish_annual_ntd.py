@@ -4,7 +4,7 @@ Publish NTD annual ridership by RTPA (this has multiple files?)
 
 import os
 
-import create_excel_outputs as excel_utils
+import excel_utils
 import gcsfs
 import pandas as pd
 from gtfs_curator_utils import publish_utils
