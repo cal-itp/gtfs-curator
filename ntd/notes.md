@@ -89,21 +89,45 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
     ```
 
 ## Our Warehouse
-* A bunch of these, but can't really distinguish the difference beyond topics, which one is annual and are all the rest monthly?:
-   * `mart_ntd`
-   * `mart_ntd_ridership`
-   * `mart_ntd_annual_reporting`
-   * `mart_ntd_safety_and_security`
-   * `mart_ntd_funding_and_expenses` (some service stuff we want is here, and it's annual?)
-     * Excel workbook with time-series is source: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2
-      * Each sheet is upt, vrm, vrh, etc, and reflected in own intermediate and fct table
-   * `mart_ntd_assets`
-* https://data.transportation.gov/Public-Transit/NTD-Annual-Data-View-Operating-Expenses-by-Functio/i5ki-dc58/about_data
-* Expenses by function:
-   * `vo` = vehicle_operations
-   * `vm` = vehicle_maintenance
-   * `fm` = facilities_maintenance
-   * `ga` = general_administration
-   * `nvm` = non_vehicle_maintenance?
-   * `fares`
-   * `total`
+A bunch of these, but can't really distinguish the difference beyond topics, which one is annual and are all the rest monthly?:
+
+1. `mart_ntd`
+2. `mart_ntd_ridership`(monthly ridership)
+
+* Excel sheet, updated monthly: https://www.transit.dot.gov/ntd/data-product/monthly-module-adjusted-data-release
+* NTD API, updated weekly: https://data.transportation.gov/Public-Transit/Complete-Monthly-Ridership-with-Adjustments-and-Es/8bui-9xvu/data_preview
+
+3. `mart_ntd_annual_reporting`
+
+Covers annual summaries, how does this fit in with the service tables in `mart_ntd_funding_and_expenses`? 
+
+4. `mart_ntd_safety_and_security`
+   
+5. `mart_ntd_funding_and_expenses`
+
+Based on the prefixes, there are at least 3 main time-series datasets covered.
+
+a. service and funding (TS2.1 - Service Data and Operating Expenses Time Series by Mode)
+   * Excel : https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2
+   * Each sheet is upt, vrm, vrh, etc, and reflected in own intermediate and fct table
+   * https://data.transportation.gov/Public-Transit/NTD-Annual-Data-View-Operating-Expenses-by-Functio/i5ki-dc58/about_data
+   * Expenses by function:
+      * `vo` = vehicle_operations
+      * `vm` = vehicle_maintenance
+      * `fm` = facilities_maintenance
+      * `ga` = general_administration
+      * `nvm` = non_vehicle_maintenance?
+      * `fares`
+      * `total`
+
+b. capital expenditures (TS3.1 - Capital Expenditures Time Series)
+   * Excel: https://www.transit.dot.gov/ntd/data-product/ts31-capital-expenditures-time-series-2
+     
+c. operating expenses (TS1.2 Operating and Capital Funding Time Series)
+   * Excel: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2 
+
+6. `mart_ntd_assets`
+
+### References
+* [2024 Publication Guide](https://www.transit.dot.gov/sites/fta.dot.gov/files/2025-10/2024%20Annual%20NTD%20Data%20Publications%20Guide.pdf)
+   * Section on `Reconciling Operating Funds Time Series 1.2 and 2.1/2.2` on why operating fund amounts might differ
