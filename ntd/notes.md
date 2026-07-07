@@ -107,7 +107,7 @@ Covers annual summaries, how does this fit in with the service tables in `mart_n
 
 Based on the prefixes, there are at least 3 main time-series datasets covered.
 
-a. service and funding (TS2.1 - Service Data and Operating Expenses Time Series by Mode)
+   a. service and funding (TS2.1 - Service Data and Operating Expenses Time Series by Mode)
    * Excel : https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2
    * Each sheet is upt, vrm, vrh, etc, and reflected in own intermediate and fct table
    * https://data.transportation.gov/Public-Transit/NTD-Annual-Data-View-Operating-Expenses-by-Functio/i5ki-dc58/about_data
@@ -120,10 +120,10 @@ a. service and funding (TS2.1 - Service Data and Operating Expenses Time Series 
       * `fares`
       * `total`
 
-b. capital expenditures (TS3.1 - Capital Expenditures Time Series)
+   b. capital expenditures (TS3.1 - Capital Expenditures Time Series)
    * Excel: https://www.transit.dot.gov/ntd/data-product/ts31-capital-expenditures-time-series-2
      
-c. operating expenses (TS1.2 Operating and Capital Funding Time Series)
+   c. operating expenses (TS1.2 Operating and Capital Funding Time Series)
    * Excel: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2 
 
 6. `mart_ntd_assets`
