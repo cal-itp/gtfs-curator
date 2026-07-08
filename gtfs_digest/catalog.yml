@@ -12,3 +12,4 @@ gtfs_digest_rollup:
   hourly_day_type_summary: "fct_operator_hourly_summary"
   ntd_profile: "ntd_profile"
   crosswalk: "crosswalk"
+  crosswalk_legislative: "crosswalk_transit_operators_legislative_districts"
