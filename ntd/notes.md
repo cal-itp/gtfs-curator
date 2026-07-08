@@ -122,10 +122,13 @@ Based on the prefixes, there are at least 3 main time-series datasets covered.
 
 **capital expenditures** (TS3.1 - Capital Expenditures Time Series)
 * Excel: https://www.transit.dot.gov/ntd/data-product/ts31-capital-expenditures-time-series-2
-     
+* couldn't find NTD API for this
+       
 **operating expenses** (TS1.2 Operating and Capital Funding Time Series)
-* Excel: https://www.transit.dot.gov/ntd/data-product/ts21-service-data-and-operating-expenses-time-series-mode-2 
-
+* Excel: https://www.transit.dot.gov/ntd/data-product/ts12-operating-funding-time-series-3
+* NTD API tables, found 2022-2024 only
+   * Federal, 3 years worth: https://data.transportation.gov/Public-Transit/2022-2024-NTD-Annual-Data-Funding-Sources-Federal-/qpjk-b3zw/about_data 
+  
 6. `mart_ntd_assets`
 
 ### References
