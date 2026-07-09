@@ -12,6 +12,6 @@ install_env:
 uv_setup_project:
 	pip install uv
 	uv init
-	#uv add package1 package2 # all defined in pyproject.toml, can copy over to future ones 
+	#uv add package1 package2 # all defined in pyproject.toml, can copy over to future ones
 	uv add _gtfs_curator_utils/
 	uv lock
