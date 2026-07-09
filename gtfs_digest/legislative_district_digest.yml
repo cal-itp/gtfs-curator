@@ -1,7 +1,7 @@
 title: Legislative District GTFS Digest
-directory: gtfs_digest
-readme: ./gtfs_digest/README.md
-notebook: gtfs_digest/report_legislative_district.ipynb
+directory: ./
+readme: README.md
+notebook: report_legislative_district.ipynb
 parts:
   - chapters:
       - params:

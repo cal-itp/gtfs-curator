@@ -1,7 +1,7 @@
 # GTFS Digest Catalog
 gcs_paths:
   GCS: gs://calitp-analytics-data/data-analyses/
-  DIGEST_GCS: ${.GCS}test_gtfs_digest/
+  DIGEST_GCS: ${.GCS}gtfs_digest/
   PUBLIC_GCS: "gs://calitp-publish-data-analysis/"
 
 gtfs_digest_rollup:
