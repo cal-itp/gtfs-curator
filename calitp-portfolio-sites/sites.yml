@@ -50,9 +50,6 @@ sites:
   - title: Thruway Bus Analysis
     name: thruway_intercity_bus
     source: ./thruway_intercity_bus/
-  - title: Test Legislative
-    name: test_two
-    source: ./gtfs_digest/
 test_sites:
   - title: Basic Analyses Test
     name: _basic_analyses_test

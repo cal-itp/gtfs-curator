@@ -99,10 +99,10 @@ A bunch of these, but can't really distinguish the difference beyond topics, whi
 
 3. `mart_ntd_annual_reporting`
 
-Covers annual summaries, how does this fit in with the service tables in `mart_ntd_funding_and_expenses`? 
+Covers annual summaries, how does this fit in with the service tables in `mart_ntd_funding_and_expenses`?
 
 4. `mart_ntd_safety_and_security`
-   
+
 5. `mart_ntd_funding_and_expenses`
 
 Based on the prefixes, there are at least 3 main time-series datasets covered.
@@ -123,12 +123,12 @@ Based on the prefixes, there are at least 3 main time-series datasets covered.
 **capital expenditures** (TS3.1 - Capital Expenditures Time Series)
 * Excel: https://www.transit.dot.gov/ntd/data-product/ts31-capital-expenditures-time-series-2
 * couldn't find NTD API for this
-       
+
 **operating expenses** (TS1.2 Operating and Capital Funding Time Series)
 * Excel: https://www.transit.dot.gov/ntd/data-product/ts12-operating-funding-time-series-3
 * NTD API tables, found 2022-2024 only
-   * Federal, 3 years worth: https://data.transportation.gov/Public-Transit/2022-2024-NTD-Annual-Data-Funding-Sources-Federal-/qpjk-b3zw/about_data 
-  
+   * Federal, 3 years worth: https://data.transportation.gov/Public-Transit/2022-2024-NTD-Annual-Data-Funding-Sources-Federal-/qpjk-b3zw/about_data
+
 6. `mart_ntd_assets`
 
 ### References

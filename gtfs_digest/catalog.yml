@@ -1,7 +1,7 @@
 # GTFS Digest Catalog
 gcs_paths:
   GCS: gs://calitp-analytics-data/data-analyses/
-  DIGEST_GCS: ${.GCS}test_gtfs_digest/
+  DIGEST_GCS: ${.GCS}gtfs_digest/
   PUBLIC_GCS: "gs://calitp-publish-data-analysis/"
 
 gtfs_digest_rollup:
@@ -12,3 +12,4 @@ gtfs_digest_rollup:
   hourly_day_type_summary: "fct_operator_hourly_summary"
   ntd_profile: "ntd_profile"
   crosswalk: "crosswalk"
+  crosswalk_legislative: "crosswalk_transit_operators_legislative_districts"
