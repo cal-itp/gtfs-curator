@@ -45,6 +45,7 @@ dependencies = [
     "vl-convert-python>=1.6.0",
     "xmltodict>=0.13.0,<0.14",
     "calitp-portfolio",
+    "pydantic==2.12.5",
 ]
 
 [tool.uv.workspace]

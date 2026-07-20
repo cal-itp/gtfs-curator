@@ -6,9 +6,13 @@ and save out parquets.
 Filter these parquets in zipped Excel files.
 """
 
+from pathlib import Path
+
 import gcsfs
 import pandas as pd
 import prep_data_utils
+from calitp_portfolio.models import load_site
+from calitp_portfolio.mutations import generate_parts_flat
 from update_vars import ANNUAL_GCS, GCS_FILE_PATH
 
 
@@ -97,6 +101,35 @@ def aggregate_annual_and_export(
     print(f"saved aggregations in {ANNUAL_GCS}")
 
 
+def generate_yaml(site_path: Path):
+    """
+    Do RTPAs show up consistently?
+    monthly / annual reports are different lists, but
+    """
+    site = load_site(site_path)
+
+    rtpa_list = (
+        pd.read_parquet(
+            f"{GCS_FILE_PATH}annual_with_crosswalk.parquet", columns=["rtpa"], filesystem=gcsfs.GCSFileSystem()
+        )
+        .dropna(subset="rtpa")
+        .rtpa.unique()
+        .tolist()
+    )
+
+    site = generate_parts_flat(
+        site,
+        param_key="rtpa",
+        values=sorted(rtpa_list),
+    )
+
+    site.write_yaml(site_path)
+
+    print(f"yaml generated at {site_path}")
+
+    return
+
+
 if __name__ == "__main__":
 
     # Since annual and monthly NTD pipelines are run at different cadences
@@ -104,3 +137,6 @@ if __name__ == "__main__":
     # Share structure with `prep_data_utils`
     df = merge_annual_ntd_with_rtpa_crosswalk("annual")
     aggregate_annual_and_export(df)
+
+    # set directory as . not ./
+    generate_yaml(Path("./ntd_annual_ridership_report.yml"))
