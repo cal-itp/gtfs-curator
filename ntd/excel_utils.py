@@ -4,6 +4,7 @@ Functions for exporting Excel files
 
 import shutil
 from pathlib import Path
+from typing import Literal
 
 import gcsfs
 import pandas as pd
@@ -11,18 +12,26 @@ from update_vars import GCS_FILE_PATH
 
 
 def readable_rtpa(rtpa_name: str) -> str:
+    """
+    Return a snakecased version of RTPA name.
+    """
     return rtpa_name.replace(" ", "_").replace("/", "_").lower()
 
 
 def import_filtered_rtpa_file(gcs_file_name: str = "", one_rtpa: str = "") -> pd.DataFrame:
+    """
+    Filter the GCS parquet by RTPA.
+    """
     df = pd.read_parquet(
-        f"{GCS_FILE_PATH}{gcs_file_name}", filesystem=gcsfs.GCSFileSystem(), filters=[[("rtpa_name", "==", one_rtpa)]]
+        f"{GCS_FILE_PATH}{gcs_file_name}", filesystem=gcsfs.GCSFileSystem(), filters=[[("rtpa", "==", one_rtpa)]]
     ).reset_index(drop=True)
 
     return df
 
 
-def insert_excel_cover_sheet(report_aggregation: str, excel_output_foldername: str, rtpa_name: str) -> str:
+def insert_excel_cover_sheet(
+    report_aggregation: Literal["annual", "monthly"], excel_output_foldername: str, rtpa_name: str
+) -> str:
     """
     Create Excel workbook for RTPA.
     Insert cover_sheet.
@@ -53,10 +62,14 @@ def insert_excel_cover_sheet(report_aggregation: str, excel_output_foldername: s
     return rtpa_excel_filename
 
 
-def export_aggregations_as_excel_sheets(report_aggregation, rtpa_excel_filename, one_rtpa: str):
+def export_aggregations_as_excel_sheets(
+    report_aggregation: Literal["annual", "monthly"], rtpa_excel_filename: str, one_rtpa: str
+):
     """
-    TODO: if these use report_aggregation, then they have to be programmatically generated in script
-    before this.
+    Add individual Excel sheets for each RTPA.
+    - full df
+    - annual: agency, mode, type of service, reporter type
+    - monthly: agency, mode, type of service
     """
     with pd.ExcelWriter(rtpa_excel_filename, mode="a") as writer:
 
@@ -78,9 +91,15 @@ def export_aggregations_as_excel_sheets(report_aggregation, rtpa_excel_filename,
                 writer, sheet_name="Aggregated by Reporter Type", index=False
             )
 
+    print(f"completed Excel exports: {rtpa_excel_filename}")
     return
 
 
-def zip_excel(output_file_name):
-    shutil.make_archive(f"./{output_file_name}", "zip", output_file_name)
+def zip_excel(excel_folder_name: str):
+    """
+    Zip the excel workbook as .zip.
+    Each RTPA as an individual Excel workbook within folder.
+    Each Excel workbook has multiple sheets.
+    """
+    shutil.make_archive(f"./{excel_folder_name}", "zip", excel_folder_name)
     return

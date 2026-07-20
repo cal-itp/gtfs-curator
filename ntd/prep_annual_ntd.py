@@ -12,26 +12,23 @@ import prep_data_utils
 from update_vars import ANNUAL_GCS, GCS_FILE_PATH
 
 
-def merge_with_crosswalk(
-    ntd_df: pd.DataFrame,
-) -> pd.DataFrame:
+def extra_annual_rtpa_splitting(row):
     """
-    Merge the NTD df with the RTPA crosswalk on ntd_id.
+    Replace LA County Public Works agencies with their own RTPA
+    For SCAG, use rtpa_name_split that mirrors each county.
     """
-    crosswalk = pd.read_parquet(
-        f"{GCS_FILE_PATH}crosswalk.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-        columns=["ntd_id_2022", "rtpa_name", "rtpa_name_split"],
-    ).rename(columns={"ntd_id_2022": "ntd_id"})
-
-    df = pd.merge(ntd_df, crosswalk, on="ntd_id", how="left")
-
-    return df
+    # use 2 conditions to tag, since string can show with LACDPW before hyphen
+    if ("Los Angeles County - Department of Public Works" in row.source_agency) or ("LACDPW" in row.source_agency):
+        return "Los Angeles County Department of Public Works"
+    elif row.rtpa_name == "Southern California Association of Governments":
+        return row.rtpa_name_split
+    else:
+        return row.rtpa_name
 
 
-def merge_ntd_with_rtpa_crosswalk(report_aggregation: str) -> pd.DataFrame:
+def merge_annual_ntd_with_rtpa_crosswalk(report_aggregation: str = "annual") -> pd.DataFrame:
     """
-    General function to prep NTD data from `mart_ntd` (TODO find annual / monthly names)
+    General function to prep NTD data from
     - script downloads dbt model and saves as monthly.parquet or annual.parquet
     - same crosswalk downloaded
     - merge NTD df with crosswalk
@@ -42,19 +39,21 @@ def merge_ntd_with_rtpa_crosswalk(report_aggregation: str) -> pd.DataFrame:
         f"{GCS_FILE_PATH}{report_aggregation}.parquet",
         # should only certain columns be read in? now this table is much larger
         filesystem=gcsfs.GCSFileSystem(),
-    ).pipe(merge_with_crosswalk)
+    ).pipe(prep_data_utils.merge_with_crosswalk)
 
-    # stuff in this section should move into dbt model
-    if report_aggregation == "monthly":
-        # source_agency is how annual dbt model refers to agency from dim_agency_information
-        # monthly should also follow that naming convention, since it's fewer models
-        df = df.rename(columns={"agency": "source_agency"})
-
-    if report_aggregation == "annual":
-        # for annual, use rtpa_name_split
-        df = df.assign(rtpa_name=df.apply(prep_data_utils.extra_annual_rtpa_splitting, axis=1)).rename(
-            columns={"unlinked_passenger_trips": "upt"}
+    # for annual, use rtpa_name_split
+    # for publishing Excel, some columns get renamed, do it all here
+    df = (
+        df.assign(rtpa=df.apply(extra_annual_rtpa_splitting, axis=1))
+        .rename(
+            columns={
+                "unlinked_passenger_trips": "upt",
+                "source_agency": "agency",
+            }
         )
+        .drop(columns=["rtpa_name", "rtpa_name_split"])
+    )
+    # can drop rtpa_name_split now, function above gets rtpa_name to split out LA into LACDPW and LA Metro
 
     df.to_parquet(f"{GCS_FILE_PATH}{report_aggregation}_with_crosswalk.parquet", filesystem=gcsfs.GCSFileSystem())
 
@@ -73,29 +72,26 @@ def aggregate_annual_and_export(
 
     Save exports in GCS bucket.
     - annual aggregations saved in GCS_FILE_PATH/annual
-    - monthly aggregations saved in GCS_FILE_PATH/monthly
     - overwrite these aggregations each time, since they're cumulative (latest date always includes all previous dates)
     - aggregations are used for easier visualizations and Excel outputs (can filter by RTPA)
     """
-    # TODO: make sure groupby includes all the columns that are needed
-    # TODO: make sure sorting matches what we want in Excel
     prep_data_utils.aggregate_by_agency(
-        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa_name"]
+        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa"]
     ).to_parquet(f"{ANNUAL_GCS}agency.parquet", filesystem=gcsfs.GCSFileSystem())
 
     prep_data_utils.aggregate_by_mode(
-        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa_name"]
+        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa"]
     ).to_parquet(f"{ANNUAL_GCS}mode.parquet", filesystem=gcsfs.GCSFileSystem())
 
     prep_data_utils.aggregate_by_tos(
         df,
-        previous_upt_col="upt_prior_year",  # this groupby uses type_of_service_full_name and type_of_service
+        previous_upt_col="upt_prior_year",
         time_cols=["year"],
-        geography_cols=["rtpa_name"],
+        geography_cols=["rtpa"],
     ).to_parquet(f"{ANNUAL_GCS}type_of_service.parquet", filesystem=gcsfs.GCSFileSystem())
 
     prep_data_utils.aggregate_by_reporter_type(
-        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa_name"]
+        df, previous_upt_col="upt_prior_year", time_cols=["year"], geography_cols=["rtpa"]
     ).to_parquet(f"{ANNUAL_GCS}reporter_type.parquet", filesystem=gcsfs.GCSFileSystem())
 
     print(f"saved aggregations in {ANNUAL_GCS}")
@@ -106,5 +102,5 @@ if __name__ == "__main__":
     # Since annual and monthly NTD pipelines are run at different cadences
     # set up different scripts.
     # Share structure with `prep_data_utils`
-    df = merge_ntd_with_rtpa_crosswalk("annual")
+    df = merge_annual_ntd_with_rtpa_crosswalk("annual")
     aggregate_annual_and_export(df)
