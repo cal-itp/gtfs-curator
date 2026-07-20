@@ -3,16 +3,18 @@
 
 Provide CalSTA with NTD Annual Ridership by each regional transportation planning authority (RTPA)
 
-Per the [SB125 Final Guildelines](https://calsta.ca.gov/-/media/calsta-media/documents/sb125-final-guidelines-a11y.pdf)
+Per the [SB125 Final Guidelines](https://calsta.ca.gov/-/media/calsta-media/documents/sb125-final-guidelines-a11y.pdf)
 >Caltrans will provide all RTPAs with a summary report each month that meets the requirements of this statutory provision... For RTPAs with transit operators who do not report monthly data to the NTD, Caltrans will include the most recent annual ridership numbers provided to the NTD.
 
 
-This report shows general ridership trends by Annual NTD Reporter for California RTPAs. Unlinked passenger trips are reported, as well as the change from the prior year. For example, July 2023's change would be the change in July 2023's reported values against July 2022's reported values.
+This report shows annual NTD ridership trends for transit agencies.
+Transit agencies are organized regionally by the Regional Transportation Planning Authority to which they belong.
+Ridership trends are visualized by agency, mode, type of service, and reporter type within each RTPA's report.
 
 ## Definitions
 - **Annual NTD Reporter**: Transit agencies that are required  to report yearly to the NTD, includes rural, urban and reduced reporters.
 - **FTA**: Federal Transit Administration.
-- **MODE**: A system for carrying transit passengers described by specific right-of-way (ROW), technology and operational features. Examples: Bus, Cable Car, Light Rail. etc
+- **Mode**: A system for carrying transit passengers described by specific right-of-way (ROW), technology and operational features. Examples: Bus, Cable Car, Light Rail. etc
 - **NTD**: National Transit Database. A reporting system that collects public transportation financial and operating information.
 - **RTPA**: Regional Transportation Planning Authority.
 - **Service**: (Type of Service). Describes how public transportation services are provided by the transit agency: directly operated (DO) or purchased transportation (PT) services.
@@ -20,7 +22,11 @@ This report shows general ridership trends by Annual NTD Reporter for California
 
 
 ## Methodology
-Ridership data extract from NTD  via the [Service Data - Annual Data Tables](https://www.transit.dot.gov/ntd/ntd-data?field_data_categories_target_id%5B2551%5D=2551&field_product_type_target_id=1016&year=all&combine=). Then filtered for Reporters residing in California UZAs. These California Reporters are grouped by RTPAs, then aggregated mode and TOS. The processed data for each RTPA is saved to a public repository, see datasets below.
+NTD annual service data is filtered to California Reporters. Each California Reporter is assigned to the RTPA it is served by.
+
+Ridership metrics (unlinked passenger trips, change in unlinked passenger trips) are calculated by agency, by mode, by type of service, and by reporter type.
+
+The processed data and aggregated data used in the report are available for download in our public data repository.
 
 
 ## Frequently Asked Questions
@@ -38,28 +44,28 @@ Examples:
 
 **Q: Where can I download my RTPA's data?**
 
-Data from this report can be downloaded from the Cal-ITP public data repository, see `Fully Processed Data Download` below. A Google Account is required to access the repository. Once logged in, navigate to `.....`, click the year-month you want to download, then click `download`.
+Data from this report can be downloaded from the Cal-ITP public data repository, see `Download the Data!` below. A Google Account is required to access the repository. Once logged in, navigate to `ntd_annual_ridership/`, click the year you want to download, then click `download`.
 
-The data is a zipped folder of all RTPA data for the year-month.
+The zipped dataset contains all the RTPAs as individual Excel workbooks. The time-series data is cumulative; the most recent file contains all the years prior.
 
 
 **Q: How can my RTPA/Agency meet the requirements of the SB125 Guidelines regarding how "to make publicly available a summary of ridership data"**
 
 Per the [SB125 Final Guidelines](https://calsta.ca.gov/-/media/calsta-media/documents/sb125-final-guidelines-a11y.pdf):
->RTPAs are required to post a link to this report and data in a manner easily accessed by the public, so that ridership trends within their region can be easily reviewed
+>RTPAs are required to post a link to this report and data in a manner easily accessed by the public, so that ridership trends within their region can be easily reviewed.
 
 Hyperlinking this report on your RTPA's/Agency's webpage is a common method to meeting this requirement.
 
 ## Datasets / Data Sources
-- [NTD Annual Service data](https://www.transit.dot.gov/ntd/data-product/2022-annual-database-service)
+- NTD annual service data as [Excel](https://www.transit.dot.gov/ntd/data-product/ts22-service-data-and-operating-expenses-time-series-system-0) or [dashboard API](https://data.transportation.gov/Public-Transit/2024-NTD-Annual-Data-Service-Data-and-Operating-Ex/ectq-t3k3/about_data)
+  - Data in our [warehouse](https://dbt-docs.dds.dot.ca.gov/#!/model/model.calitp_warehouse.fct_service_data_and_operating_expenses_time_series_by_mode)
 - [California RTPA list](https://gis.data.ca.gov/datasets/CAEnergy::regional-transportation-planning-agencies/explore?appid=cf412a17daaa47bca93c6d6b7e77aff0&edit=true)
-- [Fully Processed Data Download](https://console.cloud.google.com/storage/browser/calitp-publish-data-analysis)
-
+- **[Download the Data!](https://console.cloud.google.com/storage/browser/calitp-publish-data-analysis)**
 
 
 ## Who We Are
-This website was created by the [California Department of Transportation](https://dot.ca.gov/)'s Division of Data and Digital Services. We are a group of data analysts and scientists who analyze transportation data, such as General Transit Feed Specification (GTFS) data, or data from funding programs such as the Active Transportation Program. Our goal is to transform messy and indecipherable original datasets into usable, customer-friendly products to better the transportation landscape. For more of our work, visit our [portfolio](https://analysis.calitp.org/).
+This website was created by the [California Department of Transportation](https://dot.ca.gov/)'s Division of Data and Digital Services. We are a group of data analysts and scientists who analyze transportation data, such as General Transit Feed Specification (GTFS) data, or data from funding programs such as the Active Transportation Program. Our goal is to transform messy and indecipherable original datasets into usable, customer-friendly products to better the transportation landscape. For more of our work, visit our [portfolio](https://analysis.dds.dot.ca.gov).
 
-<img src="https://raw.githubusercontent.com/cal-itp/data-analyses/main/portfolio/templates/assets/Calitp_logo_MAIN.png" alt="Alt text" width="200" height="100"> <img src="https://raw.githubusercontent.com/cal-itp/data-analyses/main/portfolio/templates/assets/CT_logo_Wht_outline.gif" alt="Alt text" width="129" height="100">
+<img src="https://raw.githubusercontent.com/cal-itp/data-analyses/refs/heads/main/calitp-portfolio/src/calitp_portfolio/templates/assets/CT%2BDDS-Logo_FC-Black_Horizontal_Digital.png" alt="Alt text" width="274" height="72">
 
 <br>Caltrans®, the California Department of Transportation® and the Caltrans logo are registered service marks of the California Department of Transportation and may not be copied, distributed, displayed, reproduced or transmitted in any form without prior written permission from the California Department of Transportation.
