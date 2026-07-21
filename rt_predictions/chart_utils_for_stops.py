@@ -38,9 +38,20 @@ def chart_ordered_by_stop(
         .encode(
             x=alt.X(f"{stop_col}:Q", title="Stop (ordered)"),
             y=alt.Y(f"{y_col}:Q", title="", scale=alt.Scale(domain=[Y_MIN, Y_MAX])),
-            tooltip=["route_name", direction_col, "stop_id", "stop_name", stop_col, y_col],
-            opacity=alt.when(dropdown_selection).then(alt.value(1)).otherwise(alt.value(0)),
-            strokeWidth=alt.when(dropdown_selection).then(alt.value(2)).otherwise(alt.value(1)),
+            tooltip=[
+                "route_name",
+                direction_col,
+                "stop_id",
+                "stop_name",
+                stop_col,
+                y_col,
+            ],
+            opacity=alt.when(dropdown_selection)
+            .then(alt.value(1))
+            .otherwise(alt.value(0)),
+            strokeWidth=alt.when(dropdown_selection)
+            .then(alt.value(2))
+            .otherwise(alt.value(1)),
         )
         .add_params(dropdown_selection)
         .transform_filter(dropdown_selection)
@@ -66,7 +77,11 @@ def horiz_line_chart(df: pd.DataFrame, horiz_y_value: float) -> alt.Chart:
     # rule = alt.Chart(df).mark_rule(strokeDash=[2, 2]).encode(
     #    y=alt.datum(0)
     # )
-    rule = alt.Chart(df).mark_rule(color="gray", strokeWidth=1, strokeDash=[2, 2]).encode(y="horiz_line")
+    rule = (
+        alt.Chart(df)
+        .mark_rule(color="gray", strokeWidth=1, strokeDash=[2, 2])
+        .encode(y="horiz_line")
+    )
 
     return rule
 
@@ -103,12 +118,18 @@ def prediction_error_categories_stacked_bar(
             color=alt.Color(
                 category_col,
                 sort=list(_color_palette.PREDICTION_ERROR_COLOR_PALETTE.keys()),
-                scale=alt.Scale(range=list(_color_palette.PREDICTION_ERROR_COLOR_PALETTE.values())),
+                scale=alt.Scale(
+                    range=list(_color_palette.PREDICTION_ERROR_COLOR_PALETTE.values())
+                ),
             ),
             column=alt.Column(direction_col, title="Direction"),
             tooltip=["route_name", direction_col, category_col, f"sum({stop_col})"],
-            opacity=alt.when(dropdown_selection).then(alt.value(1)).otherwise(alt.value(0)),
-            strokeWidth=alt.when(dropdown_selection).then(alt.value(2)).otherwise(alt.value(1)),
+            opacity=alt.when(dropdown_selection)
+            .then(alt.value(1))
+            .otherwise(alt.value(0)),
+            strokeWidth=alt.when(dropdown_selection)
+            .then(alt.value(2))
+            .otherwise(alt.value(1)),
         )
         .transform_filter(dropdown_selection)
         .add_params(dropdown_selection, legend_selection)
@@ -267,9 +288,7 @@ def boxplot_by_date(df: pd.DataFrame, y_col: str) -> alt.Chart:
     """
     DAYTYPE_ORDER_DICT = {"Weekday": 1, "Saturday": 2, "Sunday": 3}
 
-    day_type_axis_labels = (
-        "datum.label == 1 ? 'Weekday' : datum.label == 2 ? 'Saturday' : datum.label == 3 ? 'Sunday' : ''"
-    )
+    day_type_axis_labels = "datum.label == 1 ? 'Weekday' : datum.label == 2 ? 'Saturday' : datum.label == 3 ? 'Sunday' : ''"
 
     df = df.assign(day_type_ordered=df.day_type.map(DAYTYPE_ORDER_DICT))
 
@@ -293,14 +312,20 @@ def boxplot_by_date(df: pd.DataFrame, y_col: str) -> alt.Chart:
         )
     )
 
-    rule = alt.Chart(df).mark_rule(strokeWidth=1, color="black", strokeDash=[2, 2]).encode(y=alt.datum(0))
+    rule = (
+        alt.Chart(df)
+        .mark_rule(strokeWidth=1, color="black", strokeDash=[2, 2])
+        .encode(y=alt.datum(0))
+    )
 
     combined = (chart + rule).properties(title=Y_TITLECASE)
 
     return combined
 
 
-def bar_chart_by_date(df: pd.DataFrame, legend_color_column: str, is_stacked: bool) -> alt.Chart:
+def bar_chart_by_date(
+    df: pd.DataFrame, legend_color_column: str, is_stacked: bool
+) -> alt.Chart:
     """
     Bar chart of prediction_error_label by service_date.
     1st draft of stop report used service_date.
@@ -332,7 +357,9 @@ def bar_chart_by_date(df: pd.DataFrame, legend_color_column: str, is_stacked: bo
         )
         .add_params(selection)
         .properties(
-            title=f"{legend_color_column.replace('_', ' ').replace('label', '').title()}", width=350, height=300
+            title=f"{legend_color_column.replace('_', ' ').replace('label', '').title()}",
+            width=350,
+            height=300,
         )
         .interactive()
     )
@@ -352,7 +379,9 @@ def plot_basic_map(gdf: gpd.GeoDataFrame, plot_col: str, colorscale: str):
         tiles="CartoDB Positron",
         cmap=colorscale,
         legend=True,
-        legend_kwds={"caption": f"{plot_col.replace('pct_tu', '%').replace('_', ' ').title()}"},
+        legend_kwds={
+            "caption": f"{plot_col.replace('pct_tu', '%').replace('_', ' ').title()}"
+        },
     )
 
     return m
@@ -399,10 +428,19 @@ def stacked_bar_chart_by_route(
                 title="Route",
             ),
             color=alt.Color(
-                color_col, sort=SORT_DICT[x_col], scale=alt.Scale(range=_color_palette.FULL_CATEGORICAL_COLORS)
+                color_col,
+                sort=SORT_DICT[x_col],
+                scale=alt.Scale(range=_color_palette.FULL_CATEGORICAL_COLORS),
             ),
             column=alt.Column("direction_id", title="Direction"),
-            tooltip=["schedule_name", "day_type", x_col, y_col, "direction_id", color_col],
+            tooltip=[
+                "schedule_name",
+                "day_type",
+                x_col,
+                y_col,
+                "direction_id",
+                color_col,
+            ],
             opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.2)),
             strokeWidth=alt.when(selection).then(alt.value(2)).otherwise(alt.value(1)),
         )
@@ -415,7 +453,10 @@ def stacked_bar_chart_by_route(
 
 
 def make_layer_map(
-    gdf: gpd.GeoDataFrame, plot_col: str, layer_col: str = "route_name", sort_layer_col: str = "route_name"
+    gdf: gpd.GeoDataFrame,
+    plot_col: str,
+    layer_col: str = "route_name",
+    sort_layer_col: str = "route_name",
 ) -> folium.Map:
     """
     Loop through a column and create separate layers
@@ -442,31 +483,50 @@ def make_layer_map(
 
     for one_route_layer in sorted_routes[1:]:
         subset_gdf = gdf[gdf[sort_layer_col] == one_route_layer].reset_index(drop=True)
-        m = subset_gdf.explore(plot_col, m=m, name=subset_gdf[layer_col].iloc[0], legend=False, control=True, show=True)
+        m = subset_gdf.explore(
+            plot_col,
+            m=m,
+            name=subset_gdf[layer_col].iloc[0],
+            legend=False,
+            control=True,
+            show=True,
+        )
     folium.LayerControl().add_to(m)
 
     return m
 
 
-def stripplot_by_route(gdf: pd.DataFrame, plot_col: str = "pct_tu_complete_minutes") -> alt.Chart:
+def stripplot_by_route(
+    gdf: pd.DataFrame, plot_col: str = "pct_tu_complete_minutes"
+) -> alt.Chart:
     """
     Stripplot of update availability by route.
     Newmark paper fig 4.
     """
     # update availability by route
-    stop_route_cols_tabular = ["schedule_name", "day_type", "stop_id", "route_id", "direction_id"]
+    stop_route_cols_tabular = [
+        "schedule_name",
+        "day_type",
+        "stop_id",
+        "route_id",
+        "direction_id",
+    ]
 
     plot_col = "pct_tu_complete_minutes"
 
     gdf2 = (
         gdf[stop_route_cols_tabular + [plot_col]]
-        .groupby(["schedule_name", "day_type", "route_id", "direction_id"], dropna=False)
+        .groupby(
+            ["schedule_name", "day_type", "route_id", "direction_id"], dropna=False
+        )
         .agg({"pct_tu_complete_minutes": "mean", "stop_id": "count"})
         .reset_index()
         .rename(columns={"stop_id": "n_stops"})
     )
 
-    gdf2 = gdf2.assign(pct_tu_complete_minutes=gdf2.pct_tu_complete_minutes.round(3) * 100)
+    gdf2 = gdf2.assign(
+        pct_tu_complete_minutes=gdf2.pct_tu_complete_minutes.round(3) * 100
+    )
 
     # 89 rounds to 90, then set axis to 80
     Y_MIN = round(gdf2[plot_col].min(), -1) - 10
@@ -493,7 +553,9 @@ def stripplot_by_route(gdf: pd.DataFrame, plot_col: str = "pct_tu_complete_minut
     return chart
 
 
-def ranged_dot_plot(df: pd.DataFrame, x_col: str, y_col: str, ptile_col: str, title: str) -> alt.Chart:
+def ranged_dot_plot(
+    df: pd.DataFrame, x_col: str, y_col: str, ptile_col: str, title: str
+) -> alt.Chart:
     """
     Use this for IQR plot by route.
     https://altair-viz.github.io/gallery/ranged_dot_plot.html
@@ -508,7 +570,9 @@ def ranged_dot_plot(df: pd.DataFrame, x_col: str, y_col: str, ptile_col: str, ti
 
     # Add points for endpoints
     ptiles_to_plot = df[ptile_col].unique().tolist()
-    color = alt.Color(f"{ptile_col}:O").scale(domain=ptiles_to_plot, range=["#e6959c", "#911a24"])
+    color = alt.Color(f"{ptile_col}:O").scale(
+        domain=ptiles_to_plot, range=["#e6959c", "#911a24"]
+    )
     points = (
         chart.mark_point(
             size=100,

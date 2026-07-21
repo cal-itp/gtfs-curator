@@ -18,19 +18,25 @@ def readable_rtpa(rtpa_name: str) -> str:
     return rtpa_name.replace(" ", "_").replace("/", "_").lower()
 
 
-def import_filtered_rtpa_file(gcs_file_name: str = "", one_rtpa: str = "") -> pd.DataFrame:
+def import_filtered_rtpa_file(
+    gcs_file_name: str = "", one_rtpa: str = ""
+) -> pd.DataFrame:
     """
     Filter the GCS parquet by RTPA.
     """
     df = pd.read_parquet(
-        f"{GCS_FILE_PATH}{gcs_file_name}", filesystem=gcsfs.GCSFileSystem(), filters=[[("rtpa", "==", one_rtpa)]]
+        f"{GCS_FILE_PATH}{gcs_file_name}",
+        filesystem=gcsfs.GCSFileSystem(),
+        filters=[[("rtpa", "==", one_rtpa)]],
     ).reset_index(drop=True)
 
     return df
 
 
 def insert_excel_cover_sheet(
-    report_aggregation: Literal["annual", "monthly"], excel_output_foldername: str, rtpa_name: str
+    report_aggregation: Literal["annual", "monthly"],
+    excel_output_foldername: str,
+    rtpa_name: str,
 ) -> str:
     """
     Create Excel workbook for RTPA.
@@ -54,7 +60,9 @@ def insert_excel_cover_sheet(
     rtpa_excel_filename = Path(f"./{excel_output_foldername}/{rtpa_snakecase}.xlsx")
 
     # Read in templated cover sheet for RTPA and save out
-    cover_sheet = pd.read_excel(cover_sheet_path, index_col=cover_sheet_index_col, engine="openpyxl")
+    cover_sheet = pd.read_excel(
+        cover_sheet_path, index_col=cover_sheet_index_col, engine="openpyxl"
+    )
     cover_sheet.to_excel(rtpa_excel_filename, sheet_name="README", engine="openpyxl")
     print(f"created {rtpa_excel_filename}")
 
@@ -63,7 +71,9 @@ def insert_excel_cover_sheet(
 
 
 def export_aggregations_as_excel_sheets(
-    report_aggregation: Literal["annual", "monthly"], rtpa_excel_filename: str, one_rtpa: str
+    report_aggregation: Literal["annual", "monthly"],
+    rtpa_excel_filename: str,
+    one_rtpa: str,
 ):
     """
     Add individual Excel sheets for each RTPA.
@@ -72,24 +82,23 @@ def export_aggregations_as_excel_sheets(
     - monthly: agency, mode, type of service
     """
     with pd.ExcelWriter(rtpa_excel_filename, mode="a") as writer:
-
-        import_filtered_rtpa_file(f"{report_aggregation}_with_crosswalk.parquet", one_rtpa).to_excel(
-            writer, sheet_name="RTPA Ridership", index=False
-        )
-        import_filtered_rtpa_file(f"{report_aggregation}/agency.parquet", one_rtpa).to_excel(
-            writer, sheet_name="Aggregated by Agency", index=False
-        )
-        import_filtered_rtpa_file(f"{report_aggregation}/mode.parquet", one_rtpa).to_excel(
-            writer, sheet_name="Aggregated by Mode", index=False
-        )
-        import_filtered_rtpa_file(f"{report_aggregation}/type_of_service.parquet", one_rtpa).to_excel(
-            writer, sheet_name="Aggregated by TOS", index=False
-        )
+        import_filtered_rtpa_file(
+            f"{report_aggregation}_with_crosswalk.parquet", one_rtpa
+        ).to_excel(writer, sheet_name="RTPA Ridership", index=False)
+        import_filtered_rtpa_file(
+            f"{report_aggregation}/agency.parquet", one_rtpa
+        ).to_excel(writer, sheet_name="Aggregated by Agency", index=False)
+        import_filtered_rtpa_file(
+            f"{report_aggregation}/mode.parquet", one_rtpa
+        ).to_excel(writer, sheet_name="Aggregated by Mode", index=False)
+        import_filtered_rtpa_file(
+            f"{report_aggregation}/type_of_service.parquet", one_rtpa
+        ).to_excel(writer, sheet_name="Aggregated by TOS", index=False)
 
         if report_aggregation == "annual":
-            import_filtered_rtpa_file(f"{report_aggregation}/reporter_type.parquet", one_rtpa).to_excel(
-                writer, sheet_name="Aggregated by Reporter Type", index=False
-            )
+            import_filtered_rtpa_file(
+                f"{report_aggregation}/reporter_type.parquet", one_rtpa
+            ).to_excel(writer, sheet_name="Aggregated by Reporter Type", index=False)
 
     print(f"completed Excel exports: {rtpa_excel_filename}")
     return

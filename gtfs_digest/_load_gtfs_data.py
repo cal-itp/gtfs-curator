@@ -36,12 +36,16 @@ def load_schedule_rt_route_direction_summary(
 
     # Merge with crosswalk
     crosswalk_df = pd.read_parquet(
-        crosswalk_url, columns=["name", "analysis_name"], filesystem=gcsfs.GCSFileSystem()
+        crosswalk_url,
+        columns=["name", "analysis_name"],
+        filesystem=gcsfs.GCSFileSystem(),
     ).drop_duplicates()
 
     m1 = pd.merge(df, crosswalk_df, on="name", how="inner")
 
-    utils.geoparquet_gcs_export(m1, f"{RAW_GCS}", f"{DIGEST_DICT.schedule_rt_route_direction}_{abbrev_month}")
+    utils.geoparquet_gcs_export(
+        m1, f"{RAW_GCS}", f"{DIGEST_DICT.schedule_rt_route_direction}_{abbrev_month}"
+    )
 
     return
 
@@ -63,12 +67,18 @@ def load_operator_summary(
     )
 
     crosswalk_df = pd.read_parquet(
-        crosswalk_url, columns=["name", "analysis_name", "caltrans_district"], filesystem=gcsfs.GCSFileSystem()
+        crosswalk_url,
+        columns=["name", "analysis_name", "caltrans_district"],
+        filesystem=gcsfs.GCSFileSystem(),
     ).drop_duplicates()
 
-    m1 = pd.merge(df, crosswalk_df, left_on=["schedule_name"], right_on=["name"], how="inner")
+    m1 = pd.merge(
+        df, crosswalk_df, left_on=["schedule_name"], right_on=["name"], how="inner"
+    )
 
-    utils.geoparquet_gcs_export(m1, f"{RAW_GCS}", f"{DIGEST_DICT.operator_summary}_{abbrev_month}")
+    utils.geoparquet_gcs_export(
+        m1, f"{RAW_GCS}", f"{DIGEST_DICT.operator_summary}_{abbrev_month}"
+    )
 
     return
 
@@ -92,7 +102,9 @@ def load_fct_monthly_routes(
     )
 
     crosswalk_df = pd.read_parquet(
-        crosswalk_url, columns=["name", "analysis_name"], filesystem=gcsfs.GCSFileSystem()
+        crosswalk_url,
+        columns=["name", "analysis_name"],
+        filesystem=gcsfs.GCSFileSystem(),
     ).drop_duplicates()
 
     m1 = pd.merge(gdf, crosswalk_df, on="name", how="inner")
@@ -124,10 +136,16 @@ def load_fct_operator_hourly_summary(
 
     # Merge with crosswalk
     crosswalk_df = pd.read_parquet(
-        crosswalk_url, columns=["name", "analysis_name"], filesystem=gcsfs.GCSFileSystem()
+        crosswalk_url,
+        columns=["name", "analysis_name"],
+        filesystem=gcsfs.GCSFileSystem(),
     ).drop_duplicates()
 
-    m1 = pd.merge(df, crosswalk_df, on="name", how="inner").drop_duplicates().reset_index()
+    m1 = (
+        pd.merge(df, crosswalk_df, on="name", how="inner")
+        .drop_duplicates()
+        .reset_index()
+    )
 
     utils.geoparquet_gcs_export(
         m1,
@@ -139,7 +157,6 @@ def load_fct_operator_hourly_summary(
 
 
 if __name__ == "__main__":
-
     PROD_PROJECT = "cal-itp-data-infra"
     PROD_MART = "mart_gtfs_rollup"
     MONTH_DATE_COL = "month_first_day"

@@ -38,7 +38,10 @@ def download_monthly_table(
     sql_query_statement = f"{basic_query} WHERE year >= @min_year AND (state = @state OR CONTAINS_SUBSTR(uza_name, ', CA')) AND agency IS NOT NULL"
 
     df = bq_utils.bq_faster_download(
-        sql_query_statement, project=project_name, credentials=credentials, job_config=job_config
+        sql_query_statement,
+        project=project_name,
+        credentials=credentials,
+        job_config=job_config,
     )
 
     df = df.drop(columns=["dt", "execution_ts", "date"]).pipe(bq_utils.fix_date_columns)
@@ -48,7 +51,6 @@ def download_monthly_table(
 
 
 if __name__ == "__main__":
-
     NTD_DATASET = "mart_ntd_ridership"
 
     # download the monthly table
@@ -59,6 +61,8 @@ if __name__ == "__main__":
         table_name="fct_complete_monthly_ridership_with_adjustments_and_estimates",
     )
 
-    monthly_df.to_parquet(f"{GCS_FILE_PATH}monthly.parquet", filesystem=gcsfs.GCSFileSystem())
+    monthly_df.to_parquet(
+        f"{GCS_FILE_PATH}monthly.parquet", filesystem=gcsfs.GCSFileSystem()
+    )
 
     print("downloaded monthly warehouse table")

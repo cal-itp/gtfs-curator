@@ -12,7 +12,9 @@ import prep_data_utils
 from update_vars import GCS_FILE_PATH, MONTHLY_GCS
 
 
-def merge_monthly_ntd_with_rtpa_crosswalk(report_aggregation: str = "monthly") -> pd.DataFrame:
+def merge_monthly_ntd_with_rtpa_crosswalk(
+    report_aggregation: str = "monthly",
+) -> pd.DataFrame:
     """
     General function to prep NTD data from
     - script downloads dbt model and saves as monthly.parquet or annual.parquet
@@ -55,7 +57,10 @@ def merge_monthly_ntd_with_rtpa_crosswalk(report_aggregation: str = "monthly") -
 
     # TODO: format month_first_day as date, not datetime
 
-    df.to_parquet(f"{GCS_FILE_PATH}{report_aggregation}_with_crosswalk.parquet", filesystem=gcsfs.GCSFileSystem())
+    df.to_parquet(
+        f"{GCS_FILE_PATH}{report_aggregation}_with_crosswalk.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+    )
 
     return df
 
@@ -91,7 +96,9 @@ def aggregate_monthly_and_export(df: pd.DataFrame):
         previous_upt_col="upt_prior_year",
         time_cols=["month_first_day", "month", "year"],
         geography_cols=["rtpa"],
-    ).to_parquet(f"{MONTHLY_GCS}type_of_service.parquet", filesystem=gcsfs.GCSFileSystem())
+    ).to_parquet(
+        f"{MONTHLY_GCS}type_of_service.parquet", filesystem=gcsfs.GCSFileSystem()
+    )
 
     print(f"saved aggregations in {MONTHLY_GCS}")
 
@@ -99,6 +106,5 @@ def aggregate_monthly_and_export(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-
     df = merge_monthly_ntd_with_rtpa_crosswalk("monthly")
     aggregate_monthly_and_export(df)

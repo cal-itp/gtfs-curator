@@ -17,7 +17,10 @@ transit_shn_map_columns = {
 }
 
 
-shn_map_readable_columns = {"shn_route": "State Highway Network Route", "district": "District"}
+shn_map_readable_columns = {
+    "shn_route": "State Highway Network Route",
+    "district": "District",
+}
 
 
 """
@@ -26,7 +29,9 @@ Prep Data
 
 
 def prep_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    gdf = gdf.to_crs(CA_NAD83Albers_m).drop(columns=["Year", "Month", "Month First Day"])
+    gdf = gdf.to_crs(CA_NAD83Albers_m).drop(
+        columns=["Year", "Month", "Month First Day"]
+    )
 
     # gdf = gdf.dissolve(by = "Analysis Name").reset_index()
 
@@ -35,7 +40,9 @@ def prep_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-def create_operator_table(df: pd.DataFrame, district_col: str = "Caltrans District") -> pd.DataFrame:
+def create_operator_table(
+    df: pd.DataFrame, district_col: str = "Caltrans District"
+) -> pd.DataFrame:
 
     # df is weekday day_type - 12 months per operator summary
     df2 = (
@@ -44,7 +51,14 @@ def create_operator_table(df: pd.DataFrame, district_col: str = "Caltrans Distri
         # then the most recent date of complete data
         # if vp or tu is always missing, then it getes sorted by most daily scheduled daily trips first
         .sort_values(
-            [district_col, "Analysis Name", "VP Name", "TU Name", "Daily Trips", "Date"],
+            [
+                district_col,
+                "Analysis Name",
+                "VP Name",
+                "TU Name",
+                "Daily Trips",
+                "Date",
+            ],
             ascending=[True, True, True, True, False, False],
         )
         .drop_duplicates(subset=[district_col, "Analysis Name"], keep="first")
@@ -53,7 +67,9 @@ def create_operator_table(df: pd.DataFrame, district_col: str = "Caltrans Distri
 
     # These need to be calculated again separately
     df2["Arrivals per Stop"] = df2["Daily Arrivals"].divide(df2["N Stops"]).round(1)
-    df2[["Daily Trips", "Daily Arrivals"]] = df2[["Daily Trips", "Daily Arrivals"]].fillna(0).round(0).astype("Int64")
+    df2[["Daily Trips", "Daily Arrivals"]] = (
+        df2[["Daily Trips", "Daily Arrivals"]].fillna(0).round(0).astype("Int64")
+    )
 
     cols_to_keep = [
         "Analysis Name",
@@ -77,7 +93,9 @@ Reshape
 """
 
 
-def transpose_summary_stats(df: pd.DataFrame, district_col: str = "Caltrans District") -> pd.DataFrame:
+def transpose_summary_stats(
+    df: pd.DataFrame, district_col: str = "Caltrans District"
+) -> pd.DataFrame:
     """
     District summary should be transposed, otherwise columns
     get shrunk and there's only 1 row.
@@ -102,11 +120,15 @@ def transpose_summary_stats(df: pd.DataFrame, district_col: str = "Caltrans Dist
     )
 
     # Change to string for display
-    subset_df2["Value"] = subset_df2["Value"].astype(int).apply(lambda x: "{:,}".format(x))
+    subset_df2["Value"] = (
+        subset_df2["Value"].astype(int).apply(lambda x: "{:,}".format(x))
+    )
     return subset_df2
 
 
-def create_summary_table(df: pd.DataFrame, district_col: str = "Caltrans District") -> pd.DataFrame:
+def create_summary_table(
+    df: pd.DataFrame, district_col: str = "Caltrans District"
+) -> pd.DataFrame:
 
     df = create_operator_table(df, district_col)
 
@@ -127,8 +149,12 @@ def create_summary_table(df: pd.DataFrame, district_col: str = "Caltrans Distric
 
     # These need to be calculated again separately
     agg1["Arrivals per Stop"] = agg1["Daily Arrivals"].divide(agg1["N Stops"]).round(1)
-    agg1["Trips per Operator"] = agg1["Daily Trips"].divide(agg1["N Operators"]).round(1)
-    agg1[["Daily Trips", "Daily Arrivals"]] = agg1[["Daily Trips", "Daily Arrivals"]].fillna(0).round(0).astype("Int64")
+    agg1["Trips per Operator"] = (
+        agg1["Daily Trips"].divide(agg1["N Operators"]).round(1)
+    )
+    agg1[["Daily Trips", "Daily Arrivals"]] = (
+        agg1[["Daily Trips", "Daily Arrivals"]].fillna(0).round(0).astype("Int64")
+    )
 
     agg2 = transpose_summary_stats(agg1, district_col)
     return agg2
@@ -177,7 +203,9 @@ def load_legislative_district(district: str) -> gpd.GeoDataFrame:
     return district_geojson
 
 
-def set_district_boundary_color(district_geojson: gpd.GeoDataFrame, district) -> gpd.GeoDataFrame:
+def set_district_boundary_color(
+    district_geojson: gpd.GeoDataFrame, district
+) -> gpd.GeoDataFrame:
     # Add color column
     district_geojson["color"] = [(58, 25, 79)]
     district_geojson["description"] = f"geometry for district {district}"
@@ -195,11 +223,17 @@ def load_buffered_shn_map(district: int) -> gpd.GeoDataFrame:
     SHN_FILE = f"{SHARED_GCS}state_highway_network.parquet"
 
     gdf = gpd.read_parquet(
-        SHN_FILE, storage_options={"token": credentials.token}, filters=[[("District", "==", district)]]
+        SHN_FILE,
+        storage_options={"token": credentials.token},
+        filters=[[("District", "==", district)]],
     ).to_crs(CA_NAD83Albers_m)
 
     # Dissolve
-    gdf2 = gdf.dissolve(by=["Route", "County", "District", "RouteType"]).reset_index().drop(columns=["Direction"])
+    gdf2 = (
+        gdf.dissolve(by=["Route", "County", "District", "RouteType"])
+        .reset_index()
+        .drop(columns=["Direction"])
+    )
 
     # Buffer - make it a bit bigger so we can actually see stuff
     gdf2.geometry = gdf2.geometry.buffer(100)
@@ -213,19 +247,26 @@ def load_buffered_shn_map(district: int) -> gpd.GeoDataFrame:
 def load_shn_transit_routes(district: str, pct: int, month: str) -> gpd.GeoDataFrame:
     OPEN_DATA_GCS = "gs://calitp-analytics-data/data-analyses/open_data/"
     gdf = gpd.read_parquet(
-        f"{OPEN_DATA_GCS}export/ca_transit_routes_{month}.parquet", storage_options={"token": credentials.token}
+        f"{OPEN_DATA_GCS}export/ca_transit_routes_{month}.parquet",
+        storage_options={"token": credentials.token},
     )
 
     # Clean district name because there are some extra spaces
-    gdf.district_name = gdf.district_name.str.lstrip().str.replace(r"\s*-\s*", "-", regex=True)
+    gdf.district_name = gdf.district_name.str.lstrip().str.replace(
+        r"\s*-\s*", "-", regex=True
+    )
 
     # Filter
     gdf2 = gdf.loc[
-        (gdf.district_name == district) & (gdf.shn_route != "not_50ft_from_shn") & (gdf.pct_route_on_hwy >= pct)
+        (gdf.district_name == district)
+        & (gdf.shn_route != "not_50ft_from_shn")
+        & (gdf.pct_route_on_hwy >= pct)
     ].reset_index(drop=True)
 
     # Clean the dataframe
-    gdf2 = gdf2[["route_name", "analysis_name", "pct_route_on_hwy", "shn_route", "geometry"]].rename(
+    gdf2 = gdf2[
+        ["route_name", "analysis_name", "pct_route_on_hwy", "shn_route", "geometry"]
+    ].rename(
         columns={
             "pct_route_on_hwy": "Percentage of Transit Route on SHN Across All Districts",
             "shn_route": "State Highway Network Route",

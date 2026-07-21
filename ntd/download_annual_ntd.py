@@ -36,7 +36,10 @@ def download_annual_ntd(
     sql_query_statement = f"{basic_query} WHERE year >= @min_year AND last_report_year >= @min_year AND(CONTAINS_SUBSTR(primary_uza_name, ', CA') OR CONTAINS_SUBSTR(primary_uza_name, 'California'))"
 
     df = bq_utils.bq_faster_download(
-        sql_query_statement, project=project_name, credentials=credentials, job_config=job_config
+        sql_query_statement,
+        project=project_name,
+        credentials=credentials,
+        job_config=job_config,
     )
 
     return df
@@ -59,7 +62,6 @@ def download_ntd_crosswalk(
 
 
 if __name__ == "__main__":
-
     NTD_DATASET = "mart_ntd_funding_and_expenses"
 
     # download the annual table
@@ -68,14 +70,20 @@ if __name__ == "__main__":
         dataset_name=NTD_DATASET,
         table_name="fct_service_data_and_operating_expenses_time_series_by_mode",
     )
-    annual_df.to_parquet(f"{GCS_FILE_PATH}annual.parquet", filesystem=gcsfs.GCSFileSystem())
+    annual_df.to_parquet(
+        f"{GCS_FILE_PATH}annual.parquet", filesystem=gcsfs.GCSFileSystem()
+    )
     print("downloaded annual warehouse table")
 
     # download crosswalk
     crosswalk = download_ntd_crosswalk(
-        project_name=project, dataset_name="mart_transit_database", table_name="bridge_ntd_x_geography"
+        project_name=project,
+        dataset_name="mart_transit_database",
+        table_name="bridge_ntd_x_geography",
     )
 
-    crosswalk.to_parquet(f"{GCS_FILE_PATH}crosswalk.parquet", filesystem=gcsfs.GCSFileSystem())
+    crosswalk.to_parquet(
+        f"{GCS_FILE_PATH}crosswalk.parquet", filesystem=gcsfs.GCSFileSystem()
+    )
 
     print("downloaded crosswalk for ntd_id to RTPA")

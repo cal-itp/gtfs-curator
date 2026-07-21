@@ -85,13 +85,18 @@ def annual_report_by_rtpa(
         rtpa_excel_filename = excel_utils.insert_excel_cover_sheet(
             report_aggregation, excel_output_foldername, one_rtpa
         )
-        excel_utils.export_aggregations_as_excel_sheets(report_aggregation, rtpa_excel_filename, one_rtpa)
+        excel_utils.export_aggregations_as_excel_sheets(
+            report_aggregation, rtpa_excel_filename, one_rtpa
+        )
 
     # create zipped Excel
     excel_utils.zip_excel(excel_output_foldername)
 
     # Upload zipped Excel to GCS
-    fs.put(zipped_excel_output_foldername, f"{GCS_FILE_PATH}publish/{zipped_excel_output_foldername}")
+    fs.put(
+        zipped_excel_output_foldername,
+        f"{GCS_FILE_PATH}publish/{zipped_excel_output_foldername}",
+    )
     os.remove(zipped_excel_output_foldername)
     shutil.rmtree(f"{excel_output_foldername}/")
 
@@ -107,7 +112,6 @@ def annual_report_by_rtpa(
 
 
 if __name__ == "__main__":
-
     annual_report_by_rtpa(
         report_aggregation="annual",
         upload_to_public=False,

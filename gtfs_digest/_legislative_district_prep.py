@@ -38,15 +38,17 @@ def sjoin_shapes_legislative_districts(abbrev_month: str) -> pd.DataFrame:
     )
 
     crosswalk = (
-        gpd.sjoin(monthly_routes, legislative_districts, how="inner", predicate="intersects")[
-            ["analysis_name", "legislative_district"]
-        ]
+        gpd.sjoin(
+            monthly_routes, legislative_districts, how="inner", predicate="intersects"
+        )[["analysis_name", "legislative_district"]]
         .drop_duplicates()
         .sort_values(["analysis_name", "legislative_district"])
         .reset_index(drop=True)
     )
 
-    utils.geoparquet_gcs_export(crosswalk, PROCESSED_GCS, f"{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}")
+    utils.geoparquet_gcs_export(
+        crosswalk, PROCESSED_GCS, f"{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}"
+    )
 
     print(f"{abbrev_month}: exported legislative districts to operators crosswalk")
 
@@ -61,10 +63,16 @@ def legislative_district_yaml(site_path: Path):
     """
     site = load_site(site_path)
 
-    crosswalk_url = f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}.parquet"
+    crosswalk_url = (
+        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}.parquet"
+    )
 
     legislative_districts_list = (
-        pd.read_parquet(crosswalk_url, columns=["legislative_district"], filesystem=gcsfs.GCSFileSystem())
+        pd.read_parquet(
+            crosswalk_url,
+            columns=["legislative_district"],
+            filesystem=gcsfs.GCSFileSystem(),
+        )
         .legislative_district.unique()
         .tolist()
     )
@@ -83,7 +91,6 @@ def legislative_district_yaml(site_path: Path):
 
 
 if __name__ == "__main__":
-
     sjoin_shapes_legislative_districts(abbrev_month)
 
     # write out the portfolio yaml - TOC does not need all 120 districts necessarily

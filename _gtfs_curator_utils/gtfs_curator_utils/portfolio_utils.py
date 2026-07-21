@@ -9,7 +9,9 @@ import pandas as pd
 import yaml
 
 
-def create_portfolio_yaml_chapters_no_sections(portfolio_site_yaml: Path, chapter_name: str, chapter_values: list):
+def create_portfolio_yaml_chapters_no_sections(
+    portfolio_site_yaml: Path, chapter_name: str, chapter_values: list
+):
     """
     Overwrite a portfolio site yaml by filling in all the parameters.
     Chapters no sections refer to analyses parameterized by 1 value.
@@ -25,7 +27,10 @@ def create_portfolio_yaml_chapters_no_sections(portfolio_site_yaml: Path, chapte
     with open(portfolio_site_yaml) as f:
         site_yaml_dict = yaml.load(f, yaml.Loader)
 
-    chapters_list = [{**{"params": {chapter_name: str(one_chapter_value)}}} for one_chapter_value in chapter_values]
+    chapters_list = [
+        {**{"params": {chapter_name: str(one_chapter_value)}}}
+        for one_chapter_value in chapter_values
+    ]
 
     # Make part into a list item
     site_yaml_dict["parts"] = [{"chapters": chapters_list}]
@@ -101,7 +106,11 @@ def create_portfolio_yaml_chapters_with_groups(
                 "caption": f"{caption_prefix}{one_chapter_value}{caption_suffix}",
                 "chapters": [
                     {"params": {param_info["name"]: str(one_param_value)}}
-                    for one_param_value in df[df[chapter_col] == one_chapter_value][param_col].unique().tolist()
+                    for one_param_value in df[df[chapter_col] == one_chapter_value][
+                        param_col
+                    ]
+                    .unique()
+                    .tolist()
                 ],
             }
         }

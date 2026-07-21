@@ -36,18 +36,29 @@ def categorize_prediction_error(
     lowest end < -5 minutes (late)
     """
 
-    def set_error_cutoffs(prediction_error: float, upper_cutoff: int, middle_cutoff: int, lower_cutoff: int) -> str:
+    def set_error_cutoffs(
+        prediction_error: float,
+        upper_cutoff: int,
+        middle_cutoff: int,
+        lower_cutoff: int,
+    ) -> str:
         if prediction_error > upper_cutoff:
             return f"{upper_cutoff}+ min early"
         elif (prediction_error <= upper_cutoff) and (prediction_error > middle_cutoff):
             return f"{middle_cutoff}-{upper_cutoff} min early"
         elif (prediction_error <= middle_cutoff) and (prediction_error > lower_cutoff):
             return f"{lower_cutoff}-{middle_cutoff} min early"
-        elif (prediction_error <= lower_cutoff) and (prediction_error >= -1 * lower_cutoff):
+        elif (prediction_error <= lower_cutoff) and (
+            prediction_error >= -1 * lower_cutoff
+        ):
             return f"{lower_cutoff} min early to {lower_cutoff} min late"
-        elif (prediction_error < -1 * lower_cutoff) and (prediction_error >= -1 * middle_cutoff):
+        elif (prediction_error < -1 * lower_cutoff) and (
+            prediction_error >= -1 * middle_cutoff
+        ):
             return f"{lower_cutoff}-{middle_cutoff} min late"
-        elif (prediction_error < -1 * middle_cutoff) and (prediction_error >= -1 * upper_cutoff):
+        elif (prediction_error < -1 * middle_cutoff) and (
+            prediction_error >= -1 * upper_cutoff
+        ):
             return f"{middle_cutoff}-{upper_cutoff} min late"
         elif prediction_error < -1 * upper_cutoff:
             return f"{upper_cutoff}+ min late"
@@ -55,7 +66,10 @@ def categorize_prediction_error(
             return "unknown"
 
     df["prediction_error_label"] = df.apply(
-        lambda x: set_error_cutoffs(x[prediction_error_col], upper_cutoff, middle_cutoff, lower_cutoff), axis=1
+        lambda x: set_error_cutoffs(
+            x[prediction_error_col], upper_cutoff, middle_cutoff, lower_cutoff
+        ),
+        axis=1,
     )
 
     return df
@@ -88,11 +102,16 @@ def import_stop_order_by_route(**kwargs) -> pd.DataFrame:
     df2 = (
         df.sort_values(stop_cols + other_cols)
         .groupby(stop_cols, dropna=False)
-        .agg({"avg_stop_seq": "mean", **{c: lambda x: list(set(x)) for c in other_cols}})
+        .agg(
+            {"avg_stop_seq": "mean", **{c: lambda x: list(set(x)) for c in other_cols}}
+        )
         .reset_index()
     )
 
-    df2 = df2.assign(avg_stop_seq=df2.avg_stop_seq.round(2), stop_rank=df2.groupby(route_cols).avg_stop_seq.rank())
+    df2 = df2.assign(
+        avg_stop_seq=df2.avg_stop_seq.round(2),
+        stop_rank=df2.groupby(route_cols).avg_stop_seq.rank(),
+    )
 
     return df2
 
@@ -113,8 +132,11 @@ def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
     )
     stop_gdf = (
         stop_gdf.assign(
-            bus_catch_likelihood=stop_gdf.pct_tu_predictions_early + stop_gdf.pct_tu_predictions_ontime,
-            avg_prediction_spread_minutes=stop_gdf.avg_prediction_spread_minutes.round(2),
+            bus_catch_likelihood=stop_gdf.pct_tu_predictions_early
+            + stop_gdf.pct_tu_predictions_ontime,
+            avg_prediction_spread_minutes=stop_gdf.avg_prediction_spread_minutes.round(
+                2
+            ),
         )
         .pipe(report_utils.convert_seconds_to_minutes, "avg_prediction_error_sec")
         .pipe(outlier_detection.remove_outliers)
@@ -128,7 +150,14 @@ def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
     )
 
     stop_order = import_stop_order_by_route(
-        columns=["gtfs_dataset_name", "feed_key", "route_name", "direction_id", "stop_id", "avg_stop_seq"]
+        columns=[
+            "gtfs_dataset_name",
+            "feed_key",
+            "route_name",
+            "direction_id",
+            "stop_id",
+            "avg_stop_seq",
+        ]
     )
 
     stop_with_route_gdf = pd.merge(
@@ -161,13 +190,19 @@ def clean_route_file(filename: str) -> pd.DataFrame:
 
     route_df = (
         route_df.assign(
-            bus_catch_likelihood=(route_df.n_predictions_early + route_df.n_predictions_ontime)
+            bus_catch_likelihood=(
+                route_df.n_predictions_early + route_df.n_predictions_ontime
+            )
             .divide(route_df.n_predictions)
             .round(3),
-            pct_tu_complete_minutes=route_df.n_tu_complete_minutes.divide(route_df.n_tu_minutes_available).round(3),
+            pct_tu_complete_minutes=route_df.n_tu_complete_minutes.divide(
+                route_df.n_tu_minutes_available
+            ).round(3),
         )
         .pipe(
-            outlier_detection.drop_outliers, outlier_detection.MIN_ERROR_SEC_5MIN, outlier_detection.MAX_ERROR_SEC_5MIN
+            outlier_detection.drop_outliers,
+            outlier_detection.MIN_ERROR_SEC_5MIN,
+            outlier_detection.MAX_ERROR_SEC_5MIN,
         )
         .pipe(report_utils.convert_seconds_to_minutes, "avg_prediction_error_sec")
         .pipe(
@@ -216,7 +251,12 @@ def clean_route_file(filename: str) -> pd.DataFrame:
             ptile_array_col="prediction_error_sec_percentile_array",
             ptiles_to_keep=PTILES_TO_DISPLAY,
         )
-        .rename(columns={**{f"p{i}": f"p{i}" for i in PTILES_TO_DISPLAY}, "p5": "prediction_padding"})
+        .rename(
+            columns={
+                **{f"p{i}": f"p{i}" for i in PTILES_TO_DISPLAY},
+                "p5": "prediction_padding",
+            }
+        )
         .pipe(report_utils.convert_seconds_to_minutes, "p25")
         .pipe(report_utils.convert_seconds_to_minutes, "p75")
         .pipe(report_utils.convert_seconds_to_minutes, "prediction_padding")
@@ -236,7 +276,9 @@ def clean_route_file(filename: str) -> pd.DataFrame:
     return route_df2
 
 
-def merge_in_route_geom(route_df: pd.DataFrame, route_geom_filename: str) -> gpd.GeoDataFrame:
+def merge_in_route_geom(
+    route_df: pd.DataFrame, route_geom_filename: str
+) -> gpd.GeoDataFrame:
     """
     Merge route metrics with fct_monthly_routes to get the line geometry.
     """
@@ -244,7 +286,13 @@ def merge_in_route_geom(route_df: pd.DataFrame, route_geom_filename: str) -> gpd
         gpd.read_parquet(
             f"{PREDICTIONS_GCS}{route_geom_filename}.parquet",
             storage_options={"token": credentials.token},
-            columns=["month_first_day", "name", "route_name", "direction_id", "geometry"],
+            columns=[
+                "month_first_day",
+                "name",
+                "route_name",
+                "direction_id",
+                "geometry",
+            ],
         )
         .pipe(report_utils.add_route_direction_column)
         .drop(columns=["route_name", "direction_id"])
@@ -261,7 +309,6 @@ def merge_in_route_geom(route_df: pd.DataFrame, route_geom_filename: str) -> gpd
 
 
 if __name__ == "__main__":
-
     DOWNLOADED_DICT = RT_MSA_DICT.dbt_model_downloads
     PROCESSED_DICT = RT_MSA_DICT.rt_schedule_models
 
@@ -276,6 +323,8 @@ if __name__ == "__main__":
     ROUTE_GEOM_FILE = DOWNLOADED_DICT.route_geom
 
     TU_ROUTE_CLEANED = PROCESSED_DICT.weekday_route_direction
-    route_cleaned = clean_route_file(TU_ROUTE_DOWNLOADED).pipe(merge_in_route_geom, ROUTE_GEOM_FILE)
+    route_cleaned = clean_route_file(TU_ROUTE_DOWNLOADED).pipe(
+        merge_in_route_geom, ROUTE_GEOM_FILE
+    )
 
     utils.geoparquet_gcs_export(route_cleaned, PREDICTIONS_GCS, TU_ROUTE_CLEANED)

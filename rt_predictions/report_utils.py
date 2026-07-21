@@ -20,7 +20,12 @@ DAYTYPE_ORDER_DICT = {"Weekday": 1, "Saturday": 2, "Sunday": 3}
 
 
 def explode_percentiles(
-    df: pd.DataFrame, group_cols: list, array_col: str, ptile_array_col: str, ptiles_to_keep: list, pivoted: bool = True
+    df: pd.DataFrame,
+    group_cols: list,
+    array_col: str,
+    ptile_array_col: str,
+    ptiles_to_keep: list,
+    pivoted: bool = True,
 ) -> pd.DataFrame:
     """
     Subset the array to keep values we want to plot.
@@ -49,7 +54,9 @@ def explode_percentiles(
     )
 
     if pivoted:
-        pivoted_df = subset_df.pivot(index=group_cols, columns=ptile_array_col, values=array_col).reset_index()
+        pivoted_df = subset_df.pivot(
+            index=group_cols, columns=ptile_array_col, values=array_col
+        ).reset_index()
 
         pivoted_df = pivoted_df.rename(columns={c: f"p{c}" for c in ptiles_to_keep})
 
@@ -98,7 +105,9 @@ def import_stop_df(**kwargs) -> gpd.GeoDataFrame:
 
     # If specific columns are defined, and one of those is geometry, use geopandas
     if "columns" in kwargs and "geometry" in kwargs["columns"]:
-        df = gpd.read_parquet(filename, storage_options={"token": credentials.token}, **kwargs)
+        df = gpd.read_parquet(
+            filename, storage_options={"token": credentials.token}, **kwargs
+        )
     else:
         df = pd.read_parquet(filename, filesystem=gcsfs.GCSFileSystem(), **kwargs)
     return df
@@ -114,14 +123,18 @@ def import_route_df(**kwargs) -> gpd.GeoDataFrame:
 
     # If specific columns are defined, and one of those is geometry, use geopandas
     if "columns" in kwargs and "geometry" in kwargs["columns"]:
-        df = gpd.read_parquet(filename, storage_options={"token": credentials.token}, **kwargs)
+        df = gpd.read_parquet(
+            filename, storage_options={"token": credentials.token}, **kwargs
+        )
     else:
         df = pd.read_parquet(filename, filesystem=gcsfs.GCSFileSystem(), **kwargs)
 
     return df
 
 
-def merge_route_to_stop_for_nanoplot(route_df: pd.DataFrame, stop_df: gpd.GeoDataFrame) -> pd.DataFrame:
+def merge_route_to_stop_for_nanoplot(
+    route_df: pd.DataFrame, stop_df: gpd.GeoDataFrame
+) -> pd.DataFrame:
     """
     In great tables, display route-direction metrics with
     individual stop's avg_prediction_error_minute (ordered by stop_rank).

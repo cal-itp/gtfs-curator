@@ -16,9 +16,10 @@ def drop_outliers(df: pd.DataFrame, min_cutoff: int, max_cutoff: int) -> pd.Data
     Use 250 seconds on either end, this is roughly 1% of either tail.
     In the future, we might expand to other columns.
     """
-    return df[(df.avg_prediction_error_sec >= min_cutoff) & (df.avg_prediction_error_sec <= max_cutoff)].reset_index(
-        drop=True
-    )
+    return df[
+        (df.avg_prediction_error_sec >= min_cutoff)
+        & (df.avg_prediction_error_sec <= max_cutoff)
+    ].reset_index(drop=True)
 
 
 def prediction_count_sanity_check(df: pd.DataFrame) -> pd.DataFrame:
@@ -35,7 +36,10 @@ def prediction_count_sanity_check(df: pd.DataFrame) -> pd.DataFrame:
     pct_cols = [f"pct_tu_predictions_{i}" for i in PREDICTION_CATEGORIES]
     count_cols = [f"n_predictions_{i}" for i in PREDICTION_CATEGORIES]
 
-    df = df.assign(n_predictions2=df[count_cols].sum(axis=1), pct_predictions2=df[pct_cols].sum(axis=1))
+    df = df.assign(
+        n_predictions2=df[count_cols].sum(axis=1),
+        pct_predictions2=df[pct_cols].sum(axis=1),
+    )
 
     return df
 
