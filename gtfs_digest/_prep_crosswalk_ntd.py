@@ -33,7 +33,9 @@ def load_crosswalk(
 
     df2 = (
         df.dropna(subset=["ntd_id", "ntd_id_2022"])
-        .drop_duplicates(subset=["analysis_name", "organization_name", "schedule_gtfs_dataset_name"])
+        .drop_duplicates(
+            subset=["analysis_name", "organization_name", "schedule_gtfs_dataset_name"]
+        )
         .rename(
             columns={
                 "schedule_gtfs_dataset_name": "name",
@@ -44,13 +46,15 @@ def load_crosswalk(
         .reset_index(drop=True)
     )
 
-    df2.to_parquet(f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem())
+    df2.to_parquet(
+        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+    )
 
     return
 
 
 if __name__ == "__main__":
-
     PROD_PROJECT = "cal-itp-data-infra"
     PROD_MART = "mart_transit_database"
 

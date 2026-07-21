@@ -1,29 +1,24 @@
 # NTD scripts to dbt models
-
 **Goal**: describe what each script does, then replicate with streamlined and consolidated dbt models.
 Make sure models adhere to grains in the warehouse and capture as much of the needed columns as possible.
-* monthly ridership: https://github.com/cal-itp/data-analyses/blob/main/ntd/monthly_ridership_report/monthly_ridership_by_rtpa.py
-* annual ridership: https://github.com/cal-itp/data-analyses/blob/main/ntd/annual_ridership_report/annual_ridership_script.py
-* UCLA performance metrics: https://github.com/cal-itp/data-analyses/blob/main/ntd/new_transit_metrics/new_transit_metrics_utils.py
-* utils: https://github.com/cal-itp/data-analyses/blob/main/ntd/ridership_report_utils/_01_ntd_ridership_utils.py
-* annual tables (annual ridership + UCLA performance metrics) came from different time-series sheets, so from `stg -> int`, these are separate models for each metric.
-   * `fct` doesn't need to maintain the fanout, it can be brought together, so metrics can be calculated with needed columns side-by-side.
-   * currently, `fct` just merges in `dim_agency_information` and filters out bad keys, and does this repeatedly, across 10 models. the `int` models can be brought in together to 1 `fct` table, eliminate sprawl.
-   * `fct` tables constructed this way wasn't a request based on use, so this can get refactored to match how it's used.
+* [monthly ridership](https://github.com/tiffanychu90/curator/blob/main/ntd/ntd_utils.py#L405)
+* [annual ridership](https://github.com/tiffanychu90/curator/blob/main/ntd/ntd_utils.py#L293)
+* [UCLA performance metrics](https://github.com/tiffanychu90/curator/blob/main/ntd/ucla_performance_metrics.py#L16)
 
 ## Monthly Ridership by RTPA
 1. monthly ridership agency-mode-tos grain data: `mart_ntd_ridership.fct_complete_monthly_ridership_with_adjustments_and_estimates`
    * filter for years (2018-), state (CA), non-nulls
-   * crosswalk (SCAG is split out by county) - use new bridge table
-1. TODO define grain for operating expenses: `mart_ntd_funding_and_expenses.fct_service_data_and_operating_expenses_time_series_by_mode_upt`
+   * [crosswalk](https://github.com/tiffanychu90/curator/blob/main/ntd/ntd_utils.py#L87-L133) needed (SCAG is split out by county) - use new bridge table
+1. merge in last year's upt: agency-year-mode-tos-upt: `mart_ntd_funding_and_expenses.fct_service_data_and_operating_expenses_time_series_by_mode_upt`
    * filter for years (2018-), state (CA) using UZA
-1. Merge ridership with operator expenses
-1. Merge in crosswalk
+1. last year's upt is exported to be second file saved in public GCS
+   * It also needs to merge in crosswalk
+1. Merge in crosswalk for monthly ridership
    * Note: Merging on too many columns can create problems because csvs and dtypes aren't stable / consistent for NTD ID, Legacy NTD ID, and UZA
 1. Add columns for report viz
-   * Add change columns - compare to same month_one_year_ago, get change and percent change
+   * Add [change columns]([https://github.com/tiffanychu90/curator/blob/ntd-models/ntd/ntd_utils.py#L32](https://github.com/tiffanychu90/curator/blob/ntd-models/ntd/ntd_utils.py#L32-L62)) - compare to same month_one_year_ago, get change and percent change (check that this is done correctly, is it Sep 2026 vs Sep 2025?)
    * Mode and TOS get full names
-1. Save Excel outputs
+1. Save [Excel outputs](https://github.com/tiffanychu90/curator/blob/ntd-models/ntd/ntd_utils.py#L182-L218)
    * Prepare some subtotals (Aggregated by Agency / Mode / TOS) as individual sheets
    * Attach cover sheet
    * Loop through RTPAs to create Excel worksheet for each
@@ -40,24 +35,34 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
 1. Add columns for report viz
    * Add change columns - compare to same one_year_ago, get change and percent change
    * Mode and TOS get full names
-1. Save Excel outputs
+1. Save [Excel outputs](https://github.com/tiffanychu90/curator/blob/ntd-models/ntd/ntd_utils.py#L220-L267)
    * Prepare some subtotals (Aggregated by Agency / Mode / TOS / Reporter Type) as individual sheets
    * Attach cover sheet
    * Loop through RTPAs to create Excel worksheet for each
 1. Upload to public GCS
 
-### Sanity Check Notes
-* Use `rtpa_name_split` + a bit extra to get annual RTPA list set up (this list is different than monthly RTPA list, LACDPW (LA County Dept of Public Works) is split out from LA Metro / LA County overall)
-* One NTD that needed to be included in LACDPW wasn't in there before, and was still sorted into LA Metro, this is the difference from existing, but this is correct
-   * `Los Angeles County - Department of Public Works, Transit Operations, East Los Angeles MB and DR`
-   * due to variety of how these strings show up, use 2 different ways to tag LADPW rows and re-categorize.
-   * **validated all other results**, upt values for indiv agencies match, sum of upt by RTPA, sum of agencies by RTPA match
-* Use new bridge table to be crosswalk - do not start with GTFS operators, because this will filter out NTD agencies if they don't have GTFS
-   * Use very similar crosswalk as `bridge_gtfs_analysis_name_x_ntd` (universe of GTFS operators, bring in NTD IDs for those). Adapt it.
-   * NTD bridge will be universe of NTD ID agencies, label it with necessary columns, add as much RTPA cleaning as possible
-* **TODO**
-   * add macros and get the columns that are needed into dbt model ahead of time - columns are either created or renamed 3 or 4 times, streamline this and remove need for dictionary to map full names
-   * identify which columns belong to annual report vs UCLA report, these share same model now
+### Sanity Check
+* check downloaded files
+* filter down to which columns to keep, both annual / UCLA report now share same upstream model and all columns are present
+   * need to remove some of the other keys in the existing Excel, those aren't meaningful for others
+* 2018 is the first year for Python script, but in dbt model, we have earlier years?
+   * Python script leaves the 2018 cell blank, but since dbt model can capture everything, and then we subset it, then we have 2018 populated
+* Other values for Butte look good
+* Sorting in `prep_data_utils` (*done*):
+   * Aggregated mode: sort by mode, then year (right now, it sorts by year, mode)
+   * Aggregated TOS: sort by TOS then year
+* Column naming needs to be standardized, easier to trace lineage when debugging:
+   * in monthly, `tos` renamed to `Type of Service`, `tos_full` renamed to `Type of Service Full Name`
+         * in monthly Excel cover sheet: data dictionary refers to `TOS`
+   * in annual: `tos` renamed to `service`, dbt column is now `type_of_service`.
+      * in annual Excel cover sheet: data dictionary refers to `TOS`,
+   * **decision: standardize based on monthly**.
+      * use `type_of_service`, `type_of_service_full_name`, `mode_full_name` and update Excel cover sheets and columns used for publishing.
+      * Err on the side of being more descriptive in column names.
+      * For Excel sheets, keep snakecase for now, so just 1 set of renaming in `prep_*_ntd.py` scripts.
+      * For cover sheet, remove refs to monthly in the annual coversheet, remove leading spaces, update column names, make sure spacing is the same across both.
+* Go with more descriptive column names, monthly dbt models use `vrm`, `voms`, etc
+* Monthly ridership, check 2017 to make sure 2018 values are correctly calculated, since queries always filter for 2018-present. Checked Butte, looks good.
 
 ## UCLA NTD Performance Metrics
 1. annual operating expenses (agency-mode grain data): `mart_ntd_funding_and_expenses.fct_service_data_and_operating_expenses_time_series_by_mode_opexp_total`
@@ -86,7 +91,7 @@ Make sure models adhere to grains in the warehouse and capture as much of the ne
         'upt_per_vrm':"Unlinked Passenger Trips per Vehicle Revenue Miles", #service-effectiveness
          #farebox recovery ratio = fares_revenue/opex
     }
-    ```
+   ```
 
 ## Our Warehouse
 A bunch of these, but can't really distinguish the difference beyond topics, which one is annual and are all the rest monthly?:
@@ -122,7 +127,6 @@ Based on the prefixes, there are at least 3 main time-series datasets covered.
 
 **capital expenditures** (TS3.1 - Capital Expenditures Time Series)
 * Excel: https://www.transit.dot.gov/ntd/data-product/ts31-capital-expenditures-time-series-2
-* couldn't find NTD API for this
 
 **operating expenses** (TS1.2 Operating and Capital Funding Time Series)
 * Excel: https://www.transit.dot.gov/ntd/data-product/ts12-operating-funding-time-series-3

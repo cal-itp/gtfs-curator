@@ -20,15 +20,21 @@ def basic_percentiles_line_chart(
     """
     chart = (
         alt.Chart(df)
-        .mark_line(point=True, interpolate="natural")  # this one seems to smooth out the curves
+        .mark_line(
+            point=True, interpolate="natural"
+        )  # this one seems to smooth out the curves
         .encode(
             x=alt.X(x_col, title="Prediction Error (minutes)"),
-            y=alt.Y("percentile", title="Percentiles", scale=alt.Scale(domain=[0, 100])),
+            y=alt.Y(
+                "percentile", title="Percentiles", scale=alt.Scale(domain=[0, 100])
+            ),
             color=alt.Color(
                 f"{color_col}:N",
                 title=f"{color_col.replace('_', ' ').title()}",
                 sort=list(_color_palette.DAY_TYPE_COLOR_PALETTE.keys()),
-                scale=alt.Scale(range=list(_color_palette.DAY_TYPE_COLOR_PALETTE.values())),
+                scale=alt.Scale(
+                    range=list(_color_palette.DAY_TYPE_COLOR_PALETTE.values())
+                ),
             ),
             tooltip=[x_col, "percentile", color_col],
         )
@@ -36,7 +42,9 @@ def basic_percentiles_line_chart(
     return chart
 
 
-def fig5and6_prediction_error_plots(df: pd.DataFrame, color_col: str = "day_type") -> alt.Chart:
+def fig5and6_prediction_error_plots(
+    df: pd.DataFrame, color_col: str = "day_type"
+) -> alt.Chart:
     """
     Negative and positive prediction error plots are combined side-by-side as 1 chart.
 
@@ -64,7 +72,11 @@ def fig5and6_prediction_error_plots(df: pd.DataFrame, color_col: str = "day_type
     )
 
     # Add vertical line where zero is
-    vertical_line = alt.Chart().mark_rule(strokeDash=[12, 6], size=2, color="gray").encode(x=alt.datum(0))
+    vertical_line = (
+        alt.Chart()
+        .mark_rule(strokeDash=[12, 6], size=2, color="gray")
+        .encode(x=alt.datum(0))
+    )
 
     chart = (
         (neg_errors_chart + pos_errors_chart + vertical_line)
@@ -86,7 +98,9 @@ def format_great_table(table: GT, day_type_grouping: bool = True) -> GT:
     Sometimes we want to group by day_type.
     https://posit-dev.github.io/great-tables/reference/GT.tab_stub.html
     """
-    formatted_table = table.tab_options(table_font_size="11px", table_width="100%").cols_align("center")
+    formatted_table = table.tab_options(
+        table_font_size="11px", table_width="100%"
+    ).cols_align("center")
 
     if day_type_grouping:
         formatted_table = formatted_table.tab_stub(rowname_col="day_type")

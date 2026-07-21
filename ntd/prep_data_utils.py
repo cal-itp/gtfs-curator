@@ -2,97 +2,210 @@
 Separate out the utility functions needed for aggregation or visualization.
 """
 
+import gcsfs
 import pandas as pd
+from update_vars import GCS_FILE_PATH
 
 
-def sum_by_group_new(
+def merge_with_crosswalk(
+    ntd_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Merge the NTD df with the RTPA crosswalk on ntd_id.
+    """
+    crosswalk = pd.read_parquet(
+        f"{GCS_FILE_PATH}crosswalk.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=["ntd_id_2022", "rtpa_name", "rtpa_name_split"],
+    ).rename(columns={"ntd_id_2022": "ntd_id"})
+
+    df = pd.merge(ntd_df, crosswalk, on="ntd_id", how="left")
+
+    return df
+
+
+def calculate_upt_change_by_group(
     df: pd.DataFrame,
     group_cols: list,
     sum_cols: list,
     prior_col: str,
 ) -> pd.DataFrame:
     """ """
-    grouped_df = df.groupby(group_cols, dropna=False).agg({**{c: "sum" for c in sum_cols}}).reset_index()
+    grouped_df = (
+        df.groupby(group_cols, dropna=False)
+        .agg({**{c: "sum" for c in sum_cols}})
+        .reset_index()
+    )
 
     # calculate percent change. Turn decimal (0-1) to number (0-100) for easier display in charts.
     # must make sure that the sorting is intact for monthly or annual (sort by year or month_first_day)
     grouped_df = grouped_df.assign(
-        pct_change_1_yr=(grouped_df.upt - grouped_df[prior_col]).divide(grouped_df[prior_col]).round(4) * 100
+        pct_change_1_yr=(grouped_df.upt - grouped_df[prior_col])
+        .divide(grouped_df[prior_col])
+        .round(4)
+        * 100
     )
 
     return grouped_df
 
 
-def aggregate_by_agency(df, previous_upt_col, time_cols, geography_cols):
+def calculate_efficiency_metrics_by_group(
+    df: pd.DataFrame, group_cols: list
+) -> pd.DataFrame:
+    """
+    The columns get renamed several times, try to consolidate this to just once?
+    should vrh and vrm be abbreviated (monthly model) or full name (annual model)?
+    """
+    metric_cols = [
+        "unlinked_passenger_trips",
+        "vehicle_revenue_miles",
+        "vehicle_revenue_hours",
+        "operating_expenses_total",
+    ]
+
+    # remove rows where we might divide by zero
+    df2 = df[
+        df[
+            [
+                "unlinked_passenger_trips",
+                "vehicle_revenue_hours",
+                "vehicle_revenue_miles",
+            ]
+        ].sum(axis=1)
+        != 0
+    ].reset_index(drop=True)
+
+    grouped_df = (
+        df2.sort_values(group_cols)
+        .groupby(group_cols)
+        .agg({c: "sum" for c in metric_cols})
+        .reset_index()
+    )
+
+    grouped_df = grouped_df.assign(
+        opex_per_upt=grouped_df.operating_expenses_total.divide(
+            grouped_df.unlinked_passenger_trips
+        ).round(2),
+        opex_per_vrh=grouped_df.operating_expenses_total.divide(
+            grouped_df.vehicle_revenue_hours
+        ).round(2),
+        opex_per_vrm=grouped_df.operating_expenses_total.divide(
+            grouped_df.vehicle_revenue_miles
+        ).round(2),
+        upt_per_vrh=grouped_df.unlinked_passenger_trips.divide(
+            grouped_df.vehicle_revenue_hours
+        ).round(2),
+        upt_per_vrm=grouped_df.unlinked_passenger_trips.divide(
+            grouped_df.vehicle_revenue_miles
+        ).round(2),
+    )
+
+    return grouped_df
+
+
+def aggregate_by_agency(
+    df: pd.DataFrame, previous_upt_col: str, time_cols: list, geography_cols: list
+):
     return (
-        sum_by_group_new(
+        calculate_upt_change_by_group(
             df,
-            group_cols=["ntd_id", "source_agency"] + time_cols + geography_cols,
+            group_cols=["ntd_id", "agency"] + time_cols + geography_cols,
             sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
-        .sort_values(time_cols + geography_cols + ["ntd_id"])
+        .sort_values(["ntd_id"] + time_cols + geography_cols)
         .reset_index(drop=True)
     )
 
 
-def aggregate_by_mode(df, previous_upt_col, time_cols, geography_cols):
+def aggregate_by_mode(
+    df: pd.DataFrame, previous_upt_col: str, time_cols: list, geography_cols: list
+):
     return (
-        sum_by_group_new(
+        calculate_upt_change_by_group(
             df,
             group_cols=["mode", "mode_full_name"] + time_cols + geography_cols,
             sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
-        .sort_values(time_cols + geography_cols + ["mode"])
+        .sort_values(["mode", "mode_full_name"] + time_cols + geography_cols)
         .reset_index(drop=True)
     )
 
 
-def aggregate_by_tos(df, previous_upt_col, time_cols, geography_cols):
+def aggregate_by_tos(
+    df: pd.DataFrame, previous_upt_col: str, time_cols: list, geography_cols: list
+):
     return (
-        sum_by_group_new(
+        calculate_upt_change_by_group(
             df,
-            group_cols=["type_of_service", "type_of_service_full_name"] + time_cols + geography_cols,
+            group_cols=["type_of_service", "type_of_service_full_name"]
+            + time_cols
+            + geography_cols,
             sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
-        .sort_values(time_cols + geography_cols + ["type_of_service"])
+        .sort_values(
+            ["type_of_service", "type_of_service_full_name"]
+            + time_cols
+            + geography_cols
+        )
         .reset_index(drop=True)
     )
 
 
-def aggregate_by_reporter_type(df, previous_upt_col, time_cols, geography_cols):
+def aggregate_by_reporter_type(
+    df: pd.DataFrame, previous_upt_col: str, time_cols: list, geography_cols: list
+):
     return (
-        sum_by_group_new(
+        calculate_upt_change_by_group(
             df,
             group_cols=["reporter_type"] + time_cols + geography_cols,
             sum_cols=["upt", previous_upt_col, "upt_change_1yr"],
             prior_col=previous_upt_col,
         )
-        .sort_values(time_cols + geography_cols + ["reporter_type"])
+        .sort_values(["reporter_type"] + time_cols + geography_cols)
         .reset_index(drop=True)
     )
 
 
-def extra_annual_rtpa_splitting(row):
+def proportion_of_upt_by_agency(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Replace LA County Public Works agencies with their own RTPA
-    For SCAG, use rtpa_name_split that mirrors each county.
+    Find the proportion of UPT each agency contributes relative
+    to the RTPA total.
+    Used in report for sorted bar chart.
     """
-    # previously, used list to tag, but one NTD ID: 90271 was missing
-    # use string to tag instead for resiliency
-    # Los Angeles County - Department of Public Works, Transit Operations, East Los Angeles MB and DR
-    # this was previously part of LACMTA, so now counts willl differ
-    # lacdpw_list = [
-    #    "90269", "90270", "90272", "90273", "90274",
-    #    "90275", "90276", "90277", "90278", "90279",
-    # ]
+    initial_agg = (
+        df.groupby("agency")
+        .agg(total_upt=("upt", "sum"))
+        .reset_index()
+        .astype({"total_upt": "int64"})
+        .sort_values(by="total_upt", ascending=False)
+    )
+    # % total columns
+    initial_agg["pct_of_total_upt"] = (
+        (initial_agg["total_upt"] / initial_agg["total_upt"].sum()) * 100
+    ).round(decimals=2)
 
-    # use 2 conditions to tag, since string can show with LACDPW before hyphen
-    if ("Los Angeles County - Department of Public Works" in row.source_agency) or ("LACDPW" in row.source_agency):
-        return "Los Angeles County Department of Public Works"
-    elif row.rtpa_name == "Southern California Association of Governments":
-        return row.rtpa_name_split
-    else:
-        return row.rtpa_name
+    return initial_agg
+
+
+# Define color palette here - easier to switch to DDS ones
+# if needed, without importing yet another dependency
+CALITP_CATEGORY_BRIGHT_COLORS = [
+    "#2EA8CE",  # darker blue
+    "#EB9F3C",  # orange
+    "#F4D837",  # yellow
+    "#51BF9D",  # green
+    "#8CBCCB",  # lighter blue
+    "#9487C0",  # purple
+]
+
+CALITP_CATEGORY_BOLD_COLORS = [
+    "#136C97",  # darker blue
+    "#E16B26",  # orange
+    "#F6BF16",  # yellow
+    "#00896B",  # green
+    "#7790A3",  # lighter blue
+    "#5B559C",  # purple
+]

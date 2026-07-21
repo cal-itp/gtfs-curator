@@ -1,6 +1,6 @@
 [project]
 name = "curator"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11.0, <3.12.0"
@@ -59,9 +59,7 @@ package = false
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.0",
-    "black==24.10.0",
-    "isort==5.10.1",
-    "pre-commit>=2.18.1",
+	"ruff>=0.15.20",
 	"pyproject-local-kernel",
 ]
 
@@ -69,3 +67,16 @@ dev = [
 [tool.uv.sources]
 gtfs-curator-utils = { workspace = true }
 calitp-portfolio = { workspace = true }
+
+[tool.ruff]
+line-length = 88  # Sets the max line length (default is 88, same as Black)
+target-version = "py311"  # Specifies the Python version (py312 for Python 3.12)
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

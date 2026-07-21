@@ -8,7 +8,8 @@ import report_utils
 
 
 def operator_percentiles_summary(
-    df: pd.DataFrame, group_cols: list = ["month_first_day", "day_type", "schedule_name", "tu_name"]
+    df: pd.DataFrame,
+    group_cols: list = ["month_first_day", "day_type", "schedule_name", "tu_name"],
 ) -> pd.DataFrame:
     """
     Several percentiles are linked to specific interpretations.
@@ -72,9 +73,9 @@ def operator_percentiles_summary(
         .reset_index(drop=True)
     )
 
-    percentiles_df = pd.merge(percentiles_iqr, pos_slope, on=group_cols, how="inner").merge(
-        neg_slope, on=group_cols, how="inner"
-    )
+    percentiles_df = pd.merge(
+        percentiles_iqr, pos_slope, on=group_cols, how="inner"
+    ).merge(neg_slope, on=group_cols, how="inner")
 
     # now calculate slope
     # small is good, large ratios are bad (ex in paper is that 4 is pretty bad)
@@ -89,7 +90,8 @@ def operator_percentiles_summary(
 
 
 def operator_deciles_for_chart(
-    df: pd.DataFrame, group_cols: list = ["month_first_day", "day_type", "schedule_name", "tu_name"]
+    df: pd.DataFrame,
+    group_cols: list = ["month_first_day", "day_type", "schedule_name", "tu_name"],
 ) -> pd.DataFrame:
     """
     Several percentiles are linked to specific interpretations.
@@ -139,7 +141,9 @@ def operator_deciles_for_chart(
         .pipe(report_utils.convert_seconds_to_minutes, "neg_prediction_error_sec")
     )
 
-    deciles_df = pd.merge(pos_deciles, neg_deciles, on=group_cols + ["percentile"], how="inner")
+    deciles_df = pd.merge(
+        pos_deciles, neg_deciles, on=group_cols + ["percentile"], how="inner"
+    )
 
     return deciles_df
 
@@ -151,7 +155,12 @@ def merge_in_operator_percentiles(df: pd.DataFrame) -> pd.DataFrame:
     """
     percentiles_df = operator_percentiles_summary(df)
 
-    df1 = pd.merge(df, percentiles_df, on=["month_first_day", "day_type", "schedule_name", "tu_name"], how="inner")
+    df1 = pd.merge(
+        df,
+        percentiles_df,
+        on=["month_first_day", "day_type", "schedule_name", "tu_name"],
+        how="inner",
+    )
 
     # can drop array cols
     # add a bit more
@@ -159,7 +168,9 @@ def merge_in_operator_percentiles(df: pd.DataFrame) -> pd.DataFrame:
 
     df1 = (
         df1.assign(
-            bus_catch_likelihood=(df1.pct_predictions_early + df1.pct_predictions_ontime).round(2),
+            bus_catch_likelihood=(
+                df1.pct_predictions_early + df1.pct_predictions_ontime
+            ).round(2),
             day_type_sorted=df1.day_type.map(report_utils.DAYTYPE_ORDER_DICT),
         )
         .rename(columns={"prediction_padding": "prediction_padding_minutes"})
@@ -178,7 +189,11 @@ def reshape_prediction_category_counts_to_long(df: pd.DataFrame) -> pd.DataFrame
     """
     df2 = df.melt(
         id_vars=["tu_name", "day_type"],
-        value_vars=["pct_predictions_early", "pct_predictions_ontime", "pct_predictions_late"],
+        value_vars=[
+            "pct_predictions_early",
+            "pct_predictions_ontime",
+            "pct_predictions_late",
+        ],
         var_name="prediction_category",
         value_name="pct",
     )

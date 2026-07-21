@@ -51,7 +51,9 @@ def create_point_geometry(
     crs: str, coordinate reference system for point geometry
     """
     # Default CRS for stop_lon, stop_lat is WGS84
-    df = df.assign(geometry=gpd.points_from_xy(df[longitude_col], df[latitude_col], crs=WGS84))
+    df = df.assign(
+        geometry=gpd.points_from_xy(df[longitude_col], df[latitude_col], crs=WGS84)
+    )
 
     # ALlow projection to different CRS
     gdf = gpd.GeoDataFrame(df).to_crs(crs)
@@ -128,7 +130,9 @@ def explode_segments(
 
     gdf_exploded = gdf_exploded.assign(
         segment_sequence=(
-            gdf_exploded.groupby(group_cols, observed=True, group_keys=False).temp_index.transform("rank")
+            gdf_exploded.groupby(
+                group_cols, observed=True, group_keys=False
+            ).temp_index.transform("rank")
             - 1
             # there are NaNs, but since they're a single segment, just use 0
         )
@@ -186,17 +190,25 @@ def arrowize_segment(line_geometry, buffer_distance: int = 20):
             begin_segment.length + arrow_distance,
             begin_segment.length + arrow_distance,
         )
-        poly = shapely.geometry.Polygon((r_pt, end, l_pt))  # triangle to cut bottom of arrow
+        poly = shapely.geometry.Polygon(
+            (r_pt, end, l_pt)
+        )  # triangle to cut bottom of arrow
         # ends to the left
-        end_segment = shapely.ops.substring(segment, segment.length - st_end_distance, segment.length)
-        end = shapely.ops.substring(end_segment, end_segment.length, end_segment.length)  # correct
+        end_segment = shapely.ops.substring(
+            segment, segment.length - st_end_distance, segment.length
+        )
+        end = shapely.ops.substring(
+            end_segment, end_segment.length, end_segment.length
+        )  # correct
         r_shift = end_segment.parallel_offset(shift_distance, "right")
         r_pt = shapely.ops.substring(r_shift, 0, 0)
         r_pt2 = shapely.ops.substring(r_shift, r_shift.length, r_shift.length)
         l_shift = end_segment.parallel_offset(shift_distance, "left")
         l_pt = shapely.ops.substring(l_shift, 0, 0)
         l_pt2 = shapely.ops.substring(l_shift, l_shift.length, l_shift.length)
-        t1 = shapely.geometry.Polygon((l_pt2, end, l_pt))  # triangles to cut top of arrow
+        t1 = shapely.geometry.Polygon(
+            (l_pt2, end, l_pt)
+        )  # triangles to cut top of arrow
         t2 = shapely.geometry.Polygon((r_pt2, end, r_pt))
 
         segment_clip_mask = shapely.geometry.MultiPolygon((poly, t1, t2))
@@ -212,7 +224,11 @@ def arrowize_segment(line_geometry, buffer_distance: int = 20):
         return line_geometry.simplify(tolerance=5).buffer(buffer_distance)
 
 
-def nearest_snap(line: Union[shapely.LineString, np.ndarray], point: shapely.Point, k_neighbors: int = 1) -> np.ndarray:
+def nearest_snap(
+    line: Union[shapely.LineString, np.ndarray],
+    point: shapely.Point,
+    k_neighbors: int = 1,
+) -> np.ndarray:
     """
     Based off of this function,
     but we want to return the index value, rather than the point.
@@ -241,7 +257,9 @@ def vp_as_gdf(vp: pd.DataFrame, crs: str = "EPSG:3310") -> gpd.GeoDataFrame:
     Turn vp as a gdf and project to EPSG:3310.
     """
     vp_gdf = (
-        create_point_geometry(vp, longitude_col="x", latitude_col="y", crs=WGS84).to_crs(crs).drop(columns=["x", "y"])
+        create_point_geometry(vp, longitude_col="x", latitude_col="y", crs=WGS84)
+        .to_crs(crs)
+        .drop(columns=["x", "y"])
     )
 
     return vp_gdf
@@ -268,7 +286,9 @@ def add_arrowized_geometry(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-def get_direction_vector(start: shapely.geometry.Point, end: shapely.geometry.Point) -> tuple:
+def get_direction_vector(
+    start: shapely.geometry.Point, end: shapely.geometry.Point
+) -> tuple:
     """
     Given 2 points (in a projected CRS...not WGS84), return a
     tuple that shows (delta_x, delta_y).
@@ -322,7 +342,9 @@ def dot_product(vec1: tuple, vec2: tuple) -> float:
     return vec1[0] * vec2[0] + vec1[1] * vec2[1]
 
 
-def segmentize_by_indices(line_geometry: shapely.LineString, start_idx: int, end_idx: int) -> shapely.LineString:
+def segmentize_by_indices(
+    line_geometry: shapely.LineString, start_idx: int, end_idx: int
+) -> shapely.LineString:
     """
     Cut a line according to index values.
     Similar to shapely.segmentize, which allows you to cut
@@ -343,7 +365,9 @@ def segmentize_by_indices(line_geometry: shapely.LineString, start_idx: int, end
         return shapely.LineString([shapely.Point(i) for i in subset_coords])
 
 
-def draw_line_between_points(gdf: gpd.GeoDataFrame, group_cols: list) -> gpd.GeoDataFrame:
+def draw_line_between_points(
+    gdf: gpd.GeoDataFrame, group_cols: list
+) -> gpd.GeoDataFrame:
     """
     Use the current postmile as the
     starting geometry / segment beginning
@@ -355,14 +379,18 @@ def draw_line_between_points(gdf: gpd.GeoDataFrame, group_cols: list) -> gpd.Geo
     # Grab the subsequent point geometry
     # We can drop whenever the last point is missing within
     # a group. If we have 3 points, we can draw 2 lines.
-    gdf = gdf.assign(end_geometry=(gdf.groupby(group_cols, group_keys=False, dropna=False).geometry.shift(-1))).dropna(
-        subset="end_geometry"
-    )
+    gdf = gdf.assign(
+        end_geometry=(
+            gdf.groupby(group_cols, group_keys=False, dropna=False).geometry.shift(-1)
+        )
+    ).dropna(subset="end_geometry")
 
     # Construct linestring with 2 point coordinates
     gdf = (
         gdf.assign(
-            line_geometry=gdf.apply(lambda x: shapely.LineString([x.geometry, x.end_geometry]), axis=1).set_crs(WGS84)
+            line_geometry=gdf.apply(
+                lambda x: shapely.LineString([x.geometry, x.end_geometry]), axis=1
+            ).set_crs(WGS84)
         )
         .drop(columns=["geometry", "end_geometry"])
         .rename(columns={"line_geometry": "geometry"})
@@ -371,7 +399,9 @@ def draw_line_between_points(gdf: gpd.GeoDataFrame, group_cols: list) -> gpd.Geo
     return gdf
 
 
-def convert_to_gdf(df: pd.DataFrame, geom_col: str, geom_type: Literal["point", "line"]) -> gpd.GeoDataFrame:
+def convert_to_gdf(
+    df: pd.DataFrame, geom_col: str, geom_type: Literal["point", "line"]
+) -> gpd.GeoDataFrame:
     """
     For stops, we want to make pt_geom a point.
     For vp_path and shapes, we want to make pt_array a linestring.
@@ -382,6 +412,8 @@ def convert_to_gdf(df: pd.DataFrame, geom_col: str, geom_type: Literal["point", 
     elif geom_type == "line":
         df["geometry"] = df[geom_col].apply(make_linestring)
 
-    gdf = gpd.GeoDataFrame(df.drop(columns=geom_col), geometry="geometry", crs="EPSG:4326")
+    gdf = gpd.GeoDataFrame(
+        df.drop(columns=geom_col), geometry="geometry", crs="EPSG:4326"
+    )
 
     return gdf

@@ -11,7 +11,6 @@ credentials, project = google.auth.default()
 PREDICTIONS_GCS = "gs://calitp-analytics-data/data-analyses/rt_predictions/"
 
 if __name__ == "__main__":
-
     monthly_operator_summary = bq_utils.download_table(
         project_name="cal-itp-data-infra-staging",
         dataset_name="tiffany_mart_gtfs",  # these are not in tiffany_mart_gtfs_rollup
@@ -22,5 +21,6 @@ if __name__ == "__main__":
     )
 
     monthly_operator_summary.to_parquet(
-        f"{PREDICTIONS_GCS}TEST2_monthly_operator_summary_marin.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{PREDICTIONS_GCS}TEST2_monthly_operator_summary_marin.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
     )

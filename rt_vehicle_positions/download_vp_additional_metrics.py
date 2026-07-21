@@ -8,7 +8,6 @@ from gtfs_curator_utils import bq_utils
 VP_GCS = "gs://calitp-analytics-data/data-analyses/rt_vehicle_positions/"
 
 if __name__ == "__main__":
-
     analysis_date = "2026-01-01"
 
     for t in ["stop", "trip"]:
@@ -21,6 +20,8 @@ if __name__ == "__main__":
             end_date=analysis_date,
         )
 
-        df.to_parquet(f"{VP_GCS}vp_{t}_metrics.parquet", filesystem=gcsfs.GCSFileSystem())
+        df.to_parquet(
+            f"{VP_GCS}vp_{t}_metrics.parquet", filesystem=gcsfs.GCSFileSystem()
+        )
 
         del df

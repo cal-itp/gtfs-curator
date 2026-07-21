@@ -34,13 +34,27 @@ def get_color(color_name: str) -> str:
 
 FULL_CATEGORICAL_COLORS = [
     COLOR_NAME_TO_HEX[c]
-    for c in ["blueberry", "lady_blue", "light_cadmium_yellow", "electric_orange", "vivid_cerise", "earls_green"]
+    for c in [
+        "blueberry",
+        "lady_blue",
+        "light_cadmium_yellow",
+        "electric_orange",
+        "vivid_cerise",
+        "earls_green",
+    ]
 ]
 
-TRI_COLORS = [COLOR_NAME_TO_HEX[c] for c in ["earls_green", "blueberry", "vivid_cerise"]]
-FOUR_COLORS = [COLOR_NAME_TO_HEX[c] for c in ["vivid_cerise", "light_cadmium_yellow", "earls_green", "blueberry"]]
+TRI_COLORS = [
+    COLOR_NAME_TO_HEX[c] for c in ["earls_green", "blueberry", "vivid_cerise"]
+]
+FOUR_COLORS = [
+    COLOR_NAME_TO_HEX[c]
+    for c in ["vivid_cerise", "light_cadmium_yellow", "earls_green", "blueberry"]
+]
 
-FOUR_COLORS2 = [COLOR_NAME_TO_HEX[c] for c in ["happy_red", "aquatic", "earls_green", "metro_blue"]]
+FOUR_COLORS2 = [
+    COLOR_NAME_TO_HEX[c] for c in ["happy_red", "aquatic", "earls_green", "metro_blue"]
+]
 
 # Define the colors for prediction_error_label
 PREDICTION_ERROR_COLOR_PALETTE = {
