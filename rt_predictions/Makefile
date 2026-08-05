@@ -14,11 +14,6 @@ create_marin_bq_tables:
 	uv run dbt run -s fct_monthly_operator_summary_marin
 
 marin_report:
-	python download_warehouse_tables.py
+	python download_warehouse_tables_marin.py
 	quarto convert marin_operator.ipynb # update the yaml snippet
 	quarto render marin_operator.qmd
-
-
-test_operator_report:
-	cd ../ && make build_staging_portfolio_site site='test_tu'
-	python portfolio/portfolio.py index --deploy --no-prod
