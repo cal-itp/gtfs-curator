@@ -4,7 +4,6 @@ GTFS Diagnostics
 (1) start from a service date range, which feeds were relevant?
    - grab all, then filter to operators
    - for feeds, be able to get _feed_valid_from, to key into dimension tables
-   - Big Query stg job id: 91cfff1d-ed24-4559-be92-26e1ad61b0a3 (ran feeds for service_date_range)
 
 use cases:
 - one operator, which feed? which feed_keys?
@@ -68,7 +67,6 @@ def filter_to_last_n_feeds(one_operator_name: str, feed_type: str, n: int):
     """
     order this by _feed_valid_from and key into it
     can't just use dim_gtfs_datasets_latest
-    need to go back for feeds that were valid during 2026-06-12 - 2026-07-10 for World Cup
     -- 1st part: get date range, feeds that were relevant in that range
     -- 2nd part: filter to names we want
     -- Inglewood Schedule: doing the partition by name and base64_url means we might keep some older feeds, which had different base64_url

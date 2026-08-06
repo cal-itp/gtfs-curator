@@ -109,8 +109,6 @@ if __name__ == "__main__":
 
     # (4) fct_daily_scheduled_stops
     # filter by service_date and feed_key
-    # Big Query prod job ID: 43ee39af-cbd2-44a1-ad24-48e97828eb6c ~2GB
-    # what is the size to use bqstorage_client vs not use it?
     subset_feed_keys = (
         pd.read_parquet(
             f"{GCS_FILE_PATH}feeds_{wc_vars.event_name}.parquet",
