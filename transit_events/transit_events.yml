@@ -1,0 +1,10 @@
+title: Transit Events Analysis
+directory: .
+readme: ./README_world_cup.md
+parts:
+  - chapters:
+    - notebook: ./levi_service_changes.ipynb
+    - notebook: ./sofi_service_changes.ipynb
+deploy:
+  staging: gs://calitp-analysis-staging/transit_events
+  prod: gs://calitp-analysis/transit_events

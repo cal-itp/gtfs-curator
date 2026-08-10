@@ -57,12 +57,8 @@ def filter_fct_daily_schedule_rt_route_direction_summary_to_special_routes(
     return route_gdf
 
 
-def aggregate_daily_trips_by_operator(df: pd.DataFrame):
-    df2 = (
-        df.groupby(["service_date", "schedule_name"])
-        .agg({"n_trips": "sum"})
-        .reset_index()
-    )
+def aggregate_daily_trips(df: pd.DataFrame, group_cols: list):
+    df2 = df.groupby(group_cols).agg({"n_trips": "sum"}).reset_index()
 
     # Make sure these show up in the same place as the dotted lines
     df2 = df2.assign(service_date=pd.to_datetime(df2.service_date).dt.normalize())

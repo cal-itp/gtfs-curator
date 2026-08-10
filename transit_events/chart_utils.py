@@ -20,13 +20,20 @@ def event_date_rule_chart(list_of_dates: list):
 
 
 def trip_chart_with_event_dates(
-    trips_df: pd.DataFrame, list_of_dates: list
+    trips_df: pd.DataFrame, list_of_dates: list, color_col: str = "schedule_name"
 ) -> alt.Chart:
     """
     instead of point=True, can set the fill to white.
     https://altair-viz.github.io/user_guide/marks/line.html
     """
-    selection = alt.selection_point(fields=["schedule_name"], bind="legend")
+    selection = alt.selection_point(fields=[color_col], bind="legend")
+
+    if color_col == "schedule_name":
+        color_title = "GTFS Schedule Name"
+        color_scheme = "plasma"
+    elif color_col == "route_name":
+        color_title = "Route Name"
+        color_scheme = "category20"
 
     trips_chart = (
         alt.Chart(trips_df)
@@ -35,12 +42,12 @@ def trip_chart_with_event_dates(
             x=alt.X("service_date:T", title="date"),
             y=alt.Y("n_trips:Q", title="Daily Trips"),
             color=alt.Color(
-                "schedule_name:N",
-                title="GTFS Schedule Name",
-                scale=alt.Scale(scheme="plasma"),
+                f"{color_col}:N",
+                title=color_title,
+                scale=alt.Scale(scheme=color_scheme),
             ),
-            tooltip=["service_date", "schedule_name", "n_trips"],
-            opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.2)),
+            tooltip=["service_date", color_col, "n_trips"],
+            opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.1)),
         )
         .interactive()
         .add_params(selection)
