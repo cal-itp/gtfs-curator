@@ -53,6 +53,47 @@ socal_names = [
     "Metrolink Schedule",
 ]
 
+# special routes to filter for
+# notebook to visually inspect and populate these
+special_socal_routes_dict = {
+    "LA Metro Bus Schedule": None,  # thought 22 was Los Angeles Stadium Express, can't find
+    "LA Metro Events Schedule": [
+        "10__ S10 Harbor Gateway Transit Center",
+        "11__ S11 LAX/Metro Transit Center",
+        "12__ S12 Hotels & Parking LAX",
+        "13__ T13 Pierce College Station",
+        "14__ T14 Downtown Santa Monica",
+        "15__ T15 North Hollywood Station",
+        "1__ R1 El Camino College",
+        "2__ R2 Union Station",
+        "3__ R3 Crenshaw Station",
+        "4__ R4 Hawthorne/Lennox Station",
+        "5__ R5 Downtown Long Beach",
+        "6__ R6 ARTIC Anaheim Station",
+        "7__ R7 Newport Transportation Center",
+        "8__ S8 Torrance Transit Center",
+        "9__ S9 Culver City Transit Center",
+    ],
+    "LA DOT Schedule": ["712__DASH Chesterfield Square"],  # route map
+    "G Trans Schedule": ["7X__7X Line 7X"],
+    "Torrance Schedule": ["10__10 LINE 10"],
+    "Inglewood Schedule": None,  # can't find inglewood?
+    "Beach Cities GMV Schedule": None,
+    "Big Blue Bus Schedule": [
+        "T14__T14 Los Angeles Stadium"
+    ],  # said no, but saw route name that does
+    "Culver City Schedule": None,  # couldn't find 99X
+    "Metrolink Schedule": [
+        "91 Line__91-PV Line Metrolink 91-Perris Valley Line",
+        "Antelope Valley Line__AV Line Metrolink Antelope Valley Line",
+        "Orange County Line__OC Line Metrolink Orange County Line",
+        "Riverside Line__RIV Line Metrolink Riverside Line",
+        "San Bernardino Line__SB Line Metrolink San Bernardino Line",
+        "Ventura County Line__VC Line Metrolink Ventura County Line",
+    ],
+    "LA Metro Rail Schedule": ["803__ Metro C Line", "807__ Metro K Line"],
+}
+
 levi_dates = [
     "2026-06-13",
     "2026-06-16",
@@ -82,6 +123,42 @@ bay_area_names = [
     "Bay Area 511 Capitol Corridor Schedule",
     "Amtrak Schedule",
 ]
+
+special_bayarea_routes_dict = {
+    "SCVTA Schedule": [
+        "BBSB__BBWC Bus Bridge WC26",  # route chart
+        "BlueS__BlueS Blue Line WC26",  # route chart
+        "Blue__Blue Line Baypointe - Santa Teresa",  # get regular one
+        "GrenS__GreenS Green Line WC26",  # route chart
+        "Green__Green Line Old Ironsides - Winchester",  # get regular one
+        "OranE__OrangeE Orange Line East Segment WC26",  # route chart
+        "OranW__OrangeW Orange Line West Segment WC26",  # route chart
+        "Ornge__Orange Line Mountain View - Alum Rock",  # get regular one
+    ],
+    "Bay Area 511 Santa Clara Transit Schedule": [
+        "BBWC__BBWC Bus Bridge WC26",  # route chart
+        "BlueS__BlueS Blue Line WC26",  # route chart
+        "Blue Line__Blue Line Baypointe - Santa Teresa",  # get regular one
+        "GreenS__GreenS Green Line WC26",  # route chart
+        "Green Line__Green Line Old Ironsides - Winchester",  # get regular one
+        "OrangeE__OrangeE Orange Line East Segment WC26",  # route chart
+        "OrangeW__OrangeW Orange Line West Segment WC26",  # route chart
+        "Orange Line__Orange Line Mountain View - Alum Rock",  # get regular one
+    ],
+    "BART Schedule": [],
+    "Bay Area 511 BART Schedule": [],
+    "Bay Area 511 Caltrain Schedule": [
+        "South County__South County South Santa Clara County Connector",  # unlikely based on chart, but maybe based on name
+        "Local Weekday__Local Weekday",  # route chart
+        "Local Weekend__Local Weekend",  # route chart
+    ],  # Special trains with direct service to the Santa Clara-Great America Station
+    "Bay Area 511 ACE Schedule": [
+        "ACE__Altamont Commuter Express"
+    ],  # Special trains with direct service to the Santa Clara-Great America Station adjacent to the stadium (around 0.2 to 0.3 miles).
+    "Bay Area 511 Capitol Corridor Schedule": [
+        "CC__CC Capitol Corridor"
+    ],  # Increased capacity on Capitol Corridor routes serving the tournament crowds.
+}
 
 """
 # special LA Metro WC feed
