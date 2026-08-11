@@ -50,7 +50,9 @@ sites:
   - title: Thruway Bus Analysis
     name: thruway_intercity_bus
     source: https://github.com/cal-itp/data-analyses/tree/main/thruway_intercity_bus/
-
+  - title: Transit Events Analysis
+    name: transit_events
+    source: ./transit_events/
 test_sites:
   - title: Basic Analyses Test
     name: _basic_analyses_test
