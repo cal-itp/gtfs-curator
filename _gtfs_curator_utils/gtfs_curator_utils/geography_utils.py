@@ -4,6 +4,7 @@ Some functions for dealing with census tract or other geographic unit dfs.
 """
 
 from typing import Literal, Union
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import geopandas as gpd  # type: ignore
 import numpy as np
@@ -18,6 +19,7 @@ CA_NAD83Albers_m = "EPSG:3310"  # units are in meters
 SQ_MI_PER_SQ_M = 3.86 * 10**-7
 FEET_PER_MI = 5_280
 SQ_FT_PER_SQ_MI = 2.788 * 10**7
+METERS_PER_MI = 1609.34
 
 
 # Laurie's example: https://github.com/cal-itp/data-analyses/blob/752eb5639771cb2cd5f072f70a06effd232f5f22/gtfs_shapes_geo_examples/example_shapes_geo_handling.ipynb
@@ -252,19 +254,6 @@ def nearest_snap(
     return np_inds.squeeze()
 
 
-def vp_as_gdf(vp: pd.DataFrame, crs: str = "EPSG:3310") -> gpd.GeoDataFrame:
-    """
-    Turn vp as a gdf and project to EPSG:3310.
-    """
-    vp_gdf = (
-        create_point_geometry(vp, longitude_col="x", latitude_col="y", crs=WGS84)
-        .to_crs(crs)
-        .drop(columns=["x", "y"])
-    )
-
-    return vp_gdf
-
-
 def add_arrowized_geometry(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     Add a column where the segment is arrowized.
@@ -417,3 +406,41 @@ def convert_to_gdf(
     )
 
     return gdf
+
+
+def gdf_from_esri_feature_service(url):
+    """
+    Load an Esri Feature Service to a GeoDataFrame.
+
+    Given a URL to an Esri Feature Service, download the features
+    as GeoJSON, and put them into a GeoDataFrame.
+    """
+    parsed = urlparse(url)
+
+    # Ensure we are using the query endpoint of the feature service
+    if not parsed.path.endswith("/query"):
+        parsed = parsed._replace(path=parsed.path + "/query")
+
+    # Keep grabbing data using the resultOffset until there is no more left
+    offset = 0
+    gdfs = []
+    while True:
+        queries = dict(parse_qsl(parsed.query))
+        queries.update(
+            {
+                "where": "1=1",  # Ensure all rows
+                "f": "geojson",  # Ensure GeoJSON
+                "outFields": "*",  # Ensure all columns
+                "resultOffset": str(offset),  # offset the start
+                "returnGeometry": "true",  # Yes we want geometries
+            }
+        )
+        offset_url = urlunparse(parsed._replace(query=urlencode(queries)))
+
+        gdf = gpd.read_file(offset_url, driver="GeoJSON")
+        if len(gdf) == 0:
+            break
+
+        gdfs.append(gdf)
+        offset += len(gdf)
+    return pd.concat(gdfs).reset_index(drop=True)
