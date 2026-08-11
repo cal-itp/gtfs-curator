@@ -145,8 +145,8 @@ special_bayarea_routes_dict = {
         "OrangeW__OrangeW Orange Line West Segment WC26",  # route chart
         "Orange Line__Orange Line Mountain View - Alum Rock",  # get regular one
     ],
-    "BART Schedule": [],
-    "Bay Area 511 BART Schedule": [],
+    "BART Schedule": None,
+    "Bay Area 511 BART Schedule": None,
     "Bay Area 511 Caltrain Schedule": [
         "South County__South County South Santa Clara County Connector",  # unlikely based on chart, but maybe based on name
         "Local Weekday__Local Weekday",  # route chart
@@ -159,16 +159,3 @@ special_bayarea_routes_dict = {
         "CC__CC Capitol Corridor"
     ],  # Increased capacity on Capitol Corridor routes serving the tournament crowds.
 }
-
-"""
-# special LA Metro WC feed
-# gtfs_dataset_name: LA Metro Events Schedule
-# _valid_from 2026-07-07 UTC
-
-tiffany_mart_gtfs.event_fct_daily_feeds_la_metro
-
-SELECT
-  *
-FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_feeds` AS t1
-WHERE t1.date >= "2026-07-05" AND t1.date <= "2026-07-20" AND t1.gtfs_dataset_name = "LA Metro Events Schedule"
-"""
