@@ -50,6 +50,7 @@ def filter_to_stops_near_poi(
             predicate="intersects",
         )[
             [
+                "schedule_name",
                 "feed_key",
                 "stop_id",
                 "stop_name",
@@ -64,6 +65,12 @@ def filter_to_stops_near_poi(
 
 
 if __name__ == "__main__":
+    operator_df = pd.read_parquet(
+        f"{GCS_FILE_PATH}fct_daily_schedule_rt_route_direction_summary_{wc_vars.event_name}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=["feed_key", "schedule_name"],
+    ).drop_duplicates()
+
     daily_stops = gpd.read_parquet(
         f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{wc_vars.event_name}.parquet",
         storage_options={"token": credentials},
@@ -77,14 +84,14 @@ if __name__ == "__main__":
             "route_type_3",
             "geometry",
         ],
-    )
+    ).merge(operator_df, on="feed_key", how="inner")
 
     stadium_gdf = gpd.read_parquet(
         f"{GCS_FILE_PATH}points_of_interest_{wc_vars.event_name}.parquet",
         storage_options={"token": credentials},
     )
 
-    keep_cols = ["feed_key", "stop_id", "stop_name", "geometry"]
+    keep_cols = ["schedule_name", "feed_key", "stop_id", "stop_name", "geometry"]
 
     bus_gdf = daily_stops[daily_stops.route_type_3 > 0][keep_cols]
 
