@@ -20,7 +20,7 @@ from world_cup_vars import GCS_FILE_PATH
 # bucket = gcs_client.bucket("calitp-analytics-data")
 
 credentials, _ = google.auth.default()
-client = bigquery.Client(project="cal-itp-data-infra-staging", credentials=credentials)
+client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
 bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
@@ -30,9 +30,7 @@ def filter_fct_daily_schedule_rt_route_direction_summary(
 
     # Figure out how to parameterize this, make sure date list works
     # this is staging project right now
-    client = bigquery.Client(
-        project="cal-itp-data-infra-staging", credentials=credentials
-    )
+    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
@@ -45,7 +43,7 @@ def filter_fct_daily_schedule_rt_route_direction_summary(
     daily_route_query = """
         SELECT
             *
-        FROM `cal-itp-data-infra-staging.tiffany_mart_gtfs.fct_daily_schedule_rt_route_direction_summary`
+        FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_rt_route_direction_summary`
         WHERE service_date IN UNNEST(@service_date_list)
     """
 
