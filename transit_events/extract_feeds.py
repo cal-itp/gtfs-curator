@@ -22,8 +22,8 @@ from world_cup_vars import GCS_FILE_PATH
 # gcs_client = storage.Client()
 # bucket = gcs_client.bucket("calitp-analytics-data")
 
-credentials, _ = google.auth.default()
-client = bigquery.Client(project="cal-itp-data-infra-staging", credentials=credentials)
+credentials, project = google.auth.default()
+client = bigquery.Client(project=project, credentials=credentials)
 bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
@@ -32,11 +32,6 @@ def filter_fct_daily_schedule_feeds_by_date(
 ) -> pd.DataFrame:
 
     # Figure out how to parameterize this, make sure date list works
-    # this is staging project right now
-    client = bigquery.Client(
-        project="cal-itp-data-infra-staging", credentials=credentials
-    )
-
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ArrayQueryParameter(
@@ -52,7 +47,7 @@ def filter_fct_daily_schedule_feeds_by_date(
             gtfs_dataset_name,
             ARRAY_AGG(date ORDER BY date) AS service_date_list,
 
-        FROM `cal-itp-data-infra-staging.tiffany_mart_gtfs.fct_daily_schedule_feeds`
+        FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_feeds`
         WHERE date IN UNNEST(@service_date_list)
         GROUP BY 1, 2, 3
     """
