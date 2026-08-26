@@ -2,45 +2,33 @@
 Export the tables we used in the notebook
 to create GTFS Digest to our public bucket.
 """
-
 from pathlib import Path
 from typing import Literal
 
 import geopandas as gpd
-from calitp_data_analysis import utils
-from shared_utils import publish_utils
-from update_vars import GTFS_DATA_DICT, file_name
-
-PUBLIC_GCS = GTFS_DATA_DICT.gcs_paths.PUBLIC_GCS
-
+import gcsfs
 import google.auth
 
-credentials, project = google.auth.default()
+from gtfs_curator_utils import publish_utils, utils
+from update_vars import DIGEST_DICT, PROCESSED_GCS, abbrev_month, PUBLIC_GCS
 
-from functools import cache
-
-from calitp_data_analysis.gcs_pandas import GCSPandas
-
-
-@cache
-def gcs_pandas():
-    return GCSPandas()
+credentials, _ = google.auth.default()
 
 
 def grab_filepaths(
-    table_section: Literal["gtfs_digest_rollup"], file_keys: list, file_name: str
+    file_keys: list, abbrev_month: str
 ) -> list:
     """
-    https://github.com/cal-itp/data-analyses/blob/main/_shared_utils/shared_utils/gtfs_analytics_data.yml
-
-    table_section corresponds to "schedule_tables", "digest_tables",
-    "speeds_tables", etc
+    For each file in catalog.yml, construct the GCS file path to upload.
+    
+    Ex: the key-value pair
+    schedule_rt_route_direction: "fct_monthly_schedule_rt_route_direction_summary"
+    - raw file is {RAW_GCS}fct_monthly_schedule_rt_route_direction_summary_{abbrev_month}.parquet
+    - processed file is {PROCESSED_GCS}fct_monthly_schedule_rt_route_direction_summary_{abbrev_month}.parquet
     """
-    GCS = GTFS_DATA_DICT[table_section].dir
+    file_paths = [DIGEST_DICT[f] for f in file_keys]
 
-    file_paths = [GTFS_DATA_DICT[table_section][f] for f in file_keys]
-
-    return [f"{GCS}processed/{f}_{file_name}.parquet" for f in file_paths]
+    return [f"{PROCESSED_GCS}{f}_{abbrev_month}.parquet" for f in file_paths]
 
 
 def export_parquet_as_csv_or_geojson(
@@ -52,7 +40,7 @@ def export_parquet_as_csv_or_geojson(
     For geoparquets, we want to export as geojson.
     """
     if filetype == "df":
-        df = gcs_pandas().read_parquet(filename)
+        df = pd.read_parquet(filename, filesystem = gcsfs.GCSFileSystem())
         df.to_csv(f"{PUBLIC_GCS}gtfs_digest/{Path(filename).stem}.csv", index=False)
 
     elif filetype == "gdf":
@@ -74,9 +62,9 @@ if __name__ == "__main__":
         "hourly_day_type_summary",
     ]
 
-    df_filepaths = grab_filepaths("gtfs_digest_rollup", digest_df_keys, file_name)
+    df_filepaths = grab_filepaths(digest_df_keys, abbrev_month)
 
-    gdf_filepaths = grab_filepaths("gtfs_digest_rollup", digest_gdf_keys, file_name)
+    gdf_filepaths = grab_filepaths(digest_gdf_keys, abbrev_month)
 
     # copy our private files to public GCS
     # for df ones, export as csv too
