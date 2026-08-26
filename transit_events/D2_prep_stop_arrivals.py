@@ -173,9 +173,10 @@ def aggregate_by_event_type(gdf: gpd.GeoDataFrame) -> pd.DataFrame:
 
 
 def make_wide(
-    df: pd.DataFrame, group_cols: list = ["schedule_name", "stop_id", "stop_name"]
-):
-    metric_cols = ["daily_arrivals"]
+    df: pd.DataFrame,
+    group_cols: list = ["schedule_name", "stop_id", "stop_name"],
+    metric_cols: list = ["daily_arrivals"],
+) -> pd.DataFrame:
 
     non_event_df = df[df.event_day == False][group_cols + metric_cols].rename(
         columns={**{c: f"{c}_non_event" for c in metric_cols}}
