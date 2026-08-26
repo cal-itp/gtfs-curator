@@ -10,11 +10,11 @@ gtfs_digest_data:
 	uv run python deploy_portfolio_yaml.py
 
 operator_report_portfolio:
-	# uv run calitp-portfolio build gtfs_digest.yml --hide-title-block --limit 4 # use this for dry run
-	uv run calitp-portfolio build gtfs_digest.yml --hide-title-block
+	# uv run calitp-portfolio build operator_digest.yml --hide-title-block --limit 4 # use this for dry run
+	uv run calitp-portfolio build operator_digest.yml --hide-title-block
 	uv run calitp-portfolio login
-	uv run calitp-portfolio deploy gtfs_digest.yml --target staging
-	uv run calitp-portfolio deploy gtfs_digest.yml --target prod
+	uv run calitp-portfolio deploy operator_digest.yml --target staging
+	uv run calitp-portfolio deploy operator_digest.yml --target prod
 
 district_report_portfolio:
 	#uv run python deploy_district_yaml.py # only run script if yaml changes

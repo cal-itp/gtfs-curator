@@ -1,5 +1,5 @@
 title: Legislative District GTFS Digest
-directory: ./
+directory: .
 readme: README.md
 notebook: report_legislative_district.ipynb
 parts:
