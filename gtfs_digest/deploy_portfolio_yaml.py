@@ -2,47 +2,56 @@
 Create the GTFS Digest yaml that
 sets the parameterization for the analysis site.
 """
+from pathlib import Path
 
-from functools import cache
-
+import gcsfs
 import pandas as pd
-from calitp_data_analysis.gcs_pandas import GCSPandas
-from shared_utils import portfolio_utils
-from update_vars import GTFS_DATA_DICT, file_name
+from calitp_portfolio.models import load_site
+from calitp_portfolio.mutations import generate_parts_grouped
 
+from update_vars import DIGEST_DICT, PROCESSED_GCS, abbrev_month
 
-@cache
-def gcs_pandas():
-    return GCSPandas()
-
-
-SITE_YML = "../portfolio/sites/gtfs_digest.yml"
-
-
-def generate_operator_grain_yaml() -> pd.DataFrame:
+def generate_operator_report_yaml(
+    site_path: Path,
+    abbrev_month: str
+) -> pd.DataFrame:
     """
     Generate the yaml for our Operator grain portfolio.
     """
-    FILEPATH_URL = f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/{GTFS_DATA_DICT.gtfs_digest_rollup.crosswalk}_{file_name}.parquet"
+    table = DIGEST_DICT.schedule_rt_route_direction
+    site = load_site(site_path)
 
     # Keep only organizations with RT and schedule OR only schedule.
     df = (
-        gcs_pandas()
-        .read_parquet(FILEPATH_URL, columns=["caltrans_district", "analysis_name"])
+        pd.read_parquet(
+            f"{PROCESSED_GCS}{table}_{abbrev_month}.parquet", 
+            columns=["caltrans_district", "analysis_name"],
+            filesystem = gcsfs.GCSFileSystem()
+        ).drop_duplicates()
         .dropna(subset=["caltrans_district"])
-        .sort_values(["caltrans_district", "analysis_name"])
         .reset_index(drop=True)
-        .drop_duplicates()
     )
 
-    return df
+    # To get this to the format groups = {"D1": [1, 2, 3], "D2": [4, 5, 6]}
+    operators_grouped_by_district = {
+        one_district: sorted(df[df.caltrans_district==d].analysis_name.unique())
+        for one_district in sorted(df.caltrans_district.unique())
+    }
+    
+    site = generate_parts_grouped(
+        site,
+        param_key="analysis_name",
+        groups= operators_grouped_by_district
+    })
 
+    site.write_yaml(site_path)
+
+    print(f"yaml generated at {site_path}")
+
+    return 
 
 if __name__ == "__main__":
-    final = generate_operator_grain_yaml()
 
-    portfolio_utils.create_portfolio_yaml_chapters_with_groups(
-        SITE_YML,
-        final,
-        param_info={"column": "analysis_name", "name": "analysis_name"},
-    )
+    SITE_YAML = Path("./gtfs_digest.yml")
+    generate_operator_grain_yaml(SITE_YAML, abbrev_month)
+    
