@@ -2,25 +2,24 @@
 Export the tables we used in the notebook
 to create GTFS Digest to our public bucket.
 """
+
 from pathlib import Path
 from typing import Literal
 
-import geopandas as gpd
 import gcsfs
+import geopandas as gpd
 import google.auth
-
+import pandas as pd
 from gtfs_curator_utils import publish_utils, utils
-from update_vars import DIGEST_DICT, PROCESSED_GCS, abbrev_month, PUBLIC_GCS
+from update_vars import DIGEST_DICT, PROCESSED_GCS, PUBLIC_GCS, abbrev_month
 
 credentials, _ = google.auth.default()
 
 
-def grab_filepaths(
-    file_keys: list, abbrev_month: str
-) -> list:
+def grab_filepaths(file_keys: list, abbrev_month: str) -> list:
     """
     For each file in catalog.yml, construct the GCS file path to upload.
-    
+
     Ex: the key-value pair
     schedule_rt_route_direction: "fct_monthly_schedule_rt_route_direction_summary"
     - raw file is {RAW_GCS}fct_monthly_schedule_rt_route_direction_summary_{abbrev_month}.parquet
@@ -40,7 +39,7 @@ def export_parquet_as_csv_or_geojson(
     For geoparquets, we want to export as geojson.
     """
     if filetype == "df":
-        df = pd.read_parquet(filename, filesystem = gcsfs.GCSFileSystem())
+        df = pd.read_parquet(filename, filesystem=gcsfs.GCSFileSystem())
         df.to_csv(f"{PUBLIC_GCS}gtfs_digest/{Path(filename).stem}.csv", index=False)
 
     elif filetype == "gdf":

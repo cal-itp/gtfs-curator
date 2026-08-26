@@ -1,18 +1,18 @@
-import geopandas as gpd
 import gcsfs
+import geopandas as gpd
 import google.auth
 import pandas as pd
 from gtfs_curator_utils import geography_utils, utils
-from update_vars import DIGEST_DICT, RAW_GCS, PROCESSED_GCS, abbrev_month
+from update_vars import DIGEST_DICT, PROCESSED_GCS, RAW_GCS, abbrev_month
 
 # Initialize credentials
 credentials, _ = google.auth.default()
 
+
 def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.schedule_rt_route_direction
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     # Select relevant columns
@@ -63,19 +63,18 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     # Save processed file
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
+        filesystem=gcsfs.GCSFileSystem(),
     )
 
-    print("export processed {filename}")
-    return 
+    print(f"export processed {filename}")
+    return
 
 
 def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.operator_summary
 
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     # Select relevant columns
@@ -107,25 +106,29 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     ]
 
     # Multiply percetnage columns by 100. Clip any values above 100.
-    df2.pct_tu_trips = df2.pct_tu_trips * 100
-    df2.pct_vp_trips = df2.pct_vp_trips * 100
-    df2.pct_tu_trips = df2.pct_tu_trips.clip(upper=100.0)
-    df2.pct_vp_trips = df2.pct_vp_trips.clip(upper=100.0)
+    df2 = df2.assign(
+        pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0),
+        pct_vp_trips=(df2.pct_vp_trips * 100).clip(upper=100.0),
+    )
 
     # Clean columns
-    df2.columns = df2.columns.str.replace("_", " ").str.title()
+    df2.columns = (
+        df2.columns.str.replace("_", " ")
+        .str.title()
+        .str.replace("Vp", "VP")
+        .str.replace("Tu", "TU")
+    )
     df2 = df2.rename(columns={"Month First Day": "Date"})
-    df2.columns = df2.columns.str.replace("Vp", "VP").str.replace("Tu", "TU")
 
     # Save processed file
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
+        filesystem=gcsfs.GCSFileSystem(),
     )
 
-    print("export processed {filename}")
+    print(f"export processed {filename}")
 
-    return 
+    return
 
 
 def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
@@ -154,23 +157,18 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
     gdf2.columns = gdf2.columns.str.replace("_", " ").str.title()
 
     # Export to GCS
-    utils.geoparquet_gcs_export(
-        gdf2,
-        PROCESSED_GCS,
-        {filename}_{abbrev_month},
-    )
+    utils.geoparquet_gcs_export(gdf2, PROCESSED_GCS, f"{filename}_{abbrev_month}")
 
-    print("export processed {filename}")
+    print(f"export processed {filename}")
 
-    return 
+    return
 
 
 def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.hourly_day_type_summary
-    
+
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     # Prepare data
@@ -184,22 +182,22 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
 
     df2 = df2.rename(columns={"Month First Day": "Date"})
 
-    df2["Date"] = df2["Date"].dt.strftime("%m-%Y")
+    df2["Date"] = pd.to_datetime(df2["Date"]).dt.strftime("%m-%Y")
 
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem = gcsfs.GCSFileSystem()
-    )    
-    
-    print("export processed {filename}")
+        filesystem=gcsfs.GCSFileSystem(),
+    )
 
-    return 
+    print(f"export processed {filename}")
+
+    return
 
 
 if __name__ == "__main__":
-    
     prep_schedule_rt_route_direction_summary(abbrev_month)
     prep_operator_summary(abbrev_month)
     prep_fct_monthly_routes(abbrev_month)
     prep_fct_operator_hourly_summary(abbrev_month)
+
     print("done running")

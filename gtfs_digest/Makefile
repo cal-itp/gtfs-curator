@@ -17,7 +17,7 @@ operator_report_portfolio:
 	uv run calitp-portfolio deploy gtfs_digest.yml --target prod
 
 district_report_portfolio:
-	uv run python deploy_district_yaml.py
+	#uv run python deploy_district_yaml.py # only run script if yaml changes
 	# uv run calitp-portfolio build district_digest.yml --hide-title-block --limit 4 # use this for dry run
 	uv run calitp-portfolio build district_digest.yml --hide-title-block
 	uv run calitp-portfolio login
