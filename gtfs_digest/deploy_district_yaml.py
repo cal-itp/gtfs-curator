@@ -1,83 +1,34 @@
 """
-Create the yamls for district / legislative GTFS Digest.
-
-Since these yamls do not use sections, we can
-generate them similarly using Makefile commands.
-
-Try out typer to make CLI a little easier to use, since
-this only takes 1 argument with 2 possible values.
-Base it off of this tutorial:
-https://typer.tiangolo.com/tutorial/options/required/
+Create the yaml for district GTFS Digest.
 """
 
-from functools import cache
 from pathlib import Path
 
-import typer
-from calitp_data_analysis.gcs_pandas import GCSPandas
-from shared_utils import portfolio_utils
-from update_vars import GTFS_DATA_DICT, file_name
-
-
-@cache
-def gcs_pandas():
-    return GCSPandas()
-
-
-DISTRICT_SITE = Path("../portfolio/sites/district_digest.yml")
-LEG_DISTRICT_SITE = Path("../portfolio/sites/legislative_district_digest.yml")
-
-app = typer.Typer()
-
-
-@app.command()
-def overwrite_yaml(name: str = typer.Argument(default=None)):
-    """
-    Create yamls for either district or legislative district
-    GTFS digest.
-    """
-    if name is None:
-        raise ValueError("digest_type can be 'district', 'legislative_district'")
-
-    elif name == "district":
-        FILEPATH_URL = f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/{GTFS_DATA_DICT.gtfs_digest_rollup.crosswalk}_{file_name}.parquet"
-
-        df = (
-            gcs_pandas()
-            .read_parquet(
-                FILEPATH_URL,
-                columns=[
-                    "caltrans_district",
-                ],
-            )
-            .sort_values(["caltrans_district"])
-            .reset_index(drop=True)
-            .drop_duplicates()
-        )
-
-        portfolio_utils.create_portfolio_yaml_chapters_no_sections(
-            DISTRICT_SITE,
-            chapter_name="district",
-            chapter_values=sorted(list(df.caltrans_district)),
-        )
-
-    elif name == "legislative_district":
-        FILEPATH_URL = f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/{GTFS_DATA_DICT.gtfs_digest_rollup.crosswalk_legislative}_{file_name}.parquet"
-
-        df = (
-            gcs_pandas()
-            .read_parquet(FILEPATH_URL, columns=["legislative_district"])
-            .drop_duplicates()
-        )
-
-        portfolio_utils.create_portfolio_yaml_chapters_no_sections(
-            LEG_DISTRICT_SITE,
-            chapter_name="district",
-            chapter_values=sorted(list(df.legislative_district)),
-        )
-
-    return
-
+from calitp_portfolio.models import load_site
+from calitp_portfolio.mutations import generate_parts_flat
 
 if __name__ == "__main__":
-    app()
+    SITE_YAML = Path("./district_digest.yml")
+
+    site = load_site(SITE_YAML)
+    site = generate_parts_flat(
+        site,
+        param_key="district",
+        values=[
+            "01-Eureka", 
+            "02-Redding",
+            "03-Marysville / Sacramento",
+            "04-Bay Area / Oakland",
+            "05-San Luis Obispo / Santa Barbara",
+            "06-Fresno / Bakersfield",
+            "07-Los Angeles / Ventura",
+            "08-San Bernardino / Riverside", 
+            "09-Bishop", 
+            "10-Stockton", 
+            "11-San Diego",
+            "12-Orange County"
+        ]
+    )
+ 
+    site.write_yaml(SITE_YAML)
+    
