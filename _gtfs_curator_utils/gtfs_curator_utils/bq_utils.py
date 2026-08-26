@@ -13,6 +13,7 @@ from google.cloud import bigquery
 from gtfs_curator_utils import geography_utils
 
 credentials, project = google.auth.default()
+client = bigquery.Client(project=project, credentials=credentials)
 
 
 def basic_sql_query(
@@ -206,3 +207,32 @@ def set_bq_query_params(
             query_params.append(one_param)
 
     return query_params
+
+
+def bq_param_query(sql_query, geography_col: str = None, **kwargs):
+    """
+    This function will take a sql_query string,
+    as well as support parameterized queries.
+    parameterized queries use a job_config kwarg.
+    Use set_bq_query_params() to set this up.
+
+    docs.cloud.google.com/bigquery/docs/parameterized-queries
+    """
+    if "bqstorage_client" in kwargs:
+        bqstorage_client = kwargs.pop("bqstorage_client")
+    else:
+        bqstorage_client = None
+
+    query_job = client.query(sql_query, **kwargs)
+
+    if geography_col:
+        df = query_job.result().to_geodataframe(
+            bqstorage_client=bqstorage_client,
+            geography_column=geography_col,
+        )
+
+        df = df.rename(columns={geography_col: "geometry"})
+    else:
+        df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+
+    return df

@@ -3,192 +3,161 @@ Download mart_gtfs_rollup tables for GTFS Digest
 """
 
 import gcsfs
+import google.auth
 import pandas as pd
-from gtfs_curator_utils import bq_utils, utils
+from google.cloud import bigquery, bigquery_storage
+from gtfs_curator_utils import bq_utils, geography_utils, utils
 from update_vars import (
     DIGEST_DICT,
     PROCESSED_GCS,
     RAW_GCS,
     abbrev_month,
-    analysis_month,
     last_year,
     previous_month,
 )
 
-crosswalk_url = f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet"
+credentials, project = google.auth.default()
+dataset = "mart_gtfs_rollup"
+client = bigquery.Client(project=project, credentials=credentials)
+bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
-def load_schedule_rt_route_direction_summary(
-    project_name: str,
-    date_col: str,
-    dataset_name: str,
-    start_date: str,
-    end_date: str,
-) -> pd.DataFrame:
-    df = bq_utils.download_table(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=DIGEST_DICT.schedule_rt_route_direction,
-        date_col=date_col,
-        start_date=start_date,
-        end_date=end_date,
-    )
-
+def merge_with_crosswalk(df: pd.DataFrame, columns=["name", "analysis_name"]):
     # Merge with crosswalk
+    crosswalk_url = f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet"
+
     crosswalk_df = pd.read_parquet(
         crosswalk_url,
-        columns=["name", "analysis_name"],
+        columns=columns,
         filesystem=gcsfs.GCSFileSystem(),
     ).drop_duplicates()
 
     m1 = pd.merge(df, crosswalk_df, on="name", how="inner")
 
-    utils.geoparquet_gcs_export(
-        m1, f"{RAW_GCS}", f"{DIGEST_DICT.schedule_rt_route_direction}_{abbrev_month}"
+    return m1
+
+
+def load_schedule_rt_route_direction_summary(
+    start_date: str,
+) -> pd.DataFrame:
+    table = DIGEST_DICT.schedule_rt_route_direction
+    # this scans all 300 MB, but only retrieves 4 MB to save
+    sql_query = f"""
+        SELECT *
+        FROM `{project}.{dataset}.{table}`
+        WHERE month_first_day >= @minimum_date
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("minimum_date", "DATETIME", start_date),
+        ]
+    )
+
+    df = bq_utils.bq_param_query(sql_query, job_config=job_config)
+
+    df = df.rename(columns={"schedule_name": "name"}).pipe(merge_with_crosswalk)
+
+    df.to_parquet(
+        f"{RAW_GCS}{table}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     return
 
 
-def load_operator_summary(
-    project_name: str,
-    date_col: str,
-    dataset_name: str,
-    start_date: str,
-    end_date: str,
-) -> pd.DataFrame:
-    df = bq_utils.download_table(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=DIGEST_DICT.operator_summary,
-        date_col=date_col,
-        start_date=start_date,
-        end_date=end_date,
+def load_operator_summary(start_date: str) -> pd.DataFrame:
+    table = DIGEST_DICT.operator_summary
+
+    sql_query = f"""
+        SELECT *
+        FROM `{project}.{dataset}.{table}`
+        WHERE month_first_day >= @minimum_date
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("minimum_date", "DATETIME", start_date),
+        ]
     )
 
-    crosswalk_df = pd.read_parquet(
-        crosswalk_url,
-        columns=["name", "analysis_name", "caltrans_district"],
-        filesystem=gcsfs.GCSFileSystem(),
-    ).drop_duplicates()
+    df = bq_utils.bq_param_query(sql_query, job_config=job_config)
 
-    m1 = pd.merge(
-        df, crosswalk_df, left_on=["schedule_name"], right_on=["name"], how="inner"
+    df = df.rename(columns={"schedule_name": "name"}).pipe(
+        merge_with_crosswalk, columns=["name", "analysis_name", "caltrans_district"]
     )
 
-    utils.geoparquet_gcs_export(
-        m1, f"{RAW_GCS}", f"{DIGEST_DICT.operator_summary}_{abbrev_month}"
+    df.to_parquet(
+        f"{RAW_GCS}{table}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     return
 
 
 def load_fct_monthly_routes(
-    project_name: str,
-    date_col: str,
-    dataset_name: str,
     start_date: str,
-    end_date: str,
 ) -> pd.DataFrame:
-    gdf = bq_utils.download_table(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=DIGEST_DICT.route_map,
-        date_col=date_col,
-        start_date=start_date,
-        end_date=end_date,
-        geom_col="pt_array",
-        geom_type="line",
+    table = DIGEST_DICT.route_map
+
+    sql_query = f"""
+        SELECT *
+        FROM `{project}.{dataset}.{table}`
+        WHERE month_first_day >= @minimum_date
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("minimum_date", "DATETIME", start_date),
+        ]
     )
 
-    crosswalk_df = pd.read_parquet(
-        crosswalk_url,
-        columns=["name", "analysis_name"],
-        filesystem=gcsfs.GCSFileSystem(),
-    ).drop_duplicates()
+    df = bq_utils.bq_param_query(
+        sql_query, job_config=job_config, bqstorage_client=bqstorage_client
+    )
 
-    m1 = pd.merge(gdf, crosswalk_df, on="name", how="inner")
+    df = geography_utils.convert_to_gdf(df, "pt_array", "line").pipe(
+        merge_with_crosswalk
+    )
 
     utils.geoparquet_gcs_export(
-        m1,
+        df,
         f"{RAW_GCS}",
-        f"{DIGEST_DICT.route_map}_{abbrev_month}",
+        f"{table}_{abbrev_month}",
     )
 
     return
 
 
 def load_fct_operator_hourly_summary(
-    project_name: str,
-    date_col: str,
-    dataset_name: str,
     start_date: str,
-    end_date: str,
 ) -> pd.DataFrame:
-    df = bq_utils.download_table(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=DIGEST_DICT.hourly_day_type_summary,
-        date_col=date_col,
-        start_date=start_date,
-        end_date=end_date,
+    table = DIGEST_DICT.hourly_day_type_summary
+
+    sql_query = f"""
+        SELECT *
+        FROM `{project}.{dataset}.{table}`
+        WHERE month_first_day >= @minimum_date
+    """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("minimum_date", "DATETIME", start_date),
+        ]
     )
 
-    # Merge with crosswalk
-    crosswalk_df = pd.read_parquet(
-        crosswalk_url,
-        columns=["name", "analysis_name"],
-        filesystem=gcsfs.GCSFileSystem(),
-    ).drop_duplicates()
+    df = bq_utils.bq_param_query(sql_query, job_config=job_config)
+    df = merge_with_crosswalk(df)
 
-    m1 = (
-        pd.merge(df, crosswalk_df, on="name", how="inner")
-        .drop_duplicates()
-        .reset_index()
-    )
-
-    utils.geoparquet_gcs_export(
-        m1,
-        f"{RAW_GCS}",
-        f"{DIGEST_DICT.hourly_day_type_summary}_{abbrev_month}",
+    df.to_parquet(
+        f"{RAW_GCS}{table}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
     )
 
     return
 
 
 if __name__ == "__main__":
-    PROD_PROJECT = "cal-itp-data-infra"
-    PROD_MART = "mart_gtfs_rollup"
-    MONTH_DATE_COL = "month_first_day"
-
-    load_schedule_rt_route_direction_summary(
-        project_name=PROD_PROJECT,
-        date_col=MONTH_DATE_COL,
-        dataset_name=PROD_MART,
-        start_date=last_year,
-        end_date=analysis_month,
-    )
-
-    load_operator_summary(
-        project_name=PROD_PROJECT,
-        date_col=MONTH_DATE_COL,
-        dataset_name=PROD_MART,
-        start_date=last_year,
-        end_date=analysis_month,
-    )
-
-    load_fct_monthly_routes(
-        project_name=PROD_PROJECT,
-        date_col=MONTH_DATE_COL,
-        dataset_name=PROD_MART,
-        start_date=previous_month,
-        end_date=analysis_month,
-    )
-
-    load_fct_operator_hourly_summary(
-        project_name=PROD_PROJECT,
-        date_col=MONTH_DATE_COL,
-        dataset_name=PROD_MART,
-        start_date=last_year,
-        end_date=analysis_month,
-    )
+    load_schedule_rt_route_direction_summary(start_date=last_year)
+    load_operator_summary(start_date=last_year)
+    # this one can't do .to_geodataframe(), it's an array of points, not geography type
+    # this takes a couple minutes, but doesn't bump up the memory beyond 2MB
+    load_fct_monthly_routes(start_date=previous_month)
+    load_fct_operator_hourly_summary(start_date=last_year)
