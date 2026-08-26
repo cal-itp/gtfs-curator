@@ -1,13 +1,26 @@
 digest_report:
 	make gtfs_digest_data
-	#make portfolio_deploy
 
 
 gtfs_digest_data:
 	uv run python _prep_crosswalk_ntd.py
 	uv run python _load_gtfs_data.py
-	#python _prep_gtfs_data.py
-	#python _publish_public_data.py
+	uv run python _prep_gtfs_data.py
+	uv run python _publish_public_data.py
+
+operator_report:
+	# uv run calitp-portfolio build gtfs_digest.yml --hide-title-block --limit 4 # use this for dry run
+	uv run calitp-portfolio build gtfs_digest.yml --hide-title-block
+	uv run calitp-portfolio login
+	uv run calitp-portfolio deploy gtfs_digest.yml --target staging
+	uv run calitp-portfolio deploy gtfs_digest.yml --target prod
+
+district_report:
+	# uv run calitp-portfolio build district_digest.yml --hide-title-block --limit 4 # use this for dry run
+	uv run calitp-portfolio build district_digest.yml --hide-title-block
+	uv run calitp-portfolio login
+	uv run calitp-portfolio deploy district_digest.yml --target staging
+	uv run calitp-portfolio deploy district_digest.yml --target prod
 
 legislative_report:
 	uv run python _legislative_district_prep.py
