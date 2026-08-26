@@ -1,25 +1,18 @@
-from functools import cache
-
 import geopandas as gpd
+import gcsfs
 import google.auth
 import pandas as pd
-from calitp_data_analysis import geography_utils, utils
-from calitp_data_analysis.gcs_pandas import GCSPandas
-from update_vars import GTFS_DATA_DICT, file_name
+from gtfs_curator_utils import geography_utils, utils
+from update_vars import DIGEST_DICT, RAW_GCS, PROCESSED_GCS, abbrev_month
 
 # Initialize credentials
-credentials, project = google.auth.default()
+credentials, _ = google.auth.default()
 
-
-@cache
-def gcs_pandas():
-    return GCSPandas()
-
-
-def prep_schedule_rt_route_direction_summary(file_name: str) -> pd.DataFrame:
-    df = gcs_pandas().read_parquet(
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}raw/"
-        f"{GTFS_DATA_DICT.gtfs_digest_rollup.schedule_rt_route_direction}_{file_name}.parquet"
+def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
+    filename = DIGEST_DICT.schedule_rt_route_direction
+    df = pd.read_parquet(
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
     )
 
     # Select relevant columns
@@ -68,17 +61,21 @@ def prep_schedule_rt_route_direction_summary(file_name: str) -> pd.DataFrame:
     df2["Headway Offpeak"] = 60 / df2["Frequency Offpeak"]
 
     # Save processed file
-    gcs_pandas().data_frame_to_parquet(
-        df2,
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/{GTFS_DATA_DICT.gtfs_digest_rollup.schedule_rt_route_direction}_{file_name}.parquet",
+    df2.to_parquet(
+        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
     )
-    return df2
+
+    print("export processed {filename}")
+    return 
 
 
-def prep_operator_summary(file_name: str) -> pd.DataFrame:
-    df = gcs_pandas().read_parquet(
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}raw/"
-        f"{GTFS_DATA_DICT.gtfs_digest_rollup.operator_summary}_{file_name}.parquet"
+def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
+    filename = DIGEST_DICT.operator_summary
+
+    df = pd.read_parquet(
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
     )
 
     # Select relevant columns
@@ -121,19 +118,21 @@ def prep_operator_summary(file_name: str) -> pd.DataFrame:
     df2.columns = df2.columns.str.replace("Vp", "VP").str.replace("Tu", "TU")
 
     # Save processed file
-    gcs_pandas().data_frame_to_parquet(
-        df2,
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/"
-        f"{GTFS_DATA_DICT.gtfs_digest_rollup.operator_summary}_{file_name}.parquet",
+    df2.to_parquet(
+        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
     )
 
-    return df2
+    print("export processed {filename}")
+
+    return 
 
 
-def prep_fct_monthly_routes(file_name: str) -> pd.DataFrame:
+def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
+    filename = DIGEST_DICT.route_map
+
     gdf = gpd.read_parquet(
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}raw/"
-        f"{GTFS_DATA_DICT.gtfs_digest_rollup.route_map}_{file_name}.parquet",
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
         storage_options={"token": credentials.token},
     )
 
@@ -156,18 +155,22 @@ def prep_fct_monthly_routes(file_name: str) -> pd.DataFrame:
 
     # Export to GCS
     utils.geoparquet_gcs_export(
-        gdf=gdf2,
-        gcs_file_path=f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/",
-        file_name=f"{GTFS_DATA_DICT.gtfs_digest_rollup.route_map}_{file_name}",
+        gdf2,
+        PROCESSED_GCS,
+        {filename}_{abbrev_month},
     )
 
-    return gdf2
+    print("export processed {filename}")
+
+    return 
 
 
-def prep_fct_operator_hourly_summary(file_name: str) -> pd.DataFrame:
-
-    df = gcs_pandas().read_parquet(
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}raw/{GTFS_DATA_DICT.gtfs_digest_rollup.hourly_day_type_summary}_{file_name}.parquet"
+def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
+    filename = DIGEST_DICT.hourly_day_type_summary
+    
+    df = pd.read_parquet(
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
     )
 
     # Prepare data
@@ -183,19 +186,20 @@ def prep_fct_operator_hourly_summary(file_name: str) -> pd.DataFrame:
 
     df2["Date"] = df2["Date"].dt.strftime("%m-%Y")
 
-    gcs_pandas().data_frame_to_parquet(
-        df2,
-        f"{GTFS_DATA_DICT.gcs_paths.DIGEST_GCS}processed/{GTFS_DATA_DICT.gtfs_digest_rollup.hourly_day_type_summary}_{file_name}.parquet",
-    )
+    df2.to_parquet(
+        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        filesystem = gcsfs.GCSFileSystem()
+    )    
+    
+    print("export processed {filename}")
 
-    return df2
+    return 
 
 
 if __name__ == "__main__":
-    schedule_rt_route_direction_summary_df = prep_schedule_rt_route_direction_summary(
-        file_name
-    )
-    monthly_operator_summary_clean = prep_operator_summary(file_name)
-    monthly_routes_gdf = prep_fct_monthly_routes(file_name)
-    clean_fct_operator_hourly_summary_df = prep_fct_operator_hourly_summary(file_name)
+    
+    prep_schedule_rt_route_direction_summary(abbrev_month)
+    prep_operator_summary(abbrev_month)
+    prep_fct_monthly_routes(abbrev_month)
+    prep_fct_operator_hourly_summary(abbrev_month)
     print("done running")
