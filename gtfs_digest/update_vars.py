@@ -13,3 +13,4 @@ DIGEST_GCS = DIGEST_DICT.dir
 RAW_GCS = f"{DIGEST_GCS}raw/"
 PROCESSED_GCS = f"{DIGEST_GCS}processed/"
 SHARED_GCS = "gs://calitp-analytics-data/data-analyses/shared_data/"
+PUBLIC_GCS = "gs://calitp-publish-data-analysis/"
