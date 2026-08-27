@@ -132,23 +132,23 @@ def create_summary_table(
 
     df = create_operator_table(df, district_col)
 
-    sum_me = ["Daily Trips", "N Stops", "N Routes", "Daily Arrivals"]
+    sum_me = ["Daily Trips", "# Stops", "# Routes", "Daily Arrivals"]
 
     # df is weekday day_type - 12 months per operator summary
     agg1 = (
         df.groupby(district_col, observed=True, group_keys=False)
         .agg(
             {
-                "Analysis Name": "nunique",
+                "Operator": "nunique",
                 **{c: "sum" for c in sum_me},
             }
         )
         .reset_index()
-        .rename(columns={"Analysis Name": "N Operators"})
+        .rename(columns={"Operator": "N Operators"})
     )
 
     # These need to be calculated again separately
-    agg1["Arrivals per Stop"] = agg1["Daily Arrivals"].divide(agg1["N Stops"]).round(1)
+    agg1["Arrivals per Stop"] = agg1["Daily Arrivals"].divide(agg1["# Stops"]).round(1)
     agg1["Trips per Operator"] = (
         agg1["Daily Trips"].divide(agg1["N Operators"]).round(1)
     )

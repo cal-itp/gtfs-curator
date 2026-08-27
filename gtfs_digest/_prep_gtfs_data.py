@@ -137,6 +137,7 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
     gdf = gpd.read_parquet(
         f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
         storage_options={"token": credentials.token},
+        columns=["month_first_day", "analysis_name", "route_name", "geometry"],
     )
 
     # Keep most recent route geography
@@ -144,9 +145,6 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
         by=["month_first_day", "analysis_name", "route_name"],
         ascending=[False, True, True],
     ).drop_duplicates(subset=["analysis_name", "route_name"])
-
-    # Drop unnecessary columns
-    gdf2 = gdf2.drop(columns=["shape_id", "shape_array_key", "n_trips", "direction_id"])
 
     # Convert to miles
     gdf2["route_length_miles"] = (
