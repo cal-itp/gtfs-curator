@@ -8,7 +8,7 @@ For operators who produce real-time data, we also calculate additional performan
 GTFS Digest will continue to evolve as we dive into our own data warehouse!
 
 ## Definitions and Methodology
-To read about the methodology behind and the definitions of terms used throughout our work, please visit [here](https://github.com/cal-itp/data-analyses/blob/main/gtfs_digest/methodology.md).
+To read about the methodology behind and the definitions of terms used throughout our work, please visit [here](https://github.com/cal-itp/gtfs-curator/blob/main/gtfs_digest/methodology.md).
 
 ## Frequently Asked Questions
 **What are the time units displayed for time-series?**
