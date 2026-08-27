@@ -1,4 +1,5 @@
 from gtfs_curator_utils import catalog_utils
+from omegaconf import OmegaConf
 
 CATALOG_DICT = catalog_utils.get_catalog("catalog.yml", use_intake=False)
 DIGEST_DICT = CATALOG_DICT.gtfs_digest_rollup
@@ -14,3 +15,6 @@ RAW_GCS = f"{DIGEST_GCS}raw/"
 PROCESSED_GCS = f"{DIGEST_GCS}processed/"
 SHARED_GCS = "gs://calitp-analytics-data/data-analyses/shared_data/"
 PUBLIC_GCS = "gs://calitp-publish-data-analysis/"
+
+# Get captions and labels for viz
+readable_dict = OmegaConf.load("readable.yml")

@@ -151,7 +151,7 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
     # Convert to miles
     gdf2["route_length_miles"] = (
         gdf2.geometry.to_crs(geography_utils.CA_NAD83Albers_ft).length / 5_280
-    )
+    ).round(1)
 
     # Clean column names
     gdf2.columns = gdf2.columns.str.replace("_", " ").str.title()
