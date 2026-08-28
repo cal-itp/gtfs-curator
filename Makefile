@@ -16,4 +16,4 @@ uv_setup_project:
 	#uv add package1 package2 # all defined in pyproject.toml, can copy over to future ones
 	uv add _gtfs_curator_utils/
 	uv lock
-    uv cache prune # use this to clean up cache
+	uv cache prune # use this to clean up cache
