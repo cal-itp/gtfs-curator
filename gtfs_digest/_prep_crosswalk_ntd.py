@@ -46,6 +46,9 @@ def load_crosswalk(
         .reset_index(drop=True)
     )
 
+    # there's a leading space. TODO: remove in warehouse
+    df2 = df2.assign(caltrans_district=df2.caltrans_district.str.strip())
+
     df2.to_parquet(
         f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet",
         filesystem=gcsfs.GCSFileSystem(),

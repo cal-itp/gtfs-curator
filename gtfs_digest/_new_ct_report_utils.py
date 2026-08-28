@@ -29,14 +29,8 @@ Prep Data
 
 
 def prep_gdf(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    gdf = gdf.to_crs(CA_NAD83Albers_m).drop(
-        columns=["Year", "Month", "Month First Day"]
-    )
+    gdf = gdf.to_crs(CA_NAD83Albers_m).drop(columns=["Month First Day"])
 
-    # gdf = gdf.dissolve(by = "Analysis Name").reset_index()
-
-    gdf = gdf.reset_index(drop=False)
-    gdf = gdf.rename(columns={"index": "Number"})
     return gdf
 
 
@@ -132,23 +126,23 @@ def create_summary_table(
 
     df = create_operator_table(df, district_col)
 
-    sum_me = ["Daily Trips", "N Stops", "N Routes", "Daily Arrivals"]
+    sum_me = ["Daily Trips", "# Stops", "# Routes", "Daily Arrivals"]
 
     # df is weekday day_type - 12 months per operator summary
     agg1 = (
         df.groupby(district_col, observed=True, group_keys=False)
         .agg(
             {
-                "Analysis Name": "nunique",
+                "Operator": "nunique",
                 **{c: "sum" for c in sum_me},
             }
         )
         .reset_index()
-        .rename(columns={"Analysis Name": "N Operators"})
+        .rename(columns={"Operator": "N Operators"})
     )
 
     # These need to be calculated again separately
-    agg1["Arrivals per Stop"] = agg1["Daily Arrivals"].divide(agg1["N Stops"]).round(1)
+    agg1["Arrivals per Stop"] = agg1["Daily Arrivals"].divide(agg1["# Stops"]).round(1)
     agg1["Trips per Operator"] = (
         agg1["Daily Trips"].divide(agg1["N Operators"]).round(1)
     )
@@ -244,17 +238,15 @@ def load_buffered_shn_map(district: int) -> gpd.GeoDataFrame:
     return gdf2
 
 
-def load_shn_transit_routes(district: str, pct: int, month: str) -> gpd.GeoDataFrame:
+def load_shn_transit_routes(district: str, pct: int) -> gpd.GeoDataFrame:
     OPEN_DATA_GCS = "gs://calitp-analytics-data/data-analyses/open_data/"
     gdf = gpd.read_parquet(
-        f"{OPEN_DATA_GCS}export/ca_transit_routes_{month}.parquet",
+        f"{OPEN_DATA_GCS}export/ca_transit_routes_latest.parquet",
         storage_options={"token": credentials.token},
     )
 
     # Clean district name because there are some extra spaces
-    gdf.district_name = gdf.district_name.str.lstrip().str.replace(
-        r"\s*-\s*", "-", regex=True
-    )
+    gdf = gdf.assign(district_name=gdf.district_name.str.strip())
 
     # Filter
     gdf2 = gdf.loc[
