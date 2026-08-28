@@ -15,7 +15,7 @@ hourly_summary:
     title: "Daily Scheduled Trips for "
     subtitle: "Use the legend to highlight a particular month and hover over the line for additional information."
     tooltip: ["Date", 'Departure Hour', "N Trips"] 
-    colors: []
+    colors: ${color_palettes.tri_color}
 background_graph:
     colors: ${color_palettes.full_color_scale} 
     
