@@ -7,6 +7,7 @@ install_env:
 	pip install uv && uv sync --all-groups
 	make add_precommit
 
+
 # installing venv takes up disk space in JupyterHub, about the same size as data-analyses and data-infra for a small repo!
 #https://stackoverflow.com/questions/79154674/how-to-migrate-from-a-simple-python-project-requirements-txt-setup-py-setupto
 uv_setup_project:
@@ -15,3 +16,4 @@ uv_setup_project:
 	#uv add package1 package2 # all defined in pyproject.toml, can copy over to future ones
 	uv add _gtfs_curator_utils/
 	uv lock
+    uv cache prune # use this to clean up cache
