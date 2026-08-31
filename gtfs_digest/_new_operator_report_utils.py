@@ -196,10 +196,12 @@ def create_hourly_summary(df: pd.DataFrame):
     )
 
     selection = alt.selection_point(fields=["Day Type"], bind="legend")
-
+    nearest = alt.selection_point(
+        nearest=True, fields=["Departure Hour"], on="mouseover", empty=False
+    )
     chart = (
         alt.Chart(df)
-        .mark_line(size=3, point=True)
+        .mark_line(size=3)
         .encode(
             x=alt.X(
                 "Departure Hour",
@@ -222,7 +224,7 @@ def create_hourly_summary(df: pd.DataFrame):
             ],
             opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.1)),
         )
-        .add_params(xcol_param, selection)
+        .add_params(xcol_param, selection, nearest)
         .transform_filter(xcol_param)
         .interactive()
     )

@@ -187,7 +187,6 @@ def create_bg_service_chart(background_col: str = "Time Period") -> alt.Chart:
             # when it's selected, gets darker
         )
         .add_params(rect_selection)
-        .interactive()
     )
 
     return chart
