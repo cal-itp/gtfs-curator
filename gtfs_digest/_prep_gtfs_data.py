@@ -60,6 +60,15 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     df2["Headway Peak"] = 60 / df2["Frequency Peak"]
     df2["Headway Offpeak"] = 60 / df2["Frequency Offpeak"]
 
+    round_cols = [
+        "Daily Service Minutes",
+        "Average Scheduled Minutes",
+        "Headway All Day",
+        "Headway Peak",
+        "Headway Offpeak",
+    ]
+    df2[round_cols] = df2[round_cols].round(1)
+
     # Save processed file
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
@@ -174,7 +183,7 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
         df.groupby(["analysis_name", "month_first_day", "day_type", "departure_hour"])
         .agg({"n_trips": "sum"})
         .reset_index()
-    )
+    ).astype({"departure_hour": "int64"})
 
     df2.columns = df2.columns.str.replace("_", " ").str.title()
 

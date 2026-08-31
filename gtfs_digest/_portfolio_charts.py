@@ -138,56 +138,56 @@ def text_table(df: pd.DataFrame) -> alt.Chart:
     return text_chart
 
 
-def create_bg_service_chart() -> alt.Chart:
+def create_bg_service_chart(background_col: str = "Time Period") -> alt.Chart:
     """
     Create a shaded background for the Service Hour Chart
     to differentiate between time periods.
+
+    Make this layer interactive, so that
+    tooltip works on hourly summary chart.
+    https://github.com/streamlit/streamlit/issues/1332
     """
     specific_chart_dict = readable_dict.background_graph
+    time_labels = [
+        "Owl:12-3:59AM",
+        "Early AM:4-6:59AM",
+        "AM Peak:7-9:59AM",
+        "Midday:10AM-2:59PM",
+        "PM Peak:3-7:59PM",
+        "Evening:8-11:59PM",
+    ]
+
     cutoff = pd.DataFrame(
         {
             "start": [0, 4, 7, 10, 15, 19],
             "stop": [3.99, 6.99, 9.99, 14.99, 18.99, 24],
-            "Time Period": [
-                "Owl:12-3:59AM",
-                "Early AM:4-6:59AM",
-                "AM Peak:7-9:59AM",
-                "Midday:10AM-2:59PM",
-                "PM Peak:3-7:59PM",
-                "Evening:8-11:59PM",
-            ],
+            background_col: time_labels,
         }
     )
 
     # Sort legend by time, 12am starting first.
-    selection = alt.selection_point(fields=["Time Period"], bind="legend", value="Owl")
+    rect_selection = alt.selection_point(
+        fields=[background_col], bind="legend", value=""
+    )
 
     chart = (
         alt.Chart(cutoff.reset_index())
         .mark_rect(opacity=0.15)
         .encode(
-            x="start",
-            x2="stop",
+            x=alt.X("start", title=""),
+            x2=alt.X2("stop", title=""),
             color=alt.Color(
-                "Time Period:N",
-                sort=(
-                    [
-                        "Owl:12-3:59AM",
-                        "Early AM:4-6:59AM",
-                        "AM Peak:7-9:59AM",
-                        "Midday:10AM-2:59PM",
-                        "PM Peak:3-7:59PM",
-                        "Evening:8-11:59PM",
-                    ]
-                ),
+                f"{background_col}:N",
+                sort=time_labels,
                 scale=alt.Scale(range=[*specific_chart_dict.colors]),
             ),
-            opacity=alt.when(selection)
+            opacity=alt.when(rect_selection)
             .then(alt.value(0.45))
             .otherwise(alt.value(0.15)),
             # when it's selected, gets darker
         )
-        .add_params(selection)
+        .add_params(rect_selection)
+        .interactive()
     )
 
     return chart

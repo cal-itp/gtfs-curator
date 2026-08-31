@@ -84,7 +84,7 @@ def find_percentiles(df: pd.DataFrame, col: str = "Route Length Miles") -> pd.Da
     percentile_df = pd.DataFrame(
         {
             "percentile_cat": labels[1:],  # exclude 'Zero' from the mapping table
-            f"{col} Group": [
+            f"{col} Percentile Group": [
                 f"25 percentile (<= {p25:.1f} miles)",
                 f"26-50th percentile ({p25:.1f}-{p50:.1f} miles)",
                 f"51-75th percentile ({p50:.1f}-{p75:.1f} miles)",
@@ -198,46 +198,47 @@ def create_hourly_summary(df: pd.DataFrame):
     selection = alt.selection_point(fields=["Day Type"], bind="legend")
 
     chart = (
-        (
-            alt.Chart(df)
-            .mark_line(size=3)
-            .encode(
-                x=alt.X(
-                    "Departure Hour",
-                    axis=alt.Axis(labelAngle=-45),
+        alt.Chart(df)
+        .mark_line(size=3, point=True)
+        .encode(
+            x=alt.X(
+                "Departure Hour",
+                axis=alt.Axis(labelAngle=-45),
+            ),
+            y=alt.Y("N Trips"),
+            color=alt.Color(
+                "Day Type:N",
+                scale=alt.Scale(
+                    domain=["Weekday", "Saturday", "Sunday"],
+                    range=[*chart_dict.colors],
                 ),
-                y=alt.Y("N Trips"),
-                color=alt.Color(
-                    "Day Type:N",
-                    scale=alt.Scale(
-                        domain=["Weekday", "Saturday", "Sunday"],
-                        range=[*chart_dict.colors],
-                    ),
-                ),
-                opacity=alt.when(selection)
-                .then(alt.value(1))
-                .otherwise(alt.value(0.1)),
-                tooltip=[
-                    "Analysis Name",
-                    "Date",
-                    "Day Type",
-                    "Departure Hour",
-                    "N Trips",
-                ],
-            )
+            ),
+            tooltip=[
+                "Analysis Name",
+                "Date",
+                "Day Type",
+                "Departure Hour",
+                "N Trips",
+            ],
+            opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.1)),
         )
         .add_params(xcol_param, selection)
         .transform_filter(xcol_param)
+        .interactive()
     )
 
-    bg = _portfolio_charts.create_bg_service_chart()
+    bg = _portfolio_charts.create_bg_service_chart(background_col="Time Period")
 
     # Get both legends (time_period and day_type)
     # https://github.com/vega/altair/issues/772
-    combined_chart = (chart + bg).properties(
-        resolve=alt.Resolve(
-            scale=alt.LegendResolveMap(color=alt.ResolveMode("independent"))
+    combined_chart = (
+        (chart + bg)
+        .properties(
+            resolve=alt.Resolve(
+                scale=alt.LegendResolveMap(color=alt.ResolveMode("independent"))
+            )
         )
+        .interactive()
     )
 
     combined_chart = _portfolio_charts.configure_chart(
