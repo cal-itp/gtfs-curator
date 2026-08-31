@@ -177,60 +177,78 @@ RT Data Charts
 """
 
 
-def create_hourly_summary(df: pd.DataFrame, day_type: str):
+def create_hourly_summary(df: pd.DataFrame):
 
     chart_dict = readable_dict.hourly_summary
-    df2 = df.loc[df["Day Type"] == "Saturday"]
-    df2["Date"] = df["Date"].astype(str)
 
-    date_list = list(df2["Date"].unique())
+    # dates are sorted in ascending, so reverse the list and get formatting back
+    datetime_list = pd.to_datetime(df.Date.unique(), format="%m-%Y")
+    date_list = [i.strftime("%m-%Y") for i in reversed(datetime_list)]
 
     date_dropdown = alt.binding_select(
         options=date_list,
         name="Dates: ",
     )
+
+    # select the most recent date
     xcol_param = alt.selection_point(
         fields=["Date"], value=date_list[0], bind=date_dropdown
     )
 
+    selection = alt.selection_point(fields=["Day Type"], bind="legend")
+
     chart = (
         (
-            alt.Chart(df2)
+            alt.Chart(df)
             .mark_line(size=3)
             .encode(
                 x=alt.X(
                     "Departure Hour",
-                    title="Departure Hour",
-                    axis=alt.Axis(
-                        labelAngle=-45,
+                    axis=alt.Axis(labelAngle=-45),
+                ),
+                y=alt.Y("N Trips"),
+                color=alt.Color(
+                    "Day Type:N",
+                    scale=alt.Scale(
+                        domain=["Weekday", "Saturday", "Sunday"],
+                        range=[*chart_dict.colors],
                     ),
                 ),
-                y=alt.Y(
+                opacity=alt.when(selection)
+                .then(alt.value(1))
+                .otherwise(alt.value(0.1)),
+                tooltip=[
+                    "Analysis Name",
+                    "Date",
+                    "Day Type",
+                    "Departure Hour",
                     "N Trips",
-                    title="N Trips",
-                ),
+                ],
             )
         )
-        .add_params(xcol_param)
+        .add_params(xcol_param, selection)
         .transform_filter(xcol_param)
     )
 
     bg = _portfolio_charts.create_bg_service_chart()
 
-    chart = (chart + bg).properties(
+    # Get both legends (time_period and day_type)
+    # https://github.com/vega/altair/issues/772
+    combined_chart = (chart + bg).properties(
         resolve=alt.Resolve(
             scale=alt.LegendResolveMap(color=alt.ResolveMode("independent"))
         )
     )
-    chart = _portfolio_charts.configure_chart(
-        chart,
+
+    combined_chart = _portfolio_charts.configure_chart(
+        combined_chart,
         width=400,
         height=250,
-        title=f"{chart_dict.title} {day_type}",
+        title=f"{chart_dict.title}",
         subtitle=chart_dict.subtitle,
     )
 
-    return chart
+    return combined_chart
 
 
 def create_route_dropdown(df: pd.DataFrame):

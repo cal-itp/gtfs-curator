@@ -160,14 +160,14 @@ def create_bg_service_chart() -> alt.Chart:
     )
 
     # Sort legend by time, 12am starting first.
+    selection = alt.selection_point(fields=["Time Period"], bind="legend", value="Owl")
+
     chart = (
         alt.Chart(cutoff.reset_index())
         .mark_rect(opacity=0.15)
         .encode(
             x="start",
             x2="stop",
-            y=alt.value(0),
-            y2=alt.value(250),
             color=alt.Color(
                 "Time Period:N",
                 sort=(
@@ -182,7 +182,12 @@ def create_bg_service_chart() -> alt.Chart:
                 ),
                 scale=alt.Scale(range=[*specific_chart_dict.colors]),
             ),
+            opacity=alt.when(selection)
+            .then(alt.value(0.45))
+            .otherwise(alt.value(0.15)),
+            # when it's selected, gets darker
         )
+        .add_params(selection)
     )
 
     return chart
