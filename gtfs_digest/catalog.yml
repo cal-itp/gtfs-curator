@@ -10,6 +10,6 @@ gtfs_digest_rollup:
   route_map: "fct_monthly_routes"
   operator_summary: "fct_monthly_operator_summary"
   hourly_day_type_summary: "fct_operator_hourly_summary"
-  ntd_profile: "ntd_profile"
+  ntd_profile: "dim_annual_agency_information"
   crosswalk: "crosswalk"
   crosswalk_legislative: "crosswalk_transit_operators_legislative_districts"

@@ -116,6 +116,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
 
     # Multiply percetnage columns by 100. Clip any values above 100.
     df2 = df2.assign(
+        month_first_day=pd.to_datetime(df2.month_first_day),
         pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0),
         pct_vp_trips=(df2.pct_vp_trips * 100).clip(upper=100.0),
     )
