@@ -121,6 +121,6 @@ gtfs_to_orgs AS (
         orgs_with_geog.mpo_name,
 
     FROM deduped_analysis_name 
-    INNER JOIN deduped_provider --left join doesn't work here either to solve it
+    LEFT JOIN deduped_provider --left join doesn't work here either to solve it
         ON deduped_analysis_name.source_record_id = deduped_provider.schedule_source_record_id
     INNER JOIN orgs_with_geog
