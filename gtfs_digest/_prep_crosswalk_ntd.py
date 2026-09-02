@@ -51,7 +51,7 @@ def load_crosswalk(
     )
 
     df2.to_parquet(
-        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}_{abbrev_month}.parquet",
+        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
 
@@ -130,13 +130,63 @@ def prep_ntd(df):
     return df
 
 
+def merge_crosswalk_with_ntd(abbrev_month: str):
+    ntd_columns = [
+        "ntd_id",
+        "service_area_sq_miles",
+        "service_area_pop",
+        "primary_uza_name",
+        "agency_name",
+        # dim table's agency_name is not source_agency that is presented in ridership reports
+        # that agency name is the name that comes in the report, confusing!
+        "reporter_type",
+        "reporting_module",
+    ]
+
+    dim_ntd = pd.read_parquet(
+        f"{PROCESSED_GCS}dim_annual_agency_information.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=ntd_columns,
+    ).rename(columns={"ntd_id": "ntd_id_2022"})
+
+    crosswalk = (
+        pd.read_parquet(
+            f"{PROCESSED_GCS}crosswalk.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+            columns=[
+                "analysis_name",
+                "ntd_id_2022",
+                "county_name",
+                "caltrans_district",
+            ],
+        )
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    # dedupe here because multiple schedule_gtfs_dataset_names can share same analysis_name
+
+    df = pd.merge(
+        crosswalk,
+        dim_ntd,
+        on="ntd_id_2022",
+        how="left",
+    )
+
+    df.to_parquet(
+        f"{PROCESSED_GCS}{DIGEST_DICT.ntd_profile}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+    )
+    return
+
+
 if __name__ == "__main__":
     PROD_PROJECT = "cal-itp-data-infra-staging"
     PROD_MART = "tiffany_mart_transit_database"
 
-    load_crosswalk(
-        project_name=PROD_PROJECT,
-        dataset_name=PROD_MART,
-    )
+    # load_crosswalk(
+    #    project_name=PROD_PROJECT,
+    #    dataset_name=PROD_MART,
+    # )
 
-    download_new_ntd_table(min_year=2022)
+    # download_new_ntd_table(min_year=2022)
+    merge_crosswalk_with_ntd(abbrev_month)
