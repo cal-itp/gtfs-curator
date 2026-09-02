@@ -1,6 +1,3 @@
-------------------------------------------------------
--- bridge_gtfs_analysis_name_x_ntd
-------------------------------------------------------
 WITH dim_gtfs_datasets AS (
     SELECT
         name,
@@ -47,12 +44,8 @@ deduped_provider AS (
 
     FROM dim_provider_gtfs_data
     QUALIFY ROW_NUMBER() OVER(
-        PARTITION BY schedule_source_record_id, schedule_gtfs_dataset_name
-        --this will keep every combination of source_record_id-gtfs_dataset_name
-        --which means if the name changes, they will all show up
-        --just schedule_source_record_id would keep the most recent name
-        --but Foothill/Duarte have issues 
-        
+        PARTITION BY schedule_source_record_id, organization_name
+        --this will allow Foothill/Duarte to be each row, so we introduce the fanout here         
         ORDER BY _valid_from DESC
     ) = 1
 ),
@@ -114,13 +107,18 @@ gtfs_to_orgs AS (
         orgs_with_geog.county_name,
         orgs_with_geog.caltrans_district,
         orgs_with_geog.caltrans_district_name,
-        CONCAT(CAST(caltrans_district AS STRING FORMAT '00'), " - ", caltrans_district_name) AS caltrans_district_full,
+        CONCAT(CAST(caltrans_district AS STRING FORMAT '00'), " - ", caltrans_district_name).TRIM() AS caltrans_district_full,
         orgs_with_geog.ntd_id,
         orgs_with_geog.ntd_id_2022,
         orgs_with_geog.rtpa_name,
         orgs_with_geog.mpo_name,
 
     FROM deduped_analysis_name 
-    LEFT JOIN deduped_provider --left join doesn't work here either to solve it
+    INNER JOIN deduped_provider
         ON deduped_analysis_name.source_record_id = deduped_provider.schedule_source_record_id
     INNER JOIN orgs_with_geog
+        ON deduped_provider.organization_name = orgs_with_geog.organization_name
+    ORDER BY schedule_gtfs_dataset_name
+)
+
+SELECT * FROM gtfs_to_orgs
