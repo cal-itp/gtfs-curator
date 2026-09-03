@@ -256,7 +256,7 @@ def create_hourly_summary(df: pd.DataFrame):
 
 def create_route_dropdown_chart(df: pd.DataFrame):
 
-    routes_list = df["Route"].unique().tolist()
+    routes_list = sorted(df["Route"].unique().tolist())
     route_dropdown = alt.binding_select(
         options=routes_list,
         name="Routes: ",
@@ -280,12 +280,6 @@ def create_route_dropdown_chart(df: pd.DataFrame):
         ],
     )
 
-    # Get this into date format, otherwise sorting is wrong for x-axis
-    # TODO: this can move earlier into _prep_gtfs_data, where this is .dt.strftime (just leave it as date?)
-    # df = df.assign(
-    #    Date = pd.to_datetime(df.Date)
-    # )
-
     legend_selection = alt.selection_point(fields=["variable"], bind="legend")
 
     chart = (
@@ -306,8 +300,8 @@ def create_route_dropdown_chart(df: pd.DataFrame):
             .then(alt.value(1))
             .otherwise(alt.value(0.2)),
         )
-        .transform_filter(xcol_param, legend_selection)
-        .properties(width=400, height=250)
+        .transform_filter(xcol_param)
+        .properties(width=350, height=225)
         .interactive()
     )
     # if use transform_filter(xcol_param, legend_selection),
@@ -316,10 +310,8 @@ def create_route_dropdown_chart(df: pd.DataFrame):
     # resolve_scale will not change that...resolve_scale addresses the weekday compared to sat chart
     # tickExtra=True? how to add more space at beginning of x-axis
 
-    chart = (
-        chart.add_params(legend_selection, xcol_param)
-        .resolve_scale(x="shared", y="independent")
-        .properties(title="GTFS Schedule Metrics by Route")
+    chart = chart.add_params(legend_selection, xcol_param).resolve_scale(
+        x="shared", y="independent"
     )
 
     return chart

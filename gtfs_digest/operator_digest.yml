@@ -1,6 +1,6 @@
 title: GTFS Digest
 directory: .
-readme: README.md
+readme: ./README.md
 notebook: report_operator.ipynb
 parts:
   - caption: 01 - Eureka
@@ -13,22 +13,12 @@ parts:
           analysis_name: Mendocino Transit Authority
       - params:
           analysis_name: Redwood Coast Transit Authority
-      - params:
-          analysis_name: Yurok Tribe
   - caption: 02 - Redding
     chapters:
       - params:
-          analysis_name: Lassen Transit Service Agency
-      - params:
-          analysis_name: Plumas Transit Systems
-      - params:
           analysis_name: Redding Area Bus Authority
       - params:
-          analysis_name: Siskiyou County
-      - params:
           analysis_name: Tehama County
-      - params:
-          analysis_name: Trinity County
   - caption: 03 - Marysville / Sacramento
     chapters:
       - params:
@@ -36,27 +26,13 @@ parts:
       - params:
           analysis_name: City of Elk Grove
       - params:
-          analysis_name: City of Roseville
-      - params:
-          analysis_name: El Dorado County Transit Authority
-      - params:
-          analysis_name: Glenn County
-      - params:
           analysis_name: Nevada County
       - params:
-          analysis_name: Placer County
-      - params:
-          analysis_name: Sacramento County
-      - params:
-          analysis_name: Tahoe Transportation District
-      - params:
-          analysis_name: Town of Truckee
+          analysis_name: Sacramento Regional Transit District
       - params:
           analysis_name: University of California, Davis
       - params:
           analysis_name: Yolo County Transportation District
-      - params:
-          analysis_name: Yuba-Sutter Transit Authority
   - caption: 04 - Bay Area / Oakland
     chapters:
       - params:
@@ -69,8 +45,6 @@ parts:
           analysis_name: City of Fairfield
       - params:
           analysis_name: City of Petaluma
-      - params:
-          analysis_name: City of Rio Vista
       - params:
           analysis_name: City of Santa Rosa
       - params:
@@ -92,11 +66,16 @@ parts:
       - params:
           analysis_name: San Francisco Bay Area Rapid Transit District
       - params:
+          analysis_name: San Francisco Bay Ferry and Oakland Alameda Water Shuttle
+            Schedule
+      - params:
           analysis_name: San Mateo County Transit District
       - params:
           analysis_name: Santa Clara Valley Transportation Authority
       - params:
           analysis_name: Solano Transportation Authority
+      - params:
+          analysis_name: Sonoma County Transit Schedule
       - params:
           analysis_name: Sonoma-Marin Area Rail Transit District
       - params:
@@ -104,19 +83,11 @@ parts:
   - caption: 05 - San Luis Obispo / Santa Barbara
     chapters:
       - params:
-          analysis_name: City of Lompoc
-      - params:
           analysis_name: City of Santa Maria
-      - params:
-          analysis_name: City of Solvang
       - params:
           analysis_name: Monterey-Salinas Transit
       - params:
-          analysis_name: San Benito County Local Transportation Authority
-      - params:
           analysis_name: San Luis Obispo Regional Transit Authority
-      - params:
-          analysis_name: Santa Barbara County Association of Governments
       - params:
           analysis_name: Santa Barbara Metropolitan Transit District
       - params:
@@ -126,17 +97,9 @@ parts:
   - caption: 06 - Fresno / Bakersfield
     chapters:
       - params:
-          analysis_name: City of Arvin
-      - params:
-          analysis_name: City of Delano
-      - params:
           analysis_name: City of Fresno
       - params:
-          analysis_name: City of Madera
-      - params:
           analysis_name: City of Visalia
-      - params:
-          analysis_name: Fresno County Rural Transit Agency
       - params:
           analysis_name: Golden Empire Transit District
       - params:
@@ -152,59 +115,21 @@ parts:
       - params:
           analysis_name: Antelope Valley Transit Authority
       - params:
-          analysis_name: City of Alhambra
-      - params:
-          analysis_name: City of Arcadia
-      - params:
-          analysis_name: City of Artesia
-      - params:
           analysis_name: City of Baldwin Park
-      - params:
-          analysis_name: City of Bell
-      - params:
-          analysis_name: City of Bell Gardens
-      - params:
-          analysis_name: City of Bellflower
       - params:
           analysis_name: City of Burbank
       - params:
-          analysis_name: City of Calabasas
-      - params:
-          analysis_name: City of Carson
-      - params:
           analysis_name: City of Commerce
-      - params:
-          analysis_name: City of Compton
-      - params:
-          analysis_name: City of Cudahy
       - params:
           analysis_name: City of Culver City
       - params:
           analysis_name: City of Downey
       - params:
-          analysis_name: City of El Monte
-      - params:
           analysis_name: City of Gardena
-      - params:
-          analysis_name: City of Glendale
-      - params:
-          analysis_name: City of Glendora
-      - params:
-          analysis_name: City of Huntington Park
-      - params:
-          analysis_name: City of Inglewood
       - params:
           analysis_name: City of Lawndale
       - params:
           analysis_name: City of Los Angeles
-      - params:
-          analysis_name: City of Lynwood
-      - params:
-          analysis_name: City of Maywood
-      - params:
-          analysis_name: City of Montebello
-      - params:
-          analysis_name: City of Monterey Park
       - params:
           analysis_name: City of Norwalk
       - params:
@@ -212,17 +137,11 @@ parts:
       - params:
           analysis_name: City of Redondo Beach
       - params:
-          analysis_name: City of San Fernando
-      - params:
           analysis_name: City of Santa Clarita
       - params:
           analysis_name: City of Santa Monica
       - params:
-          analysis_name: City of South Gate
-      - params:
           analysis_name: City of Torrance
-      - params:
-          analysis_name: City of West Covina
       - params:
           analysis_name: City of West Hollywood
       - params:
@@ -230,34 +149,24 @@ parts:
       - params:
           analysis_name: Long Beach Transit
       - params:
-          analysis_name: Los Angeles County
-      - params:
           analysis_name: Los Angeles County Metropolitan Transportation Authority
       - params:
-          analysis_name: Palos Verdes Peninsula Transit Authority
+          analysis_name: Santa Clara Valley Transportation Authority
+      - params:
+          analysis_name: Southern California Regional Rail Authority
       - params:
           analysis_name: Ventura County (VCTC, Gold Coast, Cities of Camarillo, Moorpark,
             Ojai, Simi Valley, Thousand Oaks)
   - caption: 08 - San Bernardino / Riverside
     chapters:
       - params:
-          analysis_name: Chemehuevi Indian Tribe
-      - params:
-          analysis_name: City of Corona
-      - params:
-          analysis_name: City of Needles
-      - params:
-          analysis_name: Mountain Area Regional Transit Authority
-      - params:
           analysis_name: OmniTrans
-      - params:
-          analysis_name: Palo Verde Valley Transit Agency
       - params:
           analysis_name: Riverside Transit Agency
       - params:
           analysis_name: Southern California Regional Rail Authority
       - params:
-          analysis_name: Victor Valley Transit Authority
+          analysis_name: SunLine Transit Agency
   - caption: 09 - Bishop
     chapters:
       - params:
@@ -265,13 +174,7 @@ parts:
   - caption: 10 - Stockton
     chapters:
       - params:
-          analysis_name: Amador Regional Transit System
-      - params:
-          analysis_name: Calaveras Transit Agency
-      - params:
           analysis_name: City of Escalon
-      - params:
-          analysis_name: City of Lodi
       - params:
           analysis_name: City of Manteca
       - params:
@@ -285,23 +188,16 @@ parts:
       - params:
           analysis_name: Stanislaus Regional Transit Authority
       - params:
-          analysis_name: Transit Joint Powers Authority for Merced County
-      - params:
           analysis_name: Tuolumne County Transit Agency
-      - params:
-          analysis_name: Yosemite Area Regional Transportation System
   - caption: 11 - San Diego
     chapters:
       - params:
-          analysis_name: Imperial County Transportation Commission
-      - params:
           analysis_name: North County Transit District
       - params:
-          analysis_name: Yuma County Intergovernmental Public Transportation Authority
+          analysis_name: San Diego Metropolitan Transit System, Airport, Flagship
+            Cruises
   - caption: 12 - Orange County
     chapters:
-      - params:
-          analysis_name: City of Laguna Beach
       - params:
           analysis_name: Orange County Transportation Authority
 deploy:
