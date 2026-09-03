@@ -4,9 +4,9 @@ from omegaconf import OmegaConf
 CATALOG_DICT = catalog_utils.get_catalog("catalog.yml", use_intake=False)
 DIGEST_DICT = CATALOG_DICT.gtfs_digest_rollup
 
-analysis_month = "2026-07-01"
-last_year = "2025-07-01"
-previous_month = "2026-06-01"
+analysis_month = "2026-08-01"
+last_year = "2025-08-01"
+previous_month = "2026-07-01"
 
 abbrev_month = analysis_month.replace("-", "_")[0:7]
 

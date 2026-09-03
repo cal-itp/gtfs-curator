@@ -84,7 +84,7 @@ def find_percentiles(df: pd.DataFrame, col: str = "Route Length Miles") -> pd.Da
     percentile_df = pd.DataFrame(
         {
             "percentile_cat": labels[1:],  # exclude 'Zero' from the mapping table
-            f"{col} Group": [
+            f"{col} Percentile Group": [
                 f"25 percentile (<= {p25:.1f} miles)",
                 f"26-50th percentile ({p25:.1f}-{p50:.1f} miles)",
                 f"51-75th percentile ({p50:.1f}-{p75:.1f} miles)",
@@ -155,7 +155,7 @@ def create_route_typology(df: pd.DataFrame):
     chart_dict = readable_dict.route_typology
 
     chart = _portfolio_charts.pie_chart(
-        df=typology_df,
+        typology_df,
         color_col="Route Typology",
         theta_col="Total Routes",
         color_scheme=[*chart_dict.colors],
@@ -177,64 +177,86 @@ RT Data Charts
 """
 
 
-def create_hourly_summary(df: pd.DataFrame, day_type: str):
+def create_hourly_summary(df: pd.DataFrame):
 
     chart_dict = readable_dict.hourly_summary
-    df2 = df.loc[df["Day Type"] == "Saturday"]
-    df2["Date"] = df["Date"].astype(str)
 
-    date_list = list(df2["Date"].unique())
+    # dates are sorted in ascending, so reverse the list and get formatting back
+    datetime_list = pd.to_datetime(df.Date.unique(), format="%m-%Y")
+    date_list = [i.strftime("%m-%Y") for i in reversed(datetime_list)]
 
     date_dropdown = alt.binding_select(
         options=date_list,
         name="Dates: ",
     )
+
+    # select the most recent date
     xcol_param = alt.selection_point(
         fields=["Date"], value=date_list[0], bind=date_dropdown
     )
 
+    selection = alt.selection_point(fields=["Day Type"], bind="legend")
+    nearest = alt.selection_point(
+        nearest=True, fields=["Departure Hour"], on="mouseover", empty=False
+    )
     chart = (
-        (
-            alt.Chart(df2)
-            .mark_line(size=3)
-            .encode(
-                x=alt.X(
-                    "Departure Hour",
-                    title="Departure Hour",
-                    axis=alt.Axis(
-                        labelAngle=-45,
-                    ),
+        alt.Chart(df)
+        .mark_line(size=3)
+        .encode(
+            x=alt.X(
+                "Departure Hour",
+                axis=alt.Axis(labelAngle=-45),
+            ),
+            y=alt.Y("N Trips"),
+            color=alt.Color(
+                "Day Type:N",
+                scale=alt.Scale(
+                    domain=["Weekday", "Saturday", "Sunday"],
+                    range=[*chart_dict.colors],
                 ),
-                y=alt.Y(
-                    "N Trips",
-                    title="N Trips",
-                ),
+            ),
+            tooltip=[
+                "Analysis Name",
+                "Date",
+                "Day Type",
+                "Departure Hour",
+                "N Trips",
+            ],
+            opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.1)),
+        )
+        .add_params(xcol_param, selection, nearest)
+        .transform_filter(xcol_param)
+        .interactive()
+    )
+
+    bg = _portfolio_charts.create_bg_service_chart(background_col="Time Period")
+
+    # Get both legends (time_period and day_type)
+    # https://github.com/vega/altair/issues/772
+    combined_chart = (
+        (chart + bg)
+        .properties(
+            resolve=alt.Resolve(
+                scale=alt.LegendResolveMap(color=alt.ResolveMode("independent"))
             )
         )
-        .add_params(xcol_param)
-        .transform_filter(xcol_param)
+        .interactive()
     )
 
-    bg = _portfolio_charts.create_bg_service_chart()
-
-    chart = (chart + bg).properties(
-        resolve=alt.Resolve(
-            scale=alt.LegendResolveMap(color=alt.ResolveMode("independent"))
-        )
-    )
-    chart = _portfolio_charts.configure_chart(
-        chart,
+    combined_chart = _portfolio_charts.configure_chart(
+        combined_chart,
         width=400,
         height=250,
-        title=f"{chart_dict.title} {day_type}",
+        title=f"{chart_dict.title}",
         subtitle=chart_dict.subtitle,
     )
 
-    return chart
+    return combined_chart
 
 
-def create_route_dropdown(df: pd.DataFrame):
-    routes_list = df["Route"].unique().tolist()
+def create_route_dropdown_chart(df: pd.DataFrame):
+
+    routes_list = sorted(df["Route"].unique().tolist())
     route_dropdown = alt.binding_select(
         options=routes_list,
         name="Routes: ",
@@ -244,14 +266,63 @@ def create_route_dropdown(df: pd.DataFrame):
     xcol_param = alt.selection_point(
         fields=["Route"], value=routes_list[0], bind=route_dropdown
     )
-    return xcol_param
+
+    # melt this to include the metrics we want displayed in legend
+    df = df.melt(
+        id_vars=["Date", "Analysis Name", "Day Type", "Route", "Direction"],
+        value_vars=[
+            "Daily Trips All Day",
+            "Frequency All Day",
+            "Average Scheduled Minutes",
+            "Headway All Day",
+            "Headway Peak",
+            "Headway Offpeak",
+        ],
+    )
+
+    legend_selection = alt.selection_point(fields=["variable"], bind="legend")
+
+    chart = (
+        alt.Chart(df)
+        .mark_line(point=alt.OverlayMarkDef(filled=False, fill="white"))
+        .encode(
+            x=alt.X(
+                "yearmonth(Date)",
+                title="Date",
+                axis=alt.Axis(labelAngle=-45, format="%b %Y"),
+            ),
+            y=alt.Y("value", title=""),
+            color=alt.Color("variable:N", title="metric"),
+            row=alt.Row("Day Type:N", sort=["Weekday", "Saturday", "Sunday"]),
+            column="Direction:O",
+            tooltip=["Date", "variable", "value", "Route", "Direction", "Day Type"],
+            opacity=alt.when(legend_selection)
+            .then(alt.value(1))
+            .otherwise(alt.value(0.2)),
+        )
+        .transform_filter(xcol_param)
+        .properties(width=350, height=225)
+        .interactive()
+    )
+    # if use transform_filter(xcol_param, legend_selection),
+    # then clicking on legend will make other lines disappear, rather than dim
+    # if remove it, then other lines will be dim, but the y-axis will remain shared
+    # resolve_scale will not change that...resolve_scale addresses the weekday compared to sat chart
+    # tickExtra=True? how to add more space at beginning of x-axis
+
+    chart = chart.add_params(legend_selection, xcol_param).resolve_scale(
+        x="shared", y="independent"
+    )
+
+    return chart
 
 
 def create_scheduled_minutes(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.avg_scheduled_minutes
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -305,7 +376,8 @@ def create_scheduled_trips(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.scheduled
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -359,7 +431,8 @@ def create_frequency(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.frequency
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -441,7 +514,8 @@ def create_text_graph(df: pd.DataFrame):
         bind=input_dropdown,
     )
 
-    xcol_param = create_route_dropdown(df2)
+    xcol_param = None
+    # xcol_param = create_route_dropdown(df2)
 
     chart = (
         (
