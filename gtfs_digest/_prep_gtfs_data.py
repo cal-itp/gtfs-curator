@@ -9,10 +9,30 @@ from update_vars import DIGEST_DICT, PROCESSED_GCS, RAW_GCS, abbrev_month
 credentials, _ = google.auth.default()
 
 
+def merge_with_crosswalk(df: pd.DataFrame, columns=["name", "analysis_name"]):
+    # Merge with crosswalk
+    crosswalk_url = f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet"
+
+    crosswalk_df = pd.read_parquet(
+        crosswalk_url,
+        columns=columns,
+        filesystem=gcsfs.GCSFileSystem(),
+    ).drop_duplicates()
+
+    m1 = pd.merge(df, crosswalk_df, on="name", how="inner")
+
+    return m1
+
+
 def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.schedule_rt_route_direction
-    df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+    df = (
+        pd.read_parquet(
+            f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+        )
+        .rename(columns={"schedule_name": "name"})
+        .pipe(merge_with_crosswalk)
     )
 
     # Select relevant columns
@@ -42,7 +62,9 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     # Clean columns
     df2.route_typology = df2.route_typology.str.title()
     df2.columns = df2.columns.str.replace("_", " ").str.title()
-    df2["Month First Day"] = pd.to_datetime(df2["Month First Day"]).dt.strftime("%m/%Y")
+    df2["Month First Day"] = pd.to_datetime(
+        df2["Month First Day"]
+    )  # .dt.strftime("%m/%Y")
     df2 = df2.rename(
         columns={
             "Direction Id": "Direction",
@@ -71,7 +93,7 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
 
     # Save processed file
     df2.to_parquet(
-        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        f"{PROCESSED_GCS}{filename}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
 
@@ -82,8 +104,15 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
 def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.operator_summary
 
-    df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+    df = (
+        pd.read_parquet(
+            f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+        )
+        .rename(columns={"schedule_name": "name"})
+        .pipe(
+            merge_with_crosswalk, columns=["name", "analysis_name", "caltrans_district"]
+        )
     )
 
     # Select relevant columns
@@ -132,7 +161,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
 
     # Save processed file
     df2.to_parquet(
-        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        f"{PROCESSED_GCS}{filename}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
 
@@ -147,8 +176,9 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
     gdf = gpd.read_parquet(
         f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
         storage_options={"token": credentials.token},
-        columns=["month_first_day", "analysis_name", "route_name", "geometry"],
-    )
+    ).pipe(merge_with_crosswalk)[
+        ["month_first_day", "analysis_name", "route_name", "geometry"]
+    ]
 
     # Keep most recent route geography
     gdf2 = gdf.sort_values(
@@ -165,7 +195,7 @@ def prep_fct_monthly_routes(abbrev_month: str) -> pd.DataFrame:
     gdf2.columns = gdf2.columns.str.replace("_", " ").str.title()
 
     # Export to GCS
-    utils.geoparquet_gcs_export(gdf2, PROCESSED_GCS, f"{filename}_{abbrev_month}")
+    utils.geoparquet_gcs_export(gdf2, PROCESSED_GCS, f"{filename}")
 
     print(f"export processed {filename}")
 
@@ -177,7 +207,7 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
 
     df = pd.read_parquet(
         f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
-    )
+    ).pipe(merge_with_crosswalk)
 
     # Prepare data
     df2 = (
@@ -193,7 +223,7 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
     df2["Date"] = pd.to_datetime(df2["Date"]).dt.strftime("%m-%Y")
 
     df2.to_parquet(
-        f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
+        f"{PROCESSED_GCS}{filename}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
 
