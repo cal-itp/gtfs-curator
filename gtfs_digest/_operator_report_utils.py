@@ -155,7 +155,7 @@ def create_route_typology(df: pd.DataFrame):
     chart_dict = readable_dict.route_typology
 
     chart = _portfolio_charts.pie_chart(
-        df=typology_df,
+        typology_df,
         color_col="Route Typology",
         theta_col="Total Routes",
         color_scheme=[*chart_dict.colors],
@@ -254,7 +254,8 @@ def create_hourly_summary(df: pd.DataFrame):
     return combined_chart
 
 
-def create_route_dropdown(df: pd.DataFrame):
+def create_route_dropdown_chart(df: pd.DataFrame):
+
     routes_list = df["Route"].unique().tolist()
     route_dropdown = alt.binding_select(
         options=routes_list,
@@ -265,14 +266,71 @@ def create_route_dropdown(df: pd.DataFrame):
     xcol_param = alt.selection_point(
         fields=["Route"], value=routes_list[0], bind=route_dropdown
     )
-    return xcol_param
+
+    # melt this to include the metrics we want displayed in legend
+    df = df.melt(
+        id_vars=["Date", "Analysis Name", "Day Type", "Route", "Direction"],
+        value_vars=[
+            "Daily Trips All Day",
+            "Frequency All Day",
+            "Average Scheduled Minutes",
+            "Headway All Day",
+            "Headway Peak",
+            "Headway Offpeak",
+        ],
+    )
+
+    # Get this into date format, otherwise sorting is wrong for x-axis
+    # TODO: this can move earlier into _prep_gtfs_data, where this is .dt.strftime (just leave it as date?)
+    # df = df.assign(
+    #    Date = pd.to_datetime(df.Date)
+    # )
+
+    legend_selection = alt.selection_point(fields=["variable"], bind="legend")
+
+    chart = (
+        alt.Chart(df)
+        .mark_line(point=alt.OverlayMarkDef(filled=False, fill="white"))
+        .encode(
+            x=alt.X(
+                "yearmonth(Date)",
+                title="Date",
+                axis=alt.Axis(labelAngle=-45, format="%b %Y"),
+            ),
+            y=alt.Y("value", title=""),
+            color=alt.Color("variable:N", title="metric"),
+            row=alt.Row("Day Type:N", sort=["Weekday", "Saturday", "Sunday"]),
+            column="Direction:O",
+            tooltip=["Date", "variable", "value", "Route", "Direction", "Day Type"],
+            opacity=alt.when(legend_selection)
+            .then(alt.value(1))
+            .otherwise(alt.value(0.2)),
+        )
+        .transform_filter(xcol_param, legend_selection)
+        .properties(width=400, height=250)
+        .interactive()
+    )
+    # if use transform_filter(xcol_param, legend_selection),
+    # then clicking on legend will make other lines disappear, rather than dim
+    # if remove it, then other lines will be dim, but the y-axis will remain shared
+    # resolve_scale will not change that...resolve_scale addresses the weekday compared to sat chart
+    # tickExtra=True? how to add more space at beginning of x-axis
+
+    chart = (
+        chart.add_params(legend_selection, xcol_param)
+        .resolve_scale(x="shared", y="independent")
+        .properties(title="GTFS Schedule Metrics by Route")
+    )
+
+    return chart
 
 
 def create_scheduled_minutes(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.avg_scheduled_minutes
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -326,7 +384,8 @@ def create_scheduled_trips(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.scheduled
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -380,7 +439,8 @@ def create_frequency(df: pd.DataFrame):
     df2 = df.loc[df["Day Type"] == "Weekday"]
     chart_dict = readable_dict.frequency
 
-    xcol_param = create_route_dropdown(df)
+    # xcol_param = create_route_dropdown(df)
+    xcol_param = None
 
     dir_0_chart = _portfolio_charts.bar_chart(
         df=df2.loc[df2.Direction == 0],
@@ -462,7 +522,8 @@ def create_text_graph(df: pd.DataFrame):
         bind=input_dropdown,
     )
 
-    xcol_param = create_route_dropdown(df2)
+    xcol_param = None
+    # xcol_param = create_route_dropdown(df2)
 
     chart = (
         (
