@@ -15,7 +15,7 @@ credentials, project = google.auth.default()
 def load_crosswalk(
     project_name: str,
     dataset_name: str,
-    table_name: str = "bridge3",
+    table_name: str = "bridge_gtfs_analysis_name_x_ntd",
 ) -> pd.DataFrame:
     crosswalk_cols = [
         "schedule_gtfs_dataset_name",
@@ -58,7 +58,7 @@ def load_crosswalk(
     return
 
 
-def download_new_ntd_table(
+def download_ntd_dim_annual_agency(
     min_year: int = 2022,
 ):
     """
@@ -67,7 +67,7 @@ def download_new_ntd_table(
     """
     sql_query = """
         SELECT *
-        FROM `cal-itp-data-infra-stag.mart_ntd.dim_annual_agency_information`
+        FROM `cal-itp-data-infra.mart_ntd.dim_annual_agency_information`
         WHERE year >= @min_year
         QUALIFY ROW_NUMBER() OVER (
             PARTITION BY ntd_id
@@ -180,13 +180,13 @@ def merge_crosswalk_with_ntd(abbrev_month: str):
 
 
 if __name__ == "__main__":
-    PROD_PROJECT = "cal-itp-data-infra-staging"
-    PROD_MART = "tiffany_mart_transit_database"
+    PROD_PROJECT = "cal-itp-data-infra"
+    PROD_MART = "mart_transit_database"
 
-    # load_crosswalk(
-    #    project_name=PROD_PROJECT,
-    #    dataset_name=PROD_MART,
-    # )
+    load_crosswalk(
+        project_name=PROD_PROJECT,
+        dataset_name=PROD_MART,
+    )
 
-    # download_new_ntd_table(min_year=2022)
+    download_ntd_dim_annual_agency(min_year=2022)
     merge_crosswalk_with_ntd(abbrev_month)
