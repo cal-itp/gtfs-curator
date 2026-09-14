@@ -136,6 +136,78 @@ def filter_fct_daily_scheduled_stops_to_special_routes(
     return stop_gdf2
 
 
+def filter_fct_daily_scheduled_stops_to_special_routes_keep_far_stops(
+    event_name: str = wc_vars.event_name,
+    operator_list: list = [],
+    route_name_dict: dict = {},
+    event_time_of_day_dict: dict = {},
+) -> gpd.GeoDataFrame:
+
+    routes_with_changes = filter_to_routes_with_service_changes(
+        event_name=event_name,
+        operator_list=operator_list,
+        route_name_dict=route_name_dict,
+        event_time_of_day_dict=event_time_of_day_dict,
+    )
+
+    # only use this to bring schedule_name in for each feed_key
+    stops_near_sofi = pd.read_parquet(
+        f"{GCS_FILE_PATH}stops_near_poi.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        filters=[[("schedule_name", "in", operator_list)]],
+        columns=["feed_key", "schedule_name"],
+    ).drop_duplicates()
+
+    metric_cols = [
+        # "n_hours_in_service",
+        "arrivals_per_hour_owl",
+        "arrivals_per_hour_early_am",
+        "arrivals_per_hour_am_peak",
+        "arrivals_per_hour_midday",
+        "arrivals_per_hour_pm_peak",
+        "arrivals_per_hour_evening",
+        "arrivals_owl",
+        "arrivals_early_am",
+        "arrivals_am_peak",
+        "arrivals_midday",
+        "arrivals_pm_peak",
+        "arrivals_evening",
+        "route_id_array",  # "route_type_array",
+        # "wheelchair_boarding", "location_type"
+    ]
+
+    stop_gdf = gpd.read_parquet(
+        f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{event_name}.parquet",
+        storage_options={"token": credentials},
+        columns=[
+            "service_date",
+            "feed_key",
+            "stop_id",
+            "stop_name",
+            "daily_arrivals",
+            "geometry",
+        ]
+        + metric_cols,
+    ).merge(
+        stops_near_sofi,
+        on=["feed_key"],  # "stop_id", "stop_name"],
+        how="inner",
+    )
+
+    stops_for_special_routes = get_stops_along_special_routes(
+        stop_gdf, routes_with_changes
+    )
+
+    stop_gdf2 = pd.merge(
+        stop_gdf,
+        stops_for_special_routes,
+        on=["feed_key", "stop_id", "stop_name"],
+        how="inner",
+    ).pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
+
+    return stop_gdf2
+
+
 def aggregate_by_event_type(gdf: gpd.GeoDataFrame) -> pd.DataFrame:
     arrivals_by_event_type = (
         gdf.groupby(
