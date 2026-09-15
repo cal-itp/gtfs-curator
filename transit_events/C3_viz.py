@@ -42,6 +42,8 @@ def add_stadium_layer(poi: gpd.GeoDataFrame, m: folium.Map):
     # https://stackoverflow.com/questions/73317052/geopandas-explore-how-to-set-marker-icon
     # https://fontawesome.com/v4/icons/
     # must take format "fa fa-[name_of_icon]"
+    # example of marker: https://python-visualization.github.io/folium/latest/user_guide/geojson/geojson_marker.html
+
     specific_icon = "fa fa-building"  # fa fa-home
 
     m = poi.explore(

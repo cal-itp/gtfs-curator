@@ -209,41 +209,36 @@ def filter_fct_daily_scheduled_stops_to_special_routes_keep_far_stops(
 
 
 def aggregate_by_event_type(
-    gdf: gpd.GeoDataFrame, arrivals_col: str = "daily_arrivals"
+    gdf: gpd.GeoDataFrame,
+    group_cols: list = [
+        "schedule_name",
+        "stop_id",
+        "stop_name",
+        "event_day",
+        "day_type",
+    ],
+    metric_cols: list = ["daily_arrivals"],
 ) -> pd.DataFrame:
+    """
+    TODO: this can be used for stop arrivals and trips
+    """
     # See how this function can accommodate the aggregation here by time-of-day
-    arrivals_by_event_type = (
-        gdf.groupby(
-            [
-                "schedule_name",  # "feed_key",
-                "stop_id",
-                "stop_name",
-                "event_day",
-                "day_type",
-            ]
-        )
+    df = (
+        gdf.groupby(group_cols)
         .agg(
             {
-                arrivals_col: "sum",
+                **{c: "sum" for c in metric_cols},
                 "service_date": "nunique",
             }
         )
         .reset_index()
-        .rename(
-            columns={
-                arrivals_col: "total_arrivals",  # rename for clarity here
-                "service_date": "n_days",
-            }
-        )
+        .rename(columns={"service_date": "n_days"})
     )
 
-    arrivals_by_event_type = arrivals_by_event_type.assign(
-        daily_arrivals=arrivals_by_event_type.total_arrivals.divide(
-            arrivals_by_event_type.n_days
-        ).round(2),
-    ).rename(columns={"daily_arrivals": arrivals_col})
+    for c in metric_cols:
+        df[c] = df[c].divide(df.n_days).round(2)
 
-    return arrivals_by_event_type
+    return df
 
 
 def make_wide(
@@ -271,18 +266,26 @@ def make_wide(
         "_".join(col).rstrip("_").strip() for col in df_wide.columns.values
     ]
 
-    df_wide = df_wide.assign(
-        change_daily_arrivals_weekday=(
-            df_wide.daily_arrivals_weekday_event
-            - df_wide.daily_arrivals_weekday_non_event
-        ).round(1),
-        change_daily_arrivals_weekend=(
-            df_wide.daily_arrivals_weekend_event
-            - df_wide.daily_arrivals_weekend_non_event
-        ).round(1),
-    )
+    for c in value_cols:
+        df_wide[f"change_{c}_weekday"] = change_from_nonevent_column(
+            df_wide, f"{c}_weekday"
+        ).round(1)
+        df_wide[f"change_{c}_weekend"] = change_from_nonevent_column(
+            df_wide, f"{c}_weekend"
+        ).round(1)
 
     return df_wide
+
+
+def change_from_nonevent_column(df: pd.DataFrame, col_prefix: str) -> pd.Series:
+    """
+    Calculate change column.
+    Columns take pattern: {metric}_{day_type}_{event_type}
+    - daily_arrivals_weekday_event - daily_arrivals_weekday_non_event
+    - daily_trips_weekend_event - daily_trips_weekend_non_event
+    - arrivals_per_hour_pm_peak_event - arrivals_per_hour_pm_peak_non_event
+    """
+    return df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]
 
 
 def merge_in_stop_geom(
@@ -318,7 +321,9 @@ def stop_arrival_change_from_baseline_wide(stop_arrivals: gpd.GeoDataFrame):
         - total change from baseline (weekday + weekend)
     """
     arrivals_by_event_df = aggregate_by_event_type(
-        stop_arrivals, arrivals_col="daily_arrivals"
+        stop_arrivals,
+        group_cols=["schedule_name", "stop_id", "stop_name", "event_day", "day_type"],
+        metric_cols=["daily_arrivals"],
     )
 
     arrivals_wide = make_wide(
@@ -369,7 +374,9 @@ def stop_arrival_change_from_baseline_wide_time_of_day(
     time_of_day_df = pd.concat([event_df, nonevent_df], axis=0, ignore_index=True)
 
     arrivals_by_event_df = aggregate_by_event_type(
-        time_of_day_df, f"arrivals_per_hour_{time_of_day}"
+        time_of_day_df,
+        group_cols=["schedule_name", "stop_id", "stop_name", "event_day", "day_type"],
+        metric_cols=[f"arrivals_per_hour_{time_of_day}"],
     )
 
     arrivals_wide = make_wide(
