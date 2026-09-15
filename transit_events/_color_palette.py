@@ -13,6 +13,10 @@ SERVICE_CHANGE_COLORS = [
     "#00441B",
 ]
 
+SERVICE_CHANGE_CAPTION = (
+    "service change (positive = added service; negative = reduced service)"
+)
+
 
 YlGnBu_palette = [
     "#FFFFD9",
