@@ -1,5 +1,6 @@
 # https://github.com/posit-dev/great-tables/blob/main/great_tables/_data_color/constants.py
 SERVICE_CHANGE_COLORS = [
+    "#8B3A3A",  # indianred4 - dark red, brown
     "#EE6363",  # indianred2
     # pick ones from YlGnBu palette and reverse so yellow is most
     # "#081D58", "#225EA8", "#41B6C4", "#C7E9B4", "#FFFF00",

@@ -285,7 +285,9 @@ def change_from_nonevent_column(df: pd.DataFrame, col_prefix: str) -> pd.Series:
     - daily_trips_weekend_event - daily_trips_weekend_non_event
     - arrivals_per_hour_pm_peak_event - arrivals_per_hour_pm_peak_non_event
     """
-    return df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]
+    df[f"{col_prefix}_event"] = df[f"{col_prefix}_event"].fillna(0)
+    df[f"{col_prefix}_non_event"] = df[f"{col_prefix}_non_event"].fillna(0)
+    return (df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]).fillna(0)
 
 
 def merge_in_stop_geom(
