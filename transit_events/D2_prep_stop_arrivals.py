@@ -248,24 +248,39 @@ def aggregate_by_event_type(
 
 def make_wide(
     df: pd.DataFrame,
-    group_cols: list = ["schedule_name", "stop_id", "stop_name"],
-    metric_cols: list = ["daily_arrivals"],
+    index_cols: list = ["schedule_name", "stop_id", "stop_name"],
+    pivot_cols: list = ["day_type", "event_day"],
+    value_cols: list = ["daily_arrivals"],
 ) -> pd.DataFrame:
+    """
+    Make wide, so that a stop can show weekday event, weekday non_event, and change (event - non_event).
+    Fix column names after pivoting, flatten into 1 column name with underscore.
+    https://stackoverflow.com/questions/14507794/how-to-flatten-a-hierarchical-index-in-columns
+    https://www.reddit.com/r/learnpython/comments/fddx9k/column_names_after_pivot/
+    """
+    # Map this to event, non_event string values, so that the post-pivot column flattening
+    # happens without error
+    df = df.assign(event_day=df.event_day.map({True: "event", False: "non_event"}))
 
-    non_event_df = df[df.event_day == False][group_cols + metric_cols].rename(
-        columns={**{c: f"{c}_non_event" for c in metric_cols}}
+    df_wide = df.pivot(
+        index=index_cols, columns=pivot_cols, values=value_cols
+    ).reset_index()
+
+    # df_wide.columns.get_level_values(0)
+    df_wide.columns = [
+        "_".join(col).rstrip("_").strip() for col in df_wide.columns.values
+    ]
+
+    df_wide = df_wide.assign(
+        change_daily_arrivals_weekday=(
+            df_wide.daily_arrivals_weekday_event
+            - df_wide.daily_arrivals_weekday_non_event
+        ).round(1),
+        change_daily_arrivals_weekend=(
+            df_wide.daily_arrivals_weekend_event
+            - df_wide.daily_arrivals_weekend_non_event
+        ).round(1),
     )
-
-    event_df = df[df.event_day == True][group_cols + metric_cols].rename(
-        columns={**{c: f"{c}_event" for c in metric_cols}}
-    )
-
-    df_wide = pd.merge(event_df, non_event_df, on=group_cols, how="inner")
-
-    for c in metric_cols:
-        df_wide[f"change_{c}"] = round(
-            df_wide[f"{c}_event"] - df_wide[f"{c}_non_event"], 1
-        )
 
     return df_wide
 
@@ -350,6 +365,89 @@ def stop_arrival_change_from_baseline_wide(stop_arrivals: gpd.GeoDataFrame):
     arrivals_wide = arrivals_wide.assign(
         combined_change_daily_arrivals=arrivals_wide.weekday_change_daily_arrivals
         + arrivals_wide.weekend_change_daily_arrivals
+    )
+
+    return arrivals_wide
+
+
+def arrivals_for_time_of_day(stop_arrivals_gdf: gpd.GeoDataFrame, time_of_day: str):
+    keep_cols = [
+        "service_date",
+        "schedule_name",
+        "stop_id",
+        "stop_name",
+        "event_day",
+        "day_type",
+    ]
+
+    # look at arrivals_per_hour_pm_peak for event, keep both day_types
+    event_df = stop_arrivals_gdf[
+        (stop_arrivals_gdf.event_day == True)
+        & (stop_arrivals_gdf.event_time_of_day == time_of_day)
+    ][keep_cols + [f"arrivals_per_hour_{time_of_day}"]].reset_index(drop=True)
+
+    # comparison is the same day-type, compare arrivals_per_hour_pm_peak
+    nonevent_df = stop_arrivals_gdf[(stop_arrivals_gdf.event_day == False)][
+        keep_cols + [f"arrivals_per_hour_{time_of_day}"]
+    ].reset_index(drop=True)
+
+    # do something similar as arrivals_wide
+    time_of_day_df = pd.concat([event_df, nonevent_df], axis=0, ignore_index=True)
+
+    arrivals_by_event_df = aggregate_by_event_type(
+        time_of_day_df, f"arrivals_per_hour_{time_of_day}"
+    )
+
+    weekday_wide = make_wide(
+        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekday"],
+        group_cols=["schedule_name", "stop_id", "stop_name"],
+        metric_cols=[f"arrivals_per_hour_{time_of_day}"],
+    ).rename(
+        columns={
+            **{
+                c: f"weekday_{c}"
+                for c in [
+                    f"arrivals_per_hour_{time_of_day}_event",
+                    f"arrivals_per_hour_{time_of_day}_non_event",
+                    f"change_arrivals_per_hour_{time_of_day}",
+                ]
+            }
+        }
+    )
+
+    weekend_wide = make_wide(
+        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekend"],
+        group_cols=["schedule_name", "stop_id", "stop_name"],
+        metric_cols=[f"arrivals_per_hour_{time_of_day}"],
+    ).rename(
+        columns={
+            **{
+                c: f"weekend_{c}"
+                for c in [
+                    f"arrivals_per_hour_{time_of_day}_event",
+                    f"arrivals_per_hour_{time_of_day}_non_event",
+                    f"change_arrivals_per_hour_{time_of_day}",
+                ]
+            }
+        }
+    )
+
+    arrivals_wide = pd.merge(
+        weekday_wide,
+        weekend_wide,
+        on=["schedule_name", "stop_id", "stop_name"],
+        how="left",  # there might be time-of-day that doesn't have any non-event comparison for weekend?
+    ).pipe(merge_in_stop_geom, stop_arrivals_gdf)
+
+    arrivals_wide = arrivals_wide.assign(
+        combined_change=arrivals_wide[
+            [
+                f"weekday_change_arrivals_per_hour_{time_of_day}",
+                f"weekend_change_arrivals_per_hour_{time_of_day}",
+            ]
+        ].sum(axis=1)
+    ).rename(
+        columns={"combined_change": f"combined_change_arrivals_per_hour_{time_of_day}"}
     )
 
     return arrivals_wide
