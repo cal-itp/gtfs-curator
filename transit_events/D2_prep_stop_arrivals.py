@@ -321,56 +321,30 @@ def stop_arrival_change_from_baseline_wide(stop_arrivals: gpd.GeoDataFrame):
         stop_arrivals, arrivals_col="daily_arrivals"
     )
 
-    weekday_wide = make_wide(
-        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekday"],
-        group_cols=["schedule_name", "stop_id", "stop_name"],
-        metric_cols=["daily_arrivals"],
-    ).rename(
-        columns={
-            **{
-                c: f"weekday_{c}"
-                for c in [
-                    "daily_arrivals_event",
-                    "daily_arrivals_non_event",
-                    "change_daily_arrivals",
-                ]
-            }
-        }
-    )
-
-    weekend_wide = make_wide(
-        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekend"],
-        group_cols=["schedule_name", "stop_id", "stop_name"],
-        metric_cols=["daily_arrivals"],
-    ).rename(
-        columns={
-            **{
-                c: f"weekend_{c}"
-                for c in [
-                    "daily_arrivals_event",
-                    "daily_arrivals_non_event",
-                    "change_daily_arrivals",
-                ]
-            }
-        }
-    )
-
-    arrivals_wide = pd.merge(
-        weekday_wide,
-        weekend_wide,
-        on=["schedule_name", "stop_id", "stop_name"],
-        how="inner",
+    arrivals_wide = make_wide(
+        arrivals_by_event_df,
+        index_cols=["schedule_name", "stop_id", "stop_name"],
+        pivot_cols=["day_type", "event_day"],
+        value_cols=["daily_arrivals"],
     ).pipe(merge_in_stop_geom, stop_arrivals)
 
     arrivals_wide = arrivals_wide.assign(
-        combined_change_daily_arrivals=arrivals_wide.weekday_change_daily_arrivals
-        + arrivals_wide.weekend_change_daily_arrivals
+        combined_change_daily_arrivals=arrivals_wide.change_daily_arrivals_weekday
+        + arrivals_wide.change_daily_arrivals_weekend
     )
 
     return arrivals_wide
 
 
-def arrivals_for_time_of_day(stop_arrivals_gdf: gpd.GeoDataFrame, time_of_day: str):
+def stop_arrival_change_from_baseline_wide_time_of_day(
+    stop_arrivals_gdf: gpd.GeoDataFrame, time_of_day: str
+) -> gpd.GeoDataFrame:
+    """
+    Set up comparison of arrivals_per_hour_{time_of_day} for event vs
+    non-event.
+    event_df is filtered with event_day = True and event_time_of_day, since events can occur in any time-of-day.
+    non_event_df is filtered to event_day = False and selecting the arrivals_per_hour_{time_of_day}
+    """
     keep_cols = [
         "service_date",
         "schedule_name",
@@ -398,52 +372,17 @@ def arrivals_for_time_of_day(stop_arrivals_gdf: gpd.GeoDataFrame, time_of_day: s
         time_of_day_df, f"arrivals_per_hour_{time_of_day}"
     )
 
-    weekday_wide = make_wide(
-        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekday"],
-        group_cols=["schedule_name", "stop_id", "stop_name"],
-        metric_cols=[f"arrivals_per_hour_{time_of_day}"],
-    ).rename(
-        columns={
-            **{
-                c: f"weekday_{c}"
-                for c in [
-                    f"arrivals_per_hour_{time_of_day}_event",
-                    f"arrivals_per_hour_{time_of_day}_non_event",
-                    f"change_arrivals_per_hour_{time_of_day}",
-                ]
-            }
-        }
-    )
-
-    weekend_wide = make_wide(
-        arrivals_by_event_df[arrivals_by_event_df.day_type == "weekend"],
-        group_cols=["schedule_name", "stop_id", "stop_name"],
-        metric_cols=[f"arrivals_per_hour_{time_of_day}"],
-    ).rename(
-        columns={
-            **{
-                c: f"weekend_{c}"
-                for c in [
-                    f"arrivals_per_hour_{time_of_day}_event",
-                    f"arrivals_per_hour_{time_of_day}_non_event",
-                    f"change_arrivals_per_hour_{time_of_day}",
-                ]
-            }
-        }
-    )
-
-    arrivals_wide = pd.merge(
-        weekday_wide,
-        weekend_wide,
-        on=["schedule_name", "stop_id", "stop_name"],
-        how="left",  # there might be time-of-day that doesn't have any non-event comparison for weekend?
+    arrivals_wide = make_wide(
+        arrivals_by_event_df,
+        index_cols=["schedule_name", "stop_id", "stop_name"],
+        value_cols=[f"arrivals_per_hour_{time_of_day}"],
     ).pipe(merge_in_stop_geom, stop_arrivals_gdf)
 
     arrivals_wide = arrivals_wide.assign(
         combined_change=arrivals_wide[
             [
-                f"weekday_change_arrivals_per_hour_{time_of_day}",
-                f"weekend_change_arrivals_per_hour_{time_of_day}",
+                f"change_arrivals_per_hour_{time_of_day}_weekday",
+                f"change_arrivals_per_hour_{time_of_day}_weekend",
             ]
         ].sum(axis=1)
     ).rename(
