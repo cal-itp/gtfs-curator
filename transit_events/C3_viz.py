@@ -1,3 +1,5 @@
+import folium
+import geopandas as gpd
 import pandas as pd
 import polars as pl
 from great_tables import GT
@@ -34,3 +36,27 @@ def simple_nanoplot(df):
         .fmt_nanoplot("avg_stops_served")
     )
     return table
+
+
+def add_stadium_layer(poi: gpd.GeoDataFrame, m: folium.Map):
+    # https://stackoverflow.com/questions/73317052/geopandas-explore-how-to-set-marker-icon
+    # https://fontawesome.com/v4/icons/
+    # must take format "fa fa-[name_of_icon]"
+    specific_icon = "fa fa-building"  # fa fa-home
+
+    m = poi.explore(
+        "point_of_interest",
+        m=m,
+        marker_type="marker",
+        name="SoFi Stadium",
+        marker_kwds=dict(icon=folium.DivIcon(class_name="mapIcon")),
+        style_kwds=dict(
+            style_function=lambda x: {
+                "html": f"""<span   class=f"{specific_icon}" 
+                                    style="color:orange;
+                                    font-size:14px"></span>"""
+            },
+        ),
+    )
+
+    return m
