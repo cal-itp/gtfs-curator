@@ -107,13 +107,18 @@ def change_arrivals_by_operator(
     return chart + vertical_line
 
 
-def weekday_weekend_chart_by_operator(df: pd.DataFrame, one_operator: str) -> alt.Chart:
+def weekday_weekend_chart_by_operator(
+    df: pd.DataFrame,
+    one_operator: str,
+    weekday_col: str = "change_daily_arrivals_weekday",
+    weekend_col: str = "change_daily_arrivals_weekend",
+) -> alt.Chart:
     weekday_chart = change_arrivals_by_operator(
-        df, one_operator, y_col="weekday_change_daily_arrivals"
+        df, one_operator, y_col=weekday_col
     ).properties(title="Weekday")
 
     weekend_chart = change_arrivals_by_operator(
-        df, one_operator, y_col="weekend_change_daily_arrivals"
+        df, one_operator, y_col=weekend_col
     ).properties(title="Weekend")
 
     combined_chart = (
