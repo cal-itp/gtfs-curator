@@ -9,6 +9,8 @@ to be tagged as event / non-event, and aggregate to be ready for viz.
 
 TODO: this needs to be refactored to make more sense conceptually.
 It goes back and forth with routes. What is known at each stage, what is the right order?
+Can the aggregations be done earlier, then filter for the special routes or stops near stadium?
+explode stop's route_id_array and use that to filter
 """
 
 import C4_event_helpers as C4
@@ -266,6 +268,10 @@ def make_wide(
         "_".join(col).rstrip("_").strip() for col in df_wide.columns.values
     ]
 
+    # the pivot will create all the combinations available
+    # however, for time-of-day comparisons, we might be missing combinations
+    # ex: event is only weekday; weekend has no event vs non-event comparison
+    # in these cases, create the columns and fill with zeros? should the function end earlier so it's explicit where this is done?
     for c in value_cols:
         df_wide[f"change_{c}_weekday"] = change_from_nonevent_column(
             df_wide, f"{c}_weekday"
