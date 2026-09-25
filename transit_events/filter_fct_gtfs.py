@@ -12,7 +12,7 @@ import gcsfs
 import google.auth
 import pandas as pd
 from google.cloud import bigquery, bigquery_storage
-from gtfs_curator_utils import bq_utils
+from gtfs_curator_utils import bq_utils, utils
 from world_cup_vars import GCS_FILE_PATH
 
 # from google.cloud import storage
@@ -154,7 +154,6 @@ def filter_fct_daily_service_alerts(
 if __name__ == "__main__":
     import world_cup_vars as wc_vars
 
-    """
     # (3) `fct_daily_schedule_rt_route_direction_summary` and explore and figure out routes
 
     daily_route_summary = filter_fct_daily_schedule_rt_route_direction_summary(
@@ -192,7 +191,6 @@ if __name__ == "__main__":
     utils.geoparquet_gcs_export(
         daily_stops, GCS_FILE_PATH, f"fct_daily_scheduled_stops_{wc_vars.event_name}"
     )
-    """
 
     # (5) fct_service_alerts_trip_summaries
     # filter by service_date and sa_base64_url
