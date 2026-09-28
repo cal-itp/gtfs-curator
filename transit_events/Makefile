@@ -2,6 +2,7 @@ download_data:
 	uv run python extract_feeds.py
 	uv run python filter_fct_gtfs.py
 	uv run python filter_dim_gtfs.py
+	uv run python prep_service_alerts.py
 
 clean_data:
 	uv run python C1_service_by_route.py
