@@ -84,26 +84,67 @@ def tag_based_on_keywords(text_col: str, list_of_words: list):
 
 
 def tag_service_alerts_header(df: pd.DataFrame):
-    WORLD_CUP_WORDS = ["world cup", "wc", "fifa"]
-    DELAY_WORDS = ["delay", "suspended", "temporarily", "temporary", "detour"]
-    CANCEL_WORDS = ["close", "closed", "closure", "cancel"]
-    SAFETY_WORDS = [
-        "safety",
-        "mechanical issue",
+    WORLD_CUP_WORDS = ["world cup", "wc", "fifa", "additional service", "special event"]
+    DELAY_WORDS = [
+        "delay",
+        "suspended",
+        "temporarily",
+        "temporary",
+        "stopped",
     ]
+    CANCEL_WORDS = [
+        "close",
+        "closed",
+        "closure",
+        "cancel",
+        "no service",
+        "miss",
+        "missed stop",
+        "missed trip",
+    ]
+    SAFETY_WORDS = ["safety", "mechanical issue", "police", "police activity"]
+    SERVICE_RELOCATE_WORDS = [
+        "construction",
+        "reroute",
+        "detour",
+        "plan ahead",
+        "missed stops",
+        "moved",
+        "bay change",
+        "platform change",
+        "relocation",
+        "stop relocation",
+        "stop moved",
+    ]
+
+    ELEVATOR_WORDS = ["accessibility", "elevator", "out of service", "escalator"]
+
+    TEST_IGNORE_WORDS = ["test", "test alert", "disregard"]
+
+    df = df.assign(header_desc=df.header.str.cat(df.description, sep=" ", na_rep=""))
 
     df = df.assign(
         flag_wc=df.apply(
-            lambda x: tag_based_on_keywords(x.header, WORLD_CUP_WORDS), axis=1
+            lambda x: tag_based_on_keywords(x.header_desc, WORLD_CUP_WORDS), axis=1
         ),
         flag_delay=df.apply(
-            lambda x: tag_based_on_keywords(x.header, DELAY_WORDS), axis=1
+            lambda x: tag_based_on_keywords(x.header_desc, DELAY_WORDS), axis=1
         ),
         flag_cancel=df.apply(
-            lambda x: tag_based_on_keywords(x.header, CANCEL_WORDS), axis=1
+            lambda x: tag_based_on_keywords(x.header_desc, CANCEL_WORDS), axis=1
         ),
         flag_safety=df.apply(
-            lambda x: tag_based_on_keywords(x.header, SAFETY_WORDS), axis=1
+            lambda x: tag_based_on_keywords(x.header_desc, SAFETY_WORDS), axis=1
+        ),
+        flag_service_change=df.apply(
+            lambda x: tag_based_on_keywords(x.header_desc, SERVICE_RELOCATE_WORDS),
+            axis=1,
+        ),
+        flag_elevator=df.apply(
+            lambda x: tag_based_on_keywords(x.header_desc, ELEVATOR_WORDS), axis=1
+        ),
+        flag_test=df.apply(
+            lambda x: tag_based_on_keywords(x.header_desc, TEST_IGNORE_WORDS), axis=1
         ),
     )
 
@@ -114,6 +155,7 @@ def tag_service_alerts_header(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
+    """
     service_alerts_trip_summaries = import_and_filter(
         f"fct_daily_service_alerts_trip_summaries_{wc_vars.event_name}",
         wc_vars.event_date_range,
@@ -124,7 +166,7 @@ if __name__ == "__main__":
         filesystem=gcsfs.GCSFileSystem(),
     )
     print("exported fct_daily_service_alerts_trip_summaries")
-
+    """
     daily_service_alerts = import_and_filter(
         f"fct_daily_service_alerts_{wc_vars.event_name}",
         wc_vars.event_date_range,
