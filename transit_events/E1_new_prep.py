@@ -91,7 +91,17 @@ def categorize_proximity_to_poi(
                 True if x.merge_bus == "both" or x.merge_rail == "both" else False
             ),
             axis=1,
-        )
+        ),
+        point_of_interest=route_gdf2.point_of_interest_x.fillna(
+            route_gdf2.point_of_interest_y
+        ),
+    ).drop(
+        columns=[
+            "merge_bus",
+            "merge_rail",
+            "point_of_interest_x",
+            "point_of_interest_y",
+        ]
     )
 
     return route_gdf2
@@ -136,42 +146,67 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
     return route_gdf
 
 
-if __name__ == "__main__":
-    route_gdf = prep_fct_daily_schedule_rt_route_direction_summary(
-        event_name=wc_vars.event_name,
-        operator_list=wc_vars.socal_names,
-        event_time_of_day_dict=wc_vars.sofi_match_times,
+def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataFrame:
+    if point_of_interest == "SoFi Stadium":
+        operator_list = wc_vars.socal_names
+        event_time_of_day_dict = wc_vars.sofi_match_times
+
+    elif point_of_interest == "Levi's Stadium":
+        operator_list = wc_vars.bay_area_names
+        event_time_of_day_dict = wc_vars.levi_match_times
+
+    stadium_gdf = gpd.read_parquet(
+        f"{GCS_FILE_PATH}points_of_interest_{event_name}.parquet",
+        storage_options={"token": credentials},
+        filters=[[("point_of_interest", "==", point_of_interest)]],
     )
 
-    # can take sofi_trips or route_gdf!
+    route_gdf = prep_fct_daily_schedule_rt_route_direction_summary(
+        event_name=event_name,
+        operator_list=operator_list,
+        event_time_of_day_dict=event_time_of_day_dict,
+    )
+
+    route_cols = ["schedule_name", "route_name", "direction_id", "route_type"]
+
     trips_by_event = (
         C4.aggregate_by_event_type(
             route_gdf,
-            group_cols=[
-                "schedule_name",
-                "route_name",
-                "direction_id",
+            group_cols=route_cols
+            + [
                 "event_day",
                 "day_type",
             ],
             metric_cols=["n_trips"],
         )
-        .rename(
-            columns={
-                "n_trips": "daily_trips",
-            }
-        )
+        .rename(columns={"n_trips": "daily_trips"})
         .pipe(
             C4.make_wide,
-            index_cols=["schedule_name", "route_name", "direction_id"],
+            index_cols=route_cols,
             pivot_cols=["day_type", "event_day"],
             value_cols=["daily_trips"],
         )
-        .pipe(C4.merge_routes_with_shape_geom)
-        .pipe(categorize_proximity_to_poi)
     )
 
-    # but before this, maybe add a geospatial function to see if it's "near"
-    sofi_trips = C4.filter_to_special_routes(
-        route_gdf, route_name_dict=wc_vars.special_socal_routes_dict
+    # this deduping here should move to its own function
+    # select a route geom, no matter the aggregation, keep first shape_array_key?
+    route_geom = (
+        route_gdf[route_cols + ["shape_array_key", "geometry"]]
+        .sort_values(route_cols + ["shape_array_key"])
+        .drop_duplicates(subset=route_cols)
     )
+
+    trips_wide_gdf = pd.merge(route_geom, trips_by_event, on=route_cols, how="inner")
+
+    trips_wide_gdf_near = categorize_proximity_to_poi(trips_wide_gdf, stadium_gdf)
+
+    # sofi_trips = C4.filter_to_special_routes(
+    #    trips_wide_gdf_near, route_name_dict=wc_vars.special_socal_routes_dict
+    # )
+
+    return trips_wide_gdf_near
+
+
+if __name__ == "__main__":
+    sofi_gdf = full_route_cleaning(wc_vars.event_name, "SoFi Stadium")
+    levi_gdf = full_route_cleaning(wc_vars.event_name, "Levi's Stadium")
