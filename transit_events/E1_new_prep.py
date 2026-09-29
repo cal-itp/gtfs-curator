@@ -11,7 +11,7 @@ import geopandas as gpd
 import google.auth
 import pandas as pd
 import world_cup_vars as wc_vars
-from gtfs_curator_utils.geography_utils import WGS84, CA_NAD83Albers_m
+from gtfs_curator_utils.geography_utils import METERS_PER_MI, WGS84, CA_NAD83Albers_m
 
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 
@@ -51,6 +51,50 @@ def filter_to_routes_near_poi(
     )
 
     return gdf_near_poi
+
+
+def categorize_proximity_to_poi(
+    route_gdf: gpd.GeoDataFrame,
+    poi_gdf: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    """
+    For bus, keep within 3 miles.
+    For rail, keep within 10 miles.
+    """
+    bus_gdf = filter_to_routes_near_poi(
+        route_gdf[route_gdf.route_type == "3"], poi_gdf, METERS_PER_MI * 3
+    )
+
+    rail_gdf = filter_to_routes_near_poi(
+        route_gdf[route_gdf.route_type.isin(["0", "1", "2"])],
+        poi_gdf,
+        METERS_PER_MI * 10,
+    )
+
+    route_gdf2 = pd.merge(
+        route_gdf,
+        bus_gdf,
+        on=["schedule_name", "route_name", "direction_id", "shape_array_key"],
+        how="left",
+        indicator="merge_bus",
+    ).merge(
+        rail_gdf,
+        on=["schedule_name", "route_name", "direction_id", "shape_array_key"],
+        how="left",
+        indicator="merge_rail",
+    )
+
+    # now overwrite the _merge columns
+    route_gdf2 = route_gdf2.assign(
+        is_near=route_gdf2.apply(
+            lambda x: (
+                True if x.merge_bus == "both" or x.merge_rail == "both" else False
+            ),
+            axis=1,
+        )
+    )
+
+    return route_gdf2
 
 
 def prep_fct_daily_schedule_rt_route_direction_summary(
@@ -99,11 +143,6 @@ if __name__ == "__main__":
         event_time_of_day_dict=wc_vars.sofi_match_times,
     )
 
-    # but before this, maybe add a geospatial function to see if it's "near"
-    sofi_trips = C4.filter_to_special_routes(
-        route_gdf, route_name_dict=wc_vars.special_socal_routes_dict
-    )
-
     # can take sofi_trips or route_gdf!
     trips_by_event = (
         C4.aggregate_by_event_type(
@@ -128,4 +167,11 @@ if __name__ == "__main__":
             pivot_cols=["day_type", "event_day"],
             value_cols=["daily_trips"],
         )
+        .pipe(C4.merge_routes_with_shape_geom)
+        .pipe(categorize_proximity_to_poi)
+    )
+
+    # but before this, maybe add a geospatial function to see if it's "near"
+    sofi_trips = C4.filter_to_special_routes(
+        route_gdf, route_name_dict=wc_vars.special_socal_routes_dict
     )
