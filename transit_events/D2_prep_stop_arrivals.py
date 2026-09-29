@@ -54,24 +54,6 @@ def filter_to_routes_with_service_changes(
     return subset_route_ids
 
 
-def get_stops_along_special_routes(
-    stop_gdf: gpd.GeoDataFrame, list_of_routes: list
-) -> pd.DataFrame:
-    # filter stops to ones that travel along the routes we want
-    # explode to see which route_ids, then drop the ones that aren't found in our list of service changes
-    keep_cols = ["feed_key", "stop_id", "stop_name"]
-
-    stops_for_special_routes = (
-        stop_gdf[keep_cols + ["route_id_array"]]
-        .explode("route_id_array")
-        .query("route_id_array in @list_of_routes")[keep_cols]
-        .drop_duplicates()
-        .reset_index(drop=True)
-    )
-
-    return stops_for_special_routes
-
-
 def filter_fct_daily_scheduled_stops_to_special_routes(
     event_name: str = wc_vars.event_name,
     operator_list: list = [],
@@ -124,7 +106,7 @@ def filter_fct_daily_scheduled_stops_to_special_routes(
         + metric_cols,
     ).merge(stops_near_sofi, on=["feed_key", "stop_id", "stop_name"], how="inner")
 
-    stops_for_special_routes = get_stops_along_special_routes(
+    stops_for_special_routes = C4.get_stops_along_special_routes(
         stop_gdf, routes_with_changes
     )
 
@@ -196,7 +178,7 @@ def filter_fct_daily_scheduled_stops_to_special_routes_keep_far_stops(
         how="inner",
     )
 
-    stops_for_special_routes = get_stops_along_special_routes(
+    stops_for_special_routes = C4.get_stops_along_special_routes(
         stop_gdf, routes_with_changes
     )
 
@@ -210,114 +192,6 @@ def filter_fct_daily_scheduled_stops_to_special_routes_keep_far_stops(
     return stop_gdf2
 
 
-def aggregate_by_event_type(
-    gdf: gpd.GeoDataFrame,
-    group_cols: list = [
-        "schedule_name",
-        "stop_id",
-        "stop_name",
-        "event_day",
-        "day_type",
-    ],
-    metric_cols: list = ["daily_arrivals"],
-) -> pd.DataFrame:
-    """
-    TODO: this can be used for stop arrivals and trips
-    """
-    # See how this function can accommodate the aggregation here by time-of-day
-    df = (
-        gdf.groupby(group_cols)
-        .agg(
-            {
-                **{c: "sum" for c in metric_cols},
-                "service_date": "nunique",
-            }
-        )
-        .reset_index()
-        .rename(columns={"service_date": "n_days"})
-    )
-
-    for c in metric_cols:
-        df[c] = df[c].divide(df.n_days).round(2)
-
-    return df
-
-
-def make_wide(
-    df: pd.DataFrame,
-    index_cols: list = ["schedule_name", "stop_id", "stop_name"],
-    pivot_cols: list = ["day_type", "event_day"],
-    value_cols: list = ["daily_arrivals"],
-) -> pd.DataFrame:
-    """
-    Make wide, so that a stop can show weekday event, weekday non_event, and change (event - non_event).
-    Fix column names after pivoting, flatten into 1 column name with underscore.
-    https://stackoverflow.com/questions/14507794/how-to-flatten-a-hierarchical-index-in-columns
-    https://www.reddit.com/r/learnpython/comments/fddx9k/column_names_after_pivot/
-    """
-    # Map this to event, non_event string values, so that the post-pivot column flattening
-    # happens without error
-    df = df.assign(event_day=df.event_day.map({True: "event", False: "non_event"}))
-
-    df_wide = df.pivot(
-        index=index_cols, columns=pivot_cols, values=value_cols
-    ).reset_index()
-
-    # df_wide.columns.get_level_values(0)
-    df_wide.columns = [
-        "_".join(col).rstrip("_").strip() for col in df_wide.columns.values
-    ]
-
-    # the pivot will create all the combinations available
-    # however, for time-of-day comparisons, we might be missing combinations
-    # ex: event is only weekday; weekend has no event vs non-event comparison
-    # in these cases, create the columns and fill with zeros? should the function end earlier so it's explicit where this is done?
-    for c in value_cols:
-        df_wide[f"change_{c}_weekday"] = change_from_nonevent_column(
-            df_wide, f"{c}_weekday"
-        ).round(1)
-        df_wide[f"change_{c}_weekend"] = change_from_nonevent_column(
-            df_wide, f"{c}_weekend"
-        ).round(1)
-
-    return df_wide
-
-
-def change_from_nonevent_column(df: pd.DataFrame, col_prefix: str) -> pd.Series:
-    """
-    Calculate change column.
-    Columns take pattern: {metric}_{day_type}_{event_type}
-    - daily_arrivals_weekday_event - daily_arrivals_weekday_non_event
-    - daily_trips_weekend_event - daily_trips_weekend_non_event
-    - arrivals_per_hour_pm_peak_event - arrivals_per_hour_pm_peak_non_event
-    """
-    df[f"{col_prefix}_event"] = df[f"{col_prefix}_event"].fillna(0)
-    df[f"{col_prefix}_non_event"] = df[f"{col_prefix}_non_event"].fillna(0)
-    return (df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]).fillna(0)
-
-
-def merge_in_stop_geom(
-    df: pd.DataFrame, stop_gdf: gpd.GeoDataFrame
-) -> gpd.GeoDataFrame:
-
-    stop_geom = stop_gdf[
-        ["schedule_name", "stop_id", "stop_name", "route_id_array", "geometry"]
-    ]
-
-    stop_geom = (
-        stop_geom.assign(route_id_array=stop_geom.route_id_array.str.join(", "))
-        .sort_values(["schedule_name", "stop_id"])
-        .drop_duplicates(subset=["schedule_name", "stop_id", "stop_name"])
-        .reset_index(drop=True)
-    )
-
-    df2 = pd.merge(
-        stop_geom, df, on=["schedule_name", "stop_id", "stop_name"], how="inner"
-    )
-
-    return df2
-
-
 def stop_arrival_change_from_baseline_wide(stop_arrivals: gpd.GeoDataFrame):
     """
     Aggregate stop arrival changes by day_type / event_day.
@@ -328,18 +202,18 @@ def stop_arrival_change_from_baseline_wide(stop_arrivals: gpd.GeoDataFrame):
         - weekend event, weekend non-event, weekend change from baseline
         - total change from baseline (weekday + weekend)
     """
-    arrivals_by_event_df = aggregate_by_event_type(
+    arrivals_by_event_df = C4.aggregate_by_event_type(
         stop_arrivals,
         group_cols=["schedule_name", "stop_id", "stop_name", "event_day", "day_type"],
         metric_cols=["daily_arrivals"],
     )
 
-    arrivals_wide = make_wide(
+    arrivals_wide = C4.make_wide(
         arrivals_by_event_df,
         index_cols=["schedule_name", "stop_id", "stop_name"],
         pivot_cols=["day_type", "event_day"],
         value_cols=["daily_arrivals"],
-    ).pipe(merge_in_stop_geom, stop_arrivals)
+    ).pipe(C4.merge_in_stop_geom, stop_arrivals)
 
     arrivals_wide = arrivals_wide.assign(
         combined_change_daily_arrivals=arrivals_wide.change_daily_arrivals_weekday
@@ -381,17 +255,17 @@ def stop_arrival_change_from_baseline_wide_time_of_day(
     # do something similar as arrivals_wide
     time_of_day_df = pd.concat([event_df, nonevent_df], axis=0, ignore_index=True)
 
-    arrivals_by_event_df = aggregate_by_event_type(
+    arrivals_by_event_df = C4.aggregate_by_event_type(
         time_of_day_df,
         group_cols=["schedule_name", "stop_id", "stop_name", "event_day", "day_type"],
         metric_cols=[f"arrivals_per_hour_{time_of_day}"],
     )
 
-    arrivals_wide = make_wide(
+    arrivals_wide = C4.make_wide(
         arrivals_by_event_df,
         index_cols=["schedule_name", "stop_id", "stop_name"],
         value_cols=[f"arrivals_per_hour_{time_of_day}"],
-    ).pipe(merge_in_stop_geom, stop_arrivals_gdf)
+    ).pipe(C4.merge_in_stop_geom, stop_arrivals_gdf)
 
     arrivals_wide = arrivals_wide.assign(
         combined_change=arrivals_wide[
