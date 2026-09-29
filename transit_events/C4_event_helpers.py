@@ -49,13 +49,21 @@ def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict)
 def merge_routes_with_shape_geom(
     route_df: pd.DataFrame,
 ):
-    shape_geom = gpd.read_parquet(
-        f"{GCS_FILE_PATH}dim_shape_arrays_{wc_vars.event_name}.parquet",
-        storage_options={"token": credentials},
-        columns=["shape_array_key", "geometry"],
+    # Just keep 1 shape_array_key, sorted in ascending order
+    route_cols = ["schedule_name", "route_name", "direction_id"]
+
+    shape_geom = (
+        gpd.read_parquet(
+            f"{GCS_FILE_PATH}dim_shape_arrays_{wc_vars.event_name}.parquet",
+            storage_options={"token": credentials},
+            columns=route_cols + ["shape_array_key", "geometry"],
+        )
+        .sort_values(route_cols + ["shape_array_key"])
+        .drop_duplicates(subset=route_cols)
+        .reset_index(drop=True)
     )
 
-    gdf = pd.merge(shape_geom, route_df, on="shape_array_key", how="inner")
+    gdf = pd.merge(shape_geom, route_df, on=route_cols, how="inner")
 
     return gdf
 
