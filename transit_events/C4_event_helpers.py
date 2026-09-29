@@ -82,23 +82,24 @@ def merge_in_stop_geom(
     return df2
 
 
-def filter_to_special_routes(
+def categorize_special_routes(
     route_gdf: gpd.GeoDataFrame,
     route_name_dict: dict = {},
 ) -> gpd.GeoDataFrame:
     """
-    Filter to special event routes.
     Should this be filter or add dummy variable?
     """
     subset_routes = np.concatenate(
         [i for i in route_name_dict.values() if i is not None]
     ).ravel()
 
-    route_gdf2 = route_gdf[route_gdf.route_name.isin(subset_routes)].reset_index(
-        drop=True
+    route_gdf = route_gdf.assign(
+        is_special_route=route_gdf.apply(
+            lambda x: True if x.route_name in subset_routes else False, axis=1
+        )
     )
 
-    return route_gdf2
+    return route_gdf
 
 
 def get_stops_along_special_routes(
