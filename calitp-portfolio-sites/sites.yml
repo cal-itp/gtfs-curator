@@ -53,6 +53,10 @@ sites:
   - title: Transit Events Analysis
     name: transit_events
     source: ./transit_events/
+  - title: Mode Report Analysis
+    name: ntd_mode_report
+    source: https://github.com/cal-itp/ntd-snapshot/tree/main/mode_report/
+    
 test_sites:
   - title: Basic Analyses Test
     name: _basic_analyses_test
