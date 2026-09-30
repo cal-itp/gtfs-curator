@@ -146,6 +146,25 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
     return route_gdf
 
 
+def dedupe_route_geom(
+    route_gdf: gpd.GeoDataFrame, 
+    route_cols: list = ["schedule_name", "route_name", "directon_id"]
+) -> gpd.GeoDataFrame:
+    """
+    Once route is aggregated, we lose 
+    combinations of service_date-[route_cols]-shape_array_key.
+    Keep one shape_array_key to use for geom from dim_shapes_arrays. 
+    """
+    route_gdf2 = (
+        route_gdf
+        .sort_values([route_cols + ["shape_array_key"])
+        .drop_duplicates(subset=route_cols)
+        .reset_index()
+        [route_cols + ["shape_array_key", "geometry"]]
+    )
+    return route_gdf2
+
+
 def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataFrame:
     if point_of_interest == "sofi":
         point_of_interest_full_name = "SoFi Stadium"
@@ -192,14 +211,8 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
         )
     )
 
-    # this deduping here should move to its own function
-    # select a route geom, no matter the aggregation, keep first shape_array_key?
-    route_geom = (
-        route_gdf[route_cols + ["shape_array_key", "geometry"]]
-        .sort_values(route_cols + ["shape_array_key"])
-        .drop_duplicates(subset=route_cols)
-    )
-
+    # Attach deduped route geom to trips_by_event
+    route_geom = dedupe_route_geom(route_gdf, route_cols)
     trips_wide_gdf = pd.merge(route_geom, trips_by_event, on=route_cols, how="inner")
 
     trips_wide_gdf_near = categorize_proximity_to_poi(trips_wide_gdf, stadium_gdf).pipe(
@@ -208,6 +221,40 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
 
     return trips_wide_gdf_near
 
+def immport_routes_near_poi(
+    event_name: str,
+    point_of_interest: str
+):
+    # import the route summary prepared for sofi / levi, use those dummy variables for route
+    # and attach to stop data
+    route_summary_flagged = pd.read_parquet(
+        f"{GCS_FILE_PATH}route_summary_{point_of_interest}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=[
+            "schedule_name",
+            "route_name",
+            "direction_id",
+            "is_route_near",
+            "is_special_route",
+        ],
+    ).drop_duplicates()
+
+    # this is the original route_df, has feed_key, which fct_daily_scheduled_stops needs
+    full_route_df = pd.read_parquet(
+        f"{GCS_FILE_PATH}fct_daily_schedule_rt_route_direction_summary_{event_name}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=["feed_key", "schedule_name", "route_id", "route_name", "direction_id"],
+    ).drop_duplicates()
+
+    df = pd.merge(
+        full_route_df,
+        route_summary_flagged,
+        on = ["schedule_name", "route_name", "direction_id"],
+        how = "inner"
+    )
+    
+    return df
+    
 
 def prep_fct_daily_scheduled_stops(
     event_name: str,
@@ -229,25 +276,7 @@ def prep_fct_daily_scheduled_stops(
         filters=[[("point_of_interest", "==", point_of_interest_full_name)]],
     )
 
-    operator_df = pd.read_parquet(
-        f"{GCS_FILE_PATH}fct_daily_schedule_rt_route_direction_summary_{event_name}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-        columns=["feed_key", "schedule_name", "route_id", "route_name", "direction_id"],
-    ).drop_duplicates()
-
-    # import the route summary prepared for sofi / levi, use those dummy variables for route
-    # and attach to stop data
-    route_df = pd.read_parquet(
-        f"{GCS_FILE_PATH}route_summary_{point_of_interest}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-        columns=[
-            "schedule_name",
-            "route_name",
-            "direction_id",
-            "is_route_near",
-            "is_special_route",
-        ],
-    ).drop_duplicates()
+    routes_df = import_routes_near_poi(event_name, point_of_interest)
 
     metric_cols = [
         # "n_hours_in_service",
@@ -283,7 +312,7 @@ def prep_fct_daily_scheduled_stops(
             + metric_cols,
         )
         .merge(
-            operator_df[["feed_key", "schedule_name"]].drop_duplicates(),
+            routes_df[["feed_key", "schedule_name"]].drop_duplicates(),
             how="inner",
         )
         .pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
@@ -308,14 +337,23 @@ def prep_fct_daily_scheduled_stops(
     )
 
     # how to use this with the route_df we imported?
-    stops_for_special_routes = C4.get_stops_along_special_routes(
-        arrivals_wide, routes_with_changes
+    near_route_ids = routes_df[routes_df.is_route_near==True].route_id.unique()
+    special_route_ids = routes_df[routes_df.is_special_route==True].route_id.unique()
+    
+    arrivals_wide = arrivals_wide.assign(
+        is_route_near = arrivals_wide.apply(
+            lambda x: 
+            True if any(one_id in x.route_id_array for one_id in near_route_ids)
+            else False, axis=1),
+        is_special_route = arrivals_wide.apply(
+            lambda x: 
+            True if any(one_id in x.route_id_array for one_id in special_route_ids)
+            else False, axis=1),
     )
-
+    
     # Can routes get tagged, like is_on_special_route, since arrivals are combined across all routes that are served?
     # how should proximity be handled?
-    # aggregation will lose pt_geom anyway
-    return
+    return arrivals_wide
 
 
 if __name__ == "__main__":
