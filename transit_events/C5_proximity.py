@@ -7,6 +7,9 @@ from gtfs_curator_utils.geography_utils import METERS_PER_MI, WGS84, CA_NAD83Alb
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 credentials, _ = google.auth.default()
 
+RAIL_DISTANCE = METERS_PER_MI * 10  # 10 miles, converted to meters
+BUS_DISTANCE = METERS_PER_MI * 3  # 3 miles, converted to meters
+
 
 def filter_to_near_poi(
     route_or_stop_gdf: gpd.GeoDataFrame, poi_gdf: gpd.GeoDataFrame, buffer_meters: float
@@ -46,13 +49,17 @@ def categorize_route_proximity_to_poi(
     route_cols = ["schedule_name", "route_name", "direction_id", "shape_array_key"]
 
     bus_gdf = filter_to_near_poi(
-        route_gdf[route_gdf.route_type == "3"], poi_gdf, METERS_PER_MI * 3
+        route_gdf[route_gdf.route_type == "3"][route_cols + ["geometry"]],
+        poi_gdf,
+        BUS_DISTANCE,
     )[route_cols + ["point_of_interest"]].drop_duplicates()
 
     rail_gdf = filter_to_near_poi(
-        route_gdf[route_gdf.route_type.isin(["0", "1", "2"])],
+        route_gdf[route_gdf.route_type.isin(["0", "1", "2"])][
+            route_cols + ["geometry"]
+        ],
         poi_gdf,
-        METERS_PER_MI * 10,
+        RAIL_DISTANCE,
     )[route_cols + ["point_of_interest"]].drop_duplicates()
 
     route_gdf2 = pd.merge(
@@ -102,9 +109,9 @@ def categorize_stop_proximity_to_poi(
     stop_cols = ["schedule_name", "stop_id", "stop_name"]
 
     bus_gdf = filter_to_near_poi(
-        stop_gdf[stop_gdf.route_type_array.str.contains("3")],
+        stop_gdf[stop_gdf.route_type_array.str.contains("3")][stop_cols + ["geometry"]],
         poi_gdf,
-        METERS_PER_MI * 3,
+        BUS_DISTANCE,
     )[stop_cols + ["point_of_interest"]].drop_duplicates()
 
     rail_gdf = filter_to_near_poi(
@@ -112,9 +119,9 @@ def categorize_stop_proximity_to_poi(
             (stop_gdf.route_type_array.str.contains("0"))
             | (stop_gdf.route_type_array.str.contains("1"))
             | (stop_gdf.route_type_array.str.contains("2"))
-        ],
+        ][stop_cols + ["geometry"]],
         poi_gdf,
-        METERS_PER_MI * 10,
+        RAIL_DISTANCE,
     )[stop_cols + ["point_of_interest"]].drop_duplicates()
 
     stop_gdf2 = pd.merge(

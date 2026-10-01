@@ -213,26 +213,7 @@ def flag_if_stop_on_near_or_special_route(
     return stop_gdf2
 
 
-def prep_fct_daily_scheduled_stops(
-    event_name: str,
-    point_of_interest: str,
-):
-    if point_of_interest == "sofi":
-        point_of_interest_full_name = "SoFi Stadium"
-        event_time_of_day_dict = wc_vars.sofi_match_times
-
-    elif point_of_interest == "levi":
-        point_of_interest_full_name = "Levi's Stadium"
-        event_time_of_day_dict = wc_vars.levi_match_times
-
-    stadium_gdf = gpd.read_parquet(
-        f"{GCS_FILE_PATH}points_of_interest_{event_name}.parquet",
-        storage_options={"token": credentials},
-        filters=[[("point_of_interest", "==", point_of_interest_full_name)]],
-    )
-
-    routes_df = import_routes_near_poi(event_name, point_of_interest)
-
+def prep_fct_daily_scheduled_stops(event_name: str, event_time_of_day_dict: dict = {}):
     metric_cols = [
         # "n_hours_in_service",
         "arrivals_per_hour_owl",
@@ -252,25 +233,43 @@ def prep_fct_daily_scheduled_stops(
     ]
 
     # stop gdf doesn't have schedule_name, merge that in before we aggregate
-    stop_gdf = (
-        gpd.read_parquet(
-            f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{event_name}.parquet",
-            storage_options={"token": credentials},
-            columns=[
-                "service_date",
-                "feed_key",
-                "stop_id",
-                "stop_name",
-                "daily_arrivals",
-                "geometry",
-            ]
-            + metric_cols,
-        )
-        .merge(
-            routes_df[["feed_key", "schedule_name"]].drop_duplicates(),
-            how="inner",
-        )
-        .pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
+    stop_gdf = gpd.read_parquet(
+        f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{event_name}.parquet",
+        storage_options={"token": credentials},
+        columns=[
+            "service_date",
+            "feed_key",
+            "stop_id",
+            "stop_name",
+            "daily_arrivals",
+            "geometry",
+        ]
+        + metric_cols,
+    ).pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
+
+    return stop_gdf
+
+
+def full_stop_cleaning(event_name: str, point_of_interest: str):
+    if point_of_interest == "sofi":
+        point_of_interest_full_name = "SoFi Stadium"
+        event_time_of_day_dict = wc_vars.sofi_match_times
+
+    elif point_of_interest == "levi":
+        point_of_interest_full_name = "Levi's Stadium"
+        event_time_of_day_dict = wc_vars.levi_match_times
+
+    stadium_gdf = gpd.read_parquet(
+        f"{GCS_FILE_PATH}points_of_interest_{event_name}.parquet",
+        storage_options={"token": credentials},
+        filters=[[("point_of_interest", "==", point_of_interest_full_name)]],
+    )
+
+    routes_df = import_routes_near_poi(event_name, point_of_interest)
+
+    stop_gdf = prep_fct_daily_scheduled_stops(event_name, event_time_of_day_dict).merge(
+        routes_df[["feed_key", "schedule_name"]].drop_duplicates(),
+        how="inner",
     )
 
     arrivals_by_event_df = (
@@ -294,17 +293,22 @@ def prep_fct_daily_scheduled_stops(
         .pipe(C4.merge_in_stop_geom, stop_gdf)
     )
 
-    arrivals_by_event_df = arrivals_by_event_df.assign(
-        combined_change_daily_arrivals=arrivals_by_event_df.change_daily_arrivals_weekday
-        + arrivals_by_event_df.change_daily_arrivals_weekend
-    ).pipe(flag_if_stop_on_near_or_special_route, routes_df)
+    arrivals_by_event_df = (
+        arrivals_by_event_df.assign(
+            combined_change_daily_arrivals=arrivals_by_event_df.change_daily_arrivals_weekday
+            + arrivals_by_event_df.change_daily_arrivals_weekend
+        )
+        .pipe(flag_if_stop_on_near_or_special_route, routes_df)
+        .pipe(C5.categorize_stop_proximity_to_poi, stadium_gdf)
+    )
 
     return arrivals_by_event_df
 
 
 if __name__ == "__main__":
-    # these work, need to get saved out
     for p in ["sofi", "levi"]:
-        route_gdf = full_route_cleaning(wc_vars.event_name, "sofi")
-
+        route_gdf = full_route_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"route_summary_{p}")
+
+        stop_gdf = full_stop_cleaning(wc_vars.event_name, p)
+        utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"stop_summary_{p}")
