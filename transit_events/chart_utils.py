@@ -46,7 +46,7 @@ def trip_chart_with_event_dates(
                 title=color_title,
                 scale=alt.Scale(scheme=color_scheme),
             ),
-            tooltip=["service_date", color_col, "n_trips"],
+            tooltip=["schedule_name", "service_date", color_col, "n_trips"],
             opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.1)),
         )
         .interactive()
