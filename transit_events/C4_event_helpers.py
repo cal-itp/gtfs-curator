@@ -69,7 +69,9 @@ def merge_in_stop_geom(
     ]
 
     stop_geom = (
-        stop_geom.assign(route_id_array=stop_geom.route_id_array.str.join(", "))
+        stop_geom.assign(
+            route_id_array=stop_geom.route_id_array.str.join(", "),
+        )
         .sort_values(["schedule_name", "stop_id"])
         .drop_duplicates(subset=["schedule_name", "stop_id", "stop_name"])
         .reset_index(drop=True)
@@ -100,24 +102,6 @@ def categorize_special_routes(
     )
 
     return route_gdf
-
-
-def get_stops_along_special_routes(
-    stop_gdf: gpd.GeoDataFrame, list_of_routes: list
-) -> pd.DataFrame:
-    # filter stops to ones that travel along the routes we want
-    # explode to see which route_ids, then drop the ones that aren't found in our list of service changes
-    keep_cols = ["feed_key", "stop_id", "stop_name"]
-
-    stops_for_special_routes = (
-        stop_gdf[keep_cols + ["route_id_array"]]
-        .explode("route_id_array")
-        .query("route_id_array in @list_of_routes")[keep_cols]
-        .drop_duplicates()
-        .reset_index(drop=True)
-    )
-
-    return stops_for_special_routes
 
 
 def aggregate_daily_trips(df: pd.DataFrame, group_cols: list):
