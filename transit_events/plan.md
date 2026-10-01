@@ -38,3 +38,17 @@
    event time window is the time-of-day bucket event falls in, and
    we want to focus on the surrounding windows?
    for non-event days, those same hours will show decreased service, hopefully
+
+## before
+A bunch of prep work is needed to prepare fct_daily_scheduled_stops
+to be tagged as event / non-event, and aggregate to be ready for viz.
+- filtering to stops within vicinity
+- filtering to stops along routes that had detected service changes
+- aggregate by event / non-event and day_type
+- make wide or long for viz, depends on GT or altair
+
+
+TODO: this needs to be refactored to make more sense conceptually.
+It goes back and forth with routes. What is known at each stage, what is the right order?
+Can the aggregations be done earlier, then filter for the special routes or stops near stadium?
+explode stop's route_id_array and use that to filter

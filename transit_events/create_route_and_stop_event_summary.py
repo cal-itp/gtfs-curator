@@ -5,12 +5,12 @@ and stops.
 Leave the filtering for proximity and special routes later.
 """
 
-import C4_event_helpers as C4
-import C5_proximity as C5
+import event_helpers
 import gcsfs
 import geopandas as gpd
 import google.auth
 import pandas as pd
+import poi_geography_utils as poi_geog_utils
 import world_cup_vars as wc_vars
 from gtfs_curator_utils import utils
 
@@ -50,8 +50,8 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
             ],
             filters=[[("schedule_name", "in", operator_list)]],
         )
-        .pipe(C4.merge_routes_with_shape_geom)
-        .pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
+        .pipe(event_helpers.merge_routes_with_shape_geom)
+        .pipe(event_helpers.tag_event_days_and_times, event_time_of_day_dict)
     )
 
     return route_gdf
@@ -103,7 +103,7 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
     route_cols = ["schedule_name", "route_name", "direction_id", "route_type"]
 
     trips_by_event = (
-        C4.aggregate_by_event_type(
+        event_helpers.aggregate_by_event_type(
             route_gdf,
             group_cols=route_cols
             + [
@@ -114,7 +114,7 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
         )
         .rename(columns={"n_trips": "daily_trips"})
         .pipe(
-            C4.make_wide,
+            event_helpers.make_wide,
             index_cols=route_cols,
             pivot_cols=["day_type", "event_day"],
             value_cols=["daily_trips"],
@@ -130,9 +130,9 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
     route_geom = dedupe_route_geom(route_gdf, route_cols)
     trips_wide_gdf = pd.merge(route_geom, trips_by_event, on=route_cols, how="inner")
 
-    trips_wide_gdf_near = C5.categorize_route_proximity_to_poi(
+    trips_wide_gdf_near = poi_geog_utils.categorize_route_proximity_to_poi(
         trips_wide_gdf, stadium_gdf
-    ).pipe(C4.categorize_special_routes, route_name_dict)
+    ).pipe(event_helpers.categorize_special_routes, route_name_dict)
 
     print(f"daily route-direction summary aggregated for {point_of_interest}")
 
@@ -253,7 +253,7 @@ def prep_fct_daily_scheduled_stops(event_name: str, event_time_of_day_dict: dict
             "geometry",
         ]
         + metric_cols,
-    ).pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
+    ).pipe(event_helpers.tag_event_days_and_times, event_time_of_day_dict)
 
     return stop_gdf
 
@@ -281,7 +281,7 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
     )
 
     arrivals_by_event_df = (
-        C4.aggregate_by_event_type(
+        event_helpers.aggregate_by_event_type(
             stop_gdf,
             group_cols=[
                 "schedule_name",
@@ -293,12 +293,12 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
             metric_cols=["daily_arrivals"],
         )
         .pipe(
-            C4.make_wide,
+            event_helpers.make_wide,
             index_cols=["schedule_name", "stop_id", "stop_name"],
             pivot_cols=["day_type", "event_day"],
             value_cols=["daily_arrivals"],
         )
-        .pipe(C4.merge_in_stop_geom, stop_gdf)
+        .pipe(event_helpers.merge_in_stop_geom, stop_gdf)
     )
 
     arrivals_by_event_df = (
@@ -307,7 +307,7 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
             + arrivals_by_event_df.change_daily_arrivals_weekend
         )
         .pipe(flag_if_stop_on_near_or_special_route, routes_df)
-        .pipe(C5.categorize_stop_proximity_to_poi, stadium_gdf)
+        .pipe(poi_geog_utils.categorize_stop_proximity_to_poi, stadium_gdf)
     )
 
     print(f"daily stops aggregated for {point_of_interest}")
