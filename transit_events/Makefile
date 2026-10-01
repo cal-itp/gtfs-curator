@@ -5,8 +5,8 @@ download_data:
 	uv run python prep_service_alerts.py
 
 clean_data:
-	uv run python C1_service_by_route.py
-	uv run python C2_service_by_stop.py
+	uv run python create_poi_gdf.py
+	uv run python create_route_and_stop_event_summary.py
 
 report:
 	uv run calitp-portfolio build transit_events.yml	
