@@ -65,12 +65,22 @@ def merge_in_stop_geom(
 ) -> gpd.GeoDataFrame:
 
     stop_geom = stop_gdf[
-        ["schedule_name", "stop_id", "stop_name", "route_id_array", "geometry"]
+        [
+            "schedule_name",
+            "stop_id",
+            "stop_name",
+            "route_id_array",
+            "route_type_array",
+            "geometry",
+        ]
     ]
 
     stop_geom = (
         stop_geom.assign(
             route_id_array=stop_geom.route_id_array.str.join(", "),
+            route_type_array=stop_geom.apply(
+                lambda x: ", ".join(map(str, x.route_type_array)), axis=1
+            ),
         )
         .sort_values(["schedule_name", "stop_id"])
         .drop_duplicates(subset=["schedule_name", "stop_id", "stop_name"])
