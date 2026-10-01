@@ -90,7 +90,7 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
 
     stadium_gdf = gpd.read_parquet(
         f"{GCS_FILE_PATH}points_of_interest_{event_name}.parquet",
-        storage_options={"token": credentials},
+        storage_options={"token": credentials.token},
         filters=[[("point_of_interest", "==", point_of_interest_full_name)]],
     )
 
@@ -119,6 +119,11 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
             pivot_cols=["day_type", "event_day"],
             value_cols=["daily_trips"],
         )
+    )
+
+    trips_by_event = trips_by_event.assign(
+        combined_change_daily_trips=trips_by_event.change_daily_trips_weekday
+        + trips_by_event.change_daily_trips_weekend
     )
 
     # Attach deduped route geom to trips_by_event
@@ -238,7 +243,7 @@ def prep_fct_daily_scheduled_stops(event_name: str, event_time_of_day_dict: dict
     # stop gdf doesn't have schedule_name, merge that in before we aggregate
     stop_gdf = gpd.read_parquet(
         f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{event_name}.parquet",
-        storage_options={"token": credentials},
+        storage_options={"token": credentials.token},
         columns=[
             "service_date",
             "feed_key",
@@ -264,7 +269,7 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
 
     stadium_gdf = gpd.read_parquet(
         f"{GCS_FILE_PATH}points_of_interest_{event_name}.parquet",
-        storage_options={"token": credentials},
+        storage_options={"token": credentials.token},
         filters=[[("point_of_interest", "==", point_of_interest_full_name)]],
     )
 
