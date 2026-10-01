@@ -147,21 +147,20 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
 
 
 def dedupe_route_geom(
-    route_gdf: gpd.GeoDataFrame, 
-    route_cols: list = ["schedule_name", "route_name", "directon_id"]
+    route_gdf: gpd.GeoDataFrame,
+    route_cols: list = ["schedule_name", "route_name", "directon_id"],
 ) -> gpd.GeoDataFrame:
     """
-    Once route is aggregated, we lose 
+    Once route is aggregated, we lose
     combinations of service_date-[route_cols]-shape_array_key.
-    Keep one shape_array_key to use for geom from dim_shapes_arrays. 
+    Keep one shape_array_key to use for geom from dim_shapes_arrays.
     """
     route_gdf2 = (
-        route_gdf
-        .sort_values([route_cols + ["shape_array_key"])
+        route_gdf.sort_values(route_cols + ["shape_array_key"])
         .drop_duplicates(subset=route_cols)
         .reset_index()
-        [route_cols + ["shape_array_key", "geometry"]]
-    )
+    )[route_cols + ["shape_array_key", "geometry"]]
+
     return route_gdf2
 
 
@@ -221,10 +220,8 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
 
     return trips_wide_gdf_near
 
-def immport_routes_near_poi(
-    event_name: str,
-    point_of_interest: str
-):
+
+def import_routes_near_poi(event_name: str, point_of_interest: str):
     # import the route summary prepared for sofi / levi, use those dummy variables for route
     # and attach to stop data
     route_summary_flagged = pd.read_parquet(
@@ -249,12 +246,61 @@ def immport_routes_near_poi(
     df = pd.merge(
         full_route_df,
         route_summary_flagged,
-        on = ["schedule_name", "route_name", "direction_id"],
-        how = "inner"
+        on=["schedule_name", "route_name", "direction_id"],
+        how="inner",
     )
-    
+
     return df
-    
+
+
+def flag_if_stop_on_near_or_special_route(
+    stop_gdf: gpd.GeoDataFrame, route_summary_df: pd.DataFrame
+) -> gpd.GeoDataFrame:
+    """
+    route_summary_df has flags whether route is is_route_near, is_special_route.
+    Compare those routes to the stop's route_id_array,
+    and tag whether the stop falls on a route that got near stadium, on a route that is special route.
+    """
+    # For each schedule_name, get a list of the route_ids that were near or special
+    near_routes_df = (
+        route_summary_df[route_summary_df.is_route_near == True]
+        .groupby(["schedule_name"])
+        .agg(near_route_ids=("route_id", lambda x: list(set(x))))
+        .reset_index()
+    )
+
+    special_routes_df = (
+        route_summary_df[route_summary_df.is_special_route == True]
+        .groupby(["schedule_name"])
+        .agg(special_route_ids=("route_id", lambda x: list(set(x))))
+        .reset_index()
+    )
+
+    stop_gdf2 = pd.merge(
+        stop_gdf, near_routes_df, on="schedule_name", how="inner"
+    ).merge(special_routes_df, on="schedule_name", how="inner")
+
+    stop_gdf2 = stop_gdf2.assign(
+        is_route_near=stop_gdf2.apply(
+            lambda x: (
+                True
+                if any(one_id in x.route_id_array for one_id in x.near_route_ids)
+                else False
+            ),
+            axis=1,
+        ),
+        is_special_route=stop_gdf2.apply(
+            lambda x: (
+                True
+                if any(one_id in x.route_id_array for one_id in x.special_route_ids)
+                else False
+            ),
+            axis=1,
+        ),
+    )
+
+    return stop_gdf2
+
 
 def prep_fct_daily_scheduled_stops(
     event_name: str,
@@ -318,42 +364,33 @@ def prep_fct_daily_scheduled_stops(
         .pipe(C4.tag_event_days_and_times, event_time_of_day_dict)
     )
 
-    arrivals_by_event_df = C4.aggregate_by_event_type(
-        stop_gdf,
-        group_cols=["schedule_name", "stop_id", "stop_name", "event_day", "day_type"],
-        metric_cols=["daily_arrivals"],
+    arrivals_by_event_df = (
+        C4.aggregate_by_event_type(
+            stop_gdf,
+            group_cols=[
+                "schedule_name",
+                "stop_id",
+                "stop_name",
+                "event_day",
+                "day_type",
+            ],
+            metric_cols=["daily_arrivals"],
+        )
+        .pipe(
+            C4.make_wide,
+            index_cols=["schedule_name", "stop_id", "stop_name"],
+            pivot_cols=["day_type", "event_day"],
+            value_cols=["daily_arrivals"],
+        )
+        .pipe(C4.merge_in_stop_geom, stop_gdf)
     )
 
-    arrivals_wide = C4.make_wide(
-        arrivals_by_event_df,
-        index_cols=["schedule_name", "stop_id", "stop_name"],
-        pivot_cols=["day_type", "event_day"],
-        value_cols=["daily_arrivals"],
-    ).pipe(C4.merge_in_stop_geom, stop_gdf)
+    arrivals_by_event_df = arrivals_by_event_df.assign(
+        combined_change_daily_arrivals=arrivals_by_event_df.change_daily_arrivals_weekday
+        + arrivals_by_event_df.change_daily_arrivals_weekend
+    ).pipe(flag_if_stop_on_near_or_special_route, routes_df)
 
-    arrivals_wide = arrivals_wide.assign(
-        combined_change_daily_arrivals=arrivals_wide.change_daily_arrivals_weekday
-        + arrivals_wide.change_daily_arrivals_weekend
-    )
-
-    # how to use this with the route_df we imported?
-    near_route_ids = routes_df[routes_df.is_route_near==True].route_id.unique()
-    special_route_ids = routes_df[routes_df.is_special_route==True].route_id.unique()
-    
-    arrivals_wide = arrivals_wide.assign(
-        is_route_near = arrivals_wide.apply(
-            lambda x: 
-            True if any(one_id in x.route_id_array for one_id in near_route_ids)
-            else False, axis=1),
-        is_special_route = arrivals_wide.apply(
-            lambda x: 
-            True if any(one_id in x.route_id_array for one_id in special_route_ids)
-            else False, axis=1),
-    )
-    
-    # Can routes get tagged, like is_on_special_route, since arrivals are combined across all routes that are served?
-    # how should proximity be handled?
-    return arrivals_wide
+    return arrivals_by_event_df
 
 
 if __name__ == "__main__":
