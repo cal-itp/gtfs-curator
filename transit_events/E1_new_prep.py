@@ -129,6 +129,8 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
         trips_wide_gdf, stadium_gdf
     ).pipe(C4.categorize_special_routes, route_name_dict)
 
+    print(f"daily route-direction summary aggregated for {point_of_interest}")
+
     return trips_wide_gdf_near
 
 
@@ -229,6 +231,7 @@ def prep_fct_daily_scheduled_stops(event_name: str, event_time_of_day_dict: dict
         "arrivals_pm_peak",
         "arrivals_evening",
         "route_id_array",
+        "route_type_array",
         # "wheelchair_boarding", "location_type"
     ]
 
@@ -302,6 +305,8 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
         .pipe(C5.categorize_stop_proximity_to_poi, stadium_gdf)
     )
 
+    print(f"daily stops aggregated for {point_of_interest}")
+
     return arrivals_by_event_df
 
 
@@ -309,6 +314,8 @@ if __name__ == "__main__":
     for p in ["sofi", "levi"]:
         route_gdf = full_route_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"route_summary_{p}")
+        del route_gdf
 
         stop_gdf = full_stop_cleaning(wc_vars.event_name, p)
-        utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"stop_summary_{p}")
+        utils.geoparquet_gcs_export(stop_gdf, GCS_FILE_PATH, f"stop_summary_{p}")
+        del stop_gdf
