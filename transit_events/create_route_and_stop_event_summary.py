@@ -47,6 +47,10 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
                 "shape_array_key",
                 "n_trips",
                 "num_stop_times",
+                "n_vp_trips",
+                "vp_messages_per_minute",
+                "n_tu_trips",
+                "tu_messages_per_minute",
             ],
             filters=[[("schedule_name", "in", operator_list)]],
         )
@@ -110,21 +114,41 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
                 "event_day",
                 "day_type",
             ],
-            metric_cols=["n_trips"],
+            sum_cols=["n_trips", "n_vp_trips", "n_tu_trips"],
+            mean_cols=["vp_messages_per_minute", "tu_messages_per_minute"],
         )
-        .rename(columns={"n_trips": "daily_trips"})
+        .rename(
+            columns={
+                "n_trips": "daily_trips",
+                "n_vp_trips": "pct_vp_trips",
+                "n_tu_trips": "pct_tu_trips",
+            }
+        )
         .pipe(
             event_helpers.make_wide,
             index_cols=route_cols,
             pivot_cols=["day_type", "event_day"],
-            value_cols=["daily_trips"],
+            value_cols=[
+                "daily_trips",
+                "pct_vp_trips",
+                "vp_messages_per_minute",
+                "pct_tu_trips",
+                "tu_messages_per_minute",
+            ],
         )
     )
 
-    trips_by_event = trips_by_event.assign(
-        combined_change_daily_trips=trips_by_event.change_daily_trips_weekday
-        + trips_by_event.change_daily_trips_weekend
-    )
+    # take all the value_cols and calculate combined change
+    for m in [
+        "daily_trips",
+        "pct_vp_trips",
+        "vp_messages_per_minute",
+        "pct_tu_trips",
+        "tu_messages_per_minute",
+    ]:
+        trips_by_event[f"combined_change_{m}"] = trips_by_event[
+            [f"change_{m}_weekday", f"change_{m}_weekend"]
+        ].sum(axis=1)
 
     # Attach deduped route geom to trips_by_event
     route_geom = dedupe_route_geom(route_gdf, route_cols)
@@ -290,7 +314,7 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
                 "event_day",
                 "day_type",
             ],
-            metric_cols=["daily_arrivals"],
+            sum_cols=["daily_arrivals"],
         )
         .pipe(
             event_helpers.make_wide,
