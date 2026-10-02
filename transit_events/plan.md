@@ -2,6 +2,15 @@
 1. Define World Cup variables
 2. Put together points of interest gdf
 3. Download this set of tables from the warehouse
+4. Event preprocessing
+   - tag as event / non-event for the relevant operators for each stadium
+   - aggregate service by `event_day / day_type` (wide df to use for map + charts)
+   - add change across weekday and weekend (weekday + weekend change against typical baseline)
+   - geographic proximity: whether routes and stops are near, bus and rail handled differently
+   - add dummy variables that show whether route is `is_route_near`, `is_special_route`, `is_stop_near`
+      - use this to filter in notebook, but can be more flexible against what we miss 
+   - (routes): additionally, tag special routes, use list compiled manually to help flag their `route_name`
+   - (stops): inherit whether it falls on route that is near or is special route, but has its own proximity analysis
 
 ## trips
 1. use daily schedule + RT route-direction summary
@@ -38,17 +47,3 @@
    event time window is the time-of-day bucket event falls in, and
    we want to focus on the surrounding windows?
    for non-event days, those same hours will show decreased service, hopefully
-
-## before
-A bunch of prep work is needed to prepare fct_daily_scheduled_stops
-to be tagged as event / non-event, and aggregate to be ready for viz.
-- filtering to stops within vicinity
-- filtering to stops along routes that had detected service changes
-- aggregate by event / non-event and day_type
-- make wide or long for viz, depends on GT or altair
-
-
-TODO: this needs to be refactored to make more sense conceptually.
-It goes back and forth with routes. What is known at each stage, what is the right order?
-Can the aggregations be done earlier, then filter for the special routes or stops near stadium?
-explode stop's route_id_array and use that to filter
