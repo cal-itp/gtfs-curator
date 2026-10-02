@@ -131,17 +131,19 @@ def aggregate_by_event_type(
         "event_day",
         "day_type",
     ],
-    metric_cols: list = ["daily_arrivals"],
+    sum_cols: list = ["daily_arrivals"],
+    mean_cols: list = [],
 ) -> pd.DataFrame:
     """
-    TODO: this can be used for stop arrivals and trips
+    Can be used for stop arrivals and trips
     """
-    # See how this function can accommodate the aggregation here by time-of-day
+
     df = (
         gdf.groupby(group_cols)
         .agg(
             {
-                **{c: "sum" for c in metric_cols},
+                **{c: "sum" for c in sum_cols},
+                **{c: "mean" for c in mean_cols},
                 "service_date": "nunique",
             }
         )
@@ -149,8 +151,11 @@ def aggregate_by_event_type(
         .rename(columns={"service_date": "n_days"})
     )
 
-    for c in metric_cols:
+    # rounding
+    for c in sum_cols:
         df[c] = df[c].divide(df.n_days).round(2)
+
+    df[mean_cols] = df[mean_cols].round(2)
 
     return df
 
