@@ -106,36 +106,44 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
 
     route_cols = ["schedule_name", "route_name", "direction_id", "route_type"]
 
-    trips_by_event = (
-        event_helpers.aggregate_by_event_type(
-            route_gdf,
-            group_cols=route_cols
-            + [
-                "event_day",
-                "day_type",
-            ],
-            sum_cols=["n_trips", "n_vp_trips", "n_tu_trips"],
-            mean_cols=["vp_messages_per_minute", "tu_messages_per_minute"],
-        )
-        .rename(
-            columns={
-                "n_trips": "daily_trips",
-                "n_vp_trips": "pct_vp_trips",
-                "n_tu_trips": "pct_tu_trips",
-            }
-        )
-        .pipe(
-            event_helpers.make_wide,
-            index_cols=route_cols,
-            pivot_cols=["day_type", "event_day"],
-            value_cols=[
-                "daily_trips",
-                "pct_vp_trips",
-                "vp_messages_per_minute",
-                "pct_tu_trips",
-                "tu_messages_per_minute",
-            ],
-        )
+    daily_metrics_by_event = event_helpers.aggregate_by_event_type(
+        route_gdf,
+        group_cols=route_cols
+        + [
+            "event_day",
+            "day_type",
+        ],
+        sum_cols=["n_trips"],
+        mean_cols=["vp_messages_per_minute", "tu_messages_per_minute"],
+    ).rename(columns={"n_trips": "daily_trips"})
+
+    rt_by_event = (
+        route_gdf.groupby(route_cols + ["event_day", "day_type"])
+        .agg({c: "sum" for c in ["n_trips", "n_vp_trips", "n_tu_trips"]})
+        .reset_index()
+    )
+
+    rt_by_event = rt_by_event.assign(
+        pct_vp_trips=rt_by_event.n_vp_trips.divide(rt_by_event.n_trips).round(2),
+        pct_tu_trips=rt_by_event.n_tu_trips.divide(rt_by_event.n_trips).round(2),
+    )
+
+    trips_by_event = pd.merge(
+        daily_metrics_by_event,
+        rt_by_event,
+        on=route_cols + ["day_type", "event_day"],
+        how="inner",
+    ).pipe(
+        event_helpers.make_wide,
+        index_cols=route_cols,
+        pivot_cols=["day_type", "event_day"],
+        value_cols=[
+            "daily_trips",
+            "pct_vp_trips",
+            "vp_messages_per_minute",
+            "pct_tu_trips",
+            "tu_messages_per_minute",
+        ],
     )
 
     # take all the value_cols and calculate combined change
