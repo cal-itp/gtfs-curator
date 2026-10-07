@@ -7,6 +7,8 @@ Merge in shape geom and stop geom.
 Aggregation by day_type-event_day for route-direction summary and stops.
 """
 
+from typing import Literal
+
 import geopandas as gpd
 import google.auth
 import numpy as np
@@ -44,6 +46,32 @@ def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict)
     )
 
     return df
+
+
+def grab_matches_by_day_type(
+    event_time_of_day_dict: dict,
+    time_of_day: Literal["early_am", "am_peak", "midday", "pm_peak", "evening", "owl"],
+    day_type: Literal["weekday", "weekend"],
+) -> dict:
+    """
+    Or create a new dict that can key into weekday or weekend?
+    """
+    WEEKDAY_LIST = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+    filtered_events = {
+        **{
+            d: tod
+            for d, tod in wc_vars.sofi_match_times.items()
+            if (tod == time_of_day)
+            and (
+                pd.to_datetime(d).day_name() in ["Saturday", "Sunday"]
+                if day_type == "weekend"
+                else pd.to_datetime(d).day_name() in WEEKDAY_LIST
+            )
+        }
+    }
+
+    return filtered_events
 
 
 def merge_routes_with_shape_geom(
