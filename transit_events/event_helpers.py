@@ -19,6 +19,8 @@ credentials, _ = google.auth.default()
 
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 
+TIME_OF_DAY_ORDER = ["early_am", "am_peak", "midday", "pm_peak", "evening", "owl"]
+
 
 def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict):
 
@@ -50,7 +52,7 @@ def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict)
 
 def grab_matches_by_day_type(
     event_time_of_day_dict: dict,
-    time_of_day: Literal["early_am", "am_peak", "midday", "pm_peak", "evening", "owl"],
+    time_of_day: Literal[TIME_OF_DAY_ORDER],
     day_type: Literal["weekday", "weekend"],
 ) -> dict:
     """
@@ -238,3 +240,23 @@ def change_from_nonevent_column(df: pd.DataFrame, col_prefix: str) -> pd.Series:
     df[f"{col_prefix}_event"] = df[f"{col_prefix}_event"].fillna(0)
     df[f"{col_prefix}_non_event"] = df[f"{col_prefix}_non_event"].fillna(0)
     return (df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]).fillna(0)
+
+
+def make_long(df: pd.DataFrame, id_vars: list) -> pd.DataFrame:
+    """
+    Turn the wide arrivals_per_hour_{time_of_day} into long df.
+    Get time_of_day column, arrivals_per_hour column
+    """
+    df_long = pd.melt(
+        df,
+        id_vars=id_vars,
+        value_vars=[f"arrivals_per_hour_{t}" for t in TIME_OF_DAY_ORDER],
+        var_name="time_of_day",
+        value_name="arrivals_per_hour",
+    )
+
+    df_long = df_long.assign(
+        time_of_day=df_long.time_of_day.str.replace("arrivals_per_hour_", "")
+    )
+
+    return df_long
