@@ -56,8 +56,6 @@ def grab_matches_by_day_type(
     """
     Or create a new dict that can key into weekday or weekend?
     """
-    WEEKDAY_LIST = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-
     filtered_events = {
         **{
             d: tod
@@ -66,7 +64,8 @@ def grab_matches_by_day_type(
             and (
                 pd.to_datetime(d).day_name() in ["Saturday", "Sunday"]
                 if day_type == "weekend"
-                else pd.to_datetime(d).day_name() in WEEKDAY_LIST
+                else pd.to_datetime(d).day_name()
+                in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             )
         }
     }
