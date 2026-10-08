@@ -29,3 +29,10 @@ Difference-in-difference or route-fixed effects
         think more about the set up for df. what happens if route name changes for special service? need to be able to add them onto the same record to compare what happened.
         add these boolean columns (is_rail, is_near, is_event). remember to avoid perfect multicollinearity, always 1 less column
         this might be able to take the entire df, don't need to filter for stops being within certain buffer. so we can take the entirety of those feeds, for all routes, for all stops, and just throw it into this regression, with the right dummy variables.
+
+## Route Comparison
+* VTA had special routes `route_names` differed for World Cup with `WC` in the name, compare to the regular `route_name`
+* The `route_names` here would show up as 2 distinct rows, so be able to link records we want to compare
+
+## Heatmap
+* Can this be done with time-of-day?
