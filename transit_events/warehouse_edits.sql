@@ -31,7 +31,7 @@ WITH dim_provider_gtfs_data AS (
 
 WITH datasets AS (
     SELECT *
-    FROM `cal-itp-data-infra.mart_gtfs.dim_gtfs_datasets`--{{ ref('dim_gtfs_datasets') }}
+    FROM `cal-itp-data-infra.mart_transit_database.dim_gtfs_datasets`--{{ ref('dim_gtfs_datasets') }}
 ),
 
 int_gtfs_quality__daily_assessment_candidate_entities AS (
