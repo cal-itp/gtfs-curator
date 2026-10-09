@@ -1,4 +1,4 @@
-import gcsfs
+# import gcsfs
 import geopandas as gpd
 import google.auth
 import pandas as pd
@@ -12,7 +12,7 @@ credentials, _ = google.auth.default()
 def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.schedule_rt_route_direction
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", storage_options={"token": credentials.token}
     )
 
     # Select relevant columns
@@ -63,7 +63,7 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     # Save processed file
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
+        storage_options={"token": credentials.token},
     )
 
     print(f"export processed {filename}")
@@ -74,7 +74,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.operator_summary
 
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", storage_options={"token": credentials.token}
     )
 
     # Select relevant columns
@@ -105,6 +105,12 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
         ]
     ]
 
+    df2 = df2.dropna(subset = ["n_vp_trips",
+                               "pct_vp_trips",
+                               "pct_tu_trips",
+                              "vp_name",
+                              "tu_name"]).reset_index(drop = True)
+
     # Multiply percetnage columns by 100. Clip any values above 100.
     df2 = df2.assign(
         pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0),
@@ -123,7 +129,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     # Save processed file
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
+        storage_options={"token": credentials.token},
     )
 
     print(f"export processed {filename}")
@@ -166,7 +172,7 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.hourly_day_type_summary
 
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", storage_options={"token": credentials.token}
     )
 
     # Prepare data
@@ -184,7 +190,7 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
 
     df2.to_parquet(
         f"{PROCESSED_GCS}{filename}_{abbrev_month}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
+        storage_options={"token": credentials.token}
     )
 
     print(f"export processed {filename}")

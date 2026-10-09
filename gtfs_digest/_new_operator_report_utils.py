@@ -175,8 +175,6 @@ def create_route_typology(df: pd.DataFrame):
 """
 RT Data Charts
 """
-
-
 def create_hourly_summary(df: pd.DataFrame, day_type: str):
 
     chart_dict = readable_dict.hourly_summary
