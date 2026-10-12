@@ -33,23 +33,17 @@ import datetime
 import gcsfs
 import google.auth
 import pandas as pd
-from google.cloud import bigquery, bigquery_storage
-from gtfs_curator_utils import geography_utils, utils
-from world_cup_vars import GCS_FILE_PATH
+import world_cup_vars as wc_vars
+from google.cloud import bigquery_storage
+from gtfs_curator_utils import bq_utils, geography_utils, utils
 
-credentials, project = google.auth.default()
-client = bigquery.Client(project=project, credentials=credentials)
+GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
+
+credentials, _ = google.auth.default()
 bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
 def filter_dim_shapes(feed_valid_value: str, feed_key_list: list) -> pd.DataFrame:
-
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter("feed_valid_value", "DATE", feed_valid_value),
-            bigquery.ArrayQueryParameter("feed_key_list", "STRING", feed_key_list),
-        ]
-    )
 
     dim_gtfs_query = """
         SELECT
@@ -58,30 +52,37 @@ def filter_dim_shapes(feed_valid_value: str, feed_key_list: list) -> pd.DataFram
             shape_id,
             pt_array,
         FROM `cal-itp-data-infra.mart_gtfs.dim_shapes_arrays`
-        WHERE DATE(_feed_valid_from) IN UNNEST(@feed_valid_value) AND feed_key IN UNNEST(@feed_key_list)
     """
-    query_job = client.query(dim_gtfs_query, job_config=job_config)
+
+    FILENAME = f"dim_shape_arrays_{wc_vars.event_name}.parquet"
+    t0 = datetime.datetime.now()
+
+    bq_utils.download_table(
+        dim_gtfs_query,
+        filter_dict={"_feed_valid_from": feed_valid_value, "feed_key": feed_key_list},
+        output_path=f"{GCS_FILE_PATH}{FILENAME}",
+        bqstorage_client=bqstorage_client,
+    )
 
     t1 = datetime.datetime.now()
+    print(f"export query to arrow, to pandas: {t1 - t0}")
 
-    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+    df = pd.read_parquet(
+        f"{GCS_FILE_PATH}{FILENAME}", filesystem=gcsfs.GCSFileSystem()
+    ).pipe(geography_utils.convert_to_gdf, "pt_array", "line")
+
+    utils.geoparquet_gcs_export(df, GCS_FILE_PATH, FILENAME)
 
     t2 = datetime.datetime.now()
-    print(f"export query to arrow, to pandas: {t2 - t1}")
+    print(f"convert to gdf and export: {t2 - t1}")
 
-    df = geography_utils.convert_to_gdf(df, "pt_array", "line")
-
-    t3 = datetime.datetime.now()
-    print(f"convert to gdf: {t3 - t2}")
-
-    return df
+    return
 
 
 if __name__ == "__main__":
-    from world_cup_vars import event_name
-
     subset_feeds = pd.read_parquet(
-        f"{GCS_FILE_PATH}feeds_{event_name}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{GCS_FILE_PATH}feeds_{wc_vars.event_name}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
     )
 
     # the dtype for the _feed_valid_from query parameter is confusing to set
@@ -94,8 +95,4 @@ if __name__ == "__main__":
     subset_feed_valid_from = subset_feeds._feed_valid_from.unique().tolist()
     subset_feed_keys = subset_feeds.feed_key.unique().tolist()
 
-    dim_shape_arrays = filter_dim_shapes(subset_feed_valid_from, subset_feed_keys)
-
-    utils.geoparquet_gcs_export(
-        dim_shape_arrays, GCS_FILE_PATH, f"dim_shape_arrays_{event_name}"
-    )
+    filter_dim_shapes(subset_feed_valid_from, subset_feed_keys)
