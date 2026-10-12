@@ -11,16 +11,12 @@ use cases:
 import gcsfs
 import google.auth
 import pandas as pd
+import world_cup_vars as wc_vars
 from google.cloud import bigquery, bigquery_storage
-from gtfs_curator_utils import bq_utils, utils
-from world_cup_vars import GCS_FILE_PATH
+from gtfs_curator_utils import bq_utils
 
-# from google.cloud import storage
-# gcs_client = storage.Client()
-# bucket = gcs_client.bucket("calitp-analytics-data")
-
+GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 credentials, _ = google.auth.default()
-client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
 bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
@@ -28,63 +24,41 @@ def filter_fct_daily_schedule_rt_route_direction_summary(
     service_date_list: list,
 ) -> pd.DataFrame:
 
-    # Figure out how to parameterize this, make sure date list works
-    # this is staging project right now
-    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
-
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter(
-                "service_date_list", "DATETIME", service_date_list
-            ),
-        ]
-    )
-
     daily_route_query = """
         SELECT
             *
         FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_rt_route_direction_summary`
-        WHERE service_date IN UNNEST(@service_date_list)
     """
 
-    query_job = client.query(daily_route_query, job_config)
-    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+    bq_utils.download_table(
+        daily_route_query,
+        filter_dict={"service_date": service_date_list},
+        output_path=f"{GCS_FILE_PATH}fct_daily_schedule_rt_route_direction_summary_{wc_vars.event_name}.parquet",
+        bqstorage_client=bqstorage_client,
+    )
 
-    return df
+    return
 
 
 def filter_fct_daily_scheduled_stops(
     service_date_list: list, feed_key_list: list
 ) -> pd.DataFrame:
 
-    # Figure out how to parameterize this, make sure date list works
-    # this is staging project right now
-    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
-
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter(
-                "service_date_list", "DATETIME", service_date_list
-            ),
-            bigquery.ArrayQueryParameter("feed_key_list", "STRING", feed_key_list),
-        ]
-    )
-
     daily_stops_query = """
         SELECT
             *
         FROM `cal-itp-data-infra.mart_gtfs.fct_daily_scheduled_stops`
-        WHERE service_date IN UNNEST(@service_date_list) AND feed_key IN UNNEST(@feed_key_list)
     """
 
-    query_job = client.query(daily_stops_query, job_config)
-    df = (
-        query_job.result()
-        .to_geodataframe(bqstorage_client=bqstorage_client, geography_column="pt_geom")
-        .rename(columns={"pt_geom": "geometry"})
+    bq_utils.download_table(
+        daily_stops_query,
+        filter_dict={"service_date": service_date_list, "feed_key": feed_key_list},
+        geography_column="pt_geom",
+        output_path=f"{GCS_FILE_PATH}fct_daily_scheduled_stops_{wc_vars.event_name}.parquet",
+        bqstorage_client=bqstorage_client,
     )
 
-    return df
+    return
 
 
 def filter_fct_service_alerts_trip_summaries(
@@ -152,22 +126,9 @@ def filter_fct_daily_service_alerts(
 
 
 if __name__ == "__main__":
-    import world_cup_vars as wc_vars
-
     # (3) `fct_daily_schedule_rt_route_direction_summary` and explore and figure out routes
 
-    daily_route_summary = filter_fct_daily_schedule_rt_route_direction_summary(
-        wc_vars.event_date_range
-    )
-
-    daily_route_summary = daily_route_summary.assign(
-        service_date=pd.to_datetime(daily_route_summary.service_date)
-    )
-
-    daily_route_summary.to_parquet(
-        f"{GCS_FILE_PATH}fct_daily_schedule_rt_route_direction_summary_{wc_vars.event_name}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-    )
+    filter_fct_daily_schedule_rt_route_direction_summary(wc_vars.event_date_range)
 
     # (4) fct_daily_scheduled_stops
     # filter by service_date and feed_key
@@ -180,18 +141,9 @@ if __name__ == "__main__":
         .tolist()
     )
 
-    daily_stops = filter_fct_daily_scheduled_stops(
-        wc_vars.event_date_range, subset_feed_keys
-    )
+    filter_fct_daily_scheduled_stops(wc_vars.event_date_range, subset_feed_keys)
 
-    daily_stops = daily_stops.assign(
-        service_date=pd.to_datetime(daily_stops.service_date)
-    )
-
-    utils.geoparquet_gcs_export(
-        daily_stops, GCS_FILE_PATH, f"fct_daily_scheduled_stops_{wc_vars.event_name}"
-    )
-
+    """
     # (5) fct_service_alerts_trip_summaries
     # filter by service_date and sa_base64_url
     daily_sa_trip_summary = filter_fct_service_alerts_trip_summaries(
@@ -215,3 +167,4 @@ if __name__ == "__main__":
         f"{GCS_FILE_PATH}fct_daily_service_alerts_{wc_vars.event_name}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
+    """

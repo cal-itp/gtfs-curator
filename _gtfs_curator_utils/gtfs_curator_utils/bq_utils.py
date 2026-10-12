@@ -137,13 +137,23 @@ def download_table(
 
     # this would only support pt_geom, not linestrings, since we store those as arrays of points
     if geography_column is not None:
-        df = query_job.result().to_geodataframe(
-            bqstorage_client=bqstorage_client, geography_column=geography_column
+        df = (
+            query_job.result()
+            .to_geodataframe(
+                bqstorage_client=bqstorage_client, geography_column=geography_column
+            )
+            .pipe(fix_date_columns)
+            .rename(columns={geography_column: "geometry"})
         )
         utils.geoparquet_gcs_export(df, output_path.replace(filename, ""), filename)
 
     else:
-        df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+        df = (
+            query_job.result()
+            .to_arrow(bqstorage_client=bqstorage_client)
+            .to_pandas()
+            .pipe(fix_date_columns)
+        )
 
     df.to_parquet(output_path, filesystem=filesystem)
 
@@ -162,7 +172,12 @@ def download_table_with_job_config(
     """ """
     query_job = client.query(sql_query, job_config=job_config)
 
-    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+    df = (
+        query_job.result()
+        .to_arrow(bqstorage_client=bqstorage_client)
+        .to_pandas()
+        .pipe(fix_date_columns)
+    )
 
     if output_path == "":
         df.to_parquet("./data/data.parquet")
@@ -171,3 +186,25 @@ def download_table_with_job_config(
 
     print(f"exported: {output_path}")
     return
+
+
+def fix_date_columns(
+    df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    dbdate shows up when it's BigQuery DATE type.
+    For columns we do use, set these as datetime.
+    """
+    date_cols = [
+        "service_date",
+        "dt",
+        "active_date",  # mart_gtfs
+        "month_first_day",  # mart_gtfs_rollup
+        "_valid_from_service_date",
+        "_valid_to_service_date",  # mart_transit_database
+    ]
+
+    cols_in_table = [c for c in df.columns if c in date_cols]
+    df[cols_in_table] = df[cols_in_table].astype("datetime64[ns]")
+
+    return df
