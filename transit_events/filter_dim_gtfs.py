@@ -7,25 +7,10 @@ use cases:
 - Santa Barbara arrivals look too high
 - OCTA incorrectly parsed
 
-
 dim_shapes_arrays
 
-# (a) filter on all dates, grab only feed_keys needed, extra WHERE statement to narrow down feed_keys
-
-# (b) filter on all service dates, more dates now, filter down feed_keys
-# Big Query prod job ID: 9c0d9e51-21e2-40d7-81e0-783b834cf731
-export query to arow, to pandas: 0:00:52.880121
-convert to gdf: 0:07:06.507688 # this keeps around 1.5MB for memory, low, but takes awhile for ____ rows
-.to_geodataframe() didn't work because we keep this as array of WKT?
-
-# (c) add additional dates around event start / end
-export query to arrow, to pandas: 0:01:12.100387
-convert to gdf: 0:09:10.803260
-
-
-dim_stops
-# (a) filter on all event dates, use .to_geodataframe, since this one seems like it'd work
-export query to geodataframe: 0:00:03.023190
+export query to arrow, to pandas: 0:01:05.259273
+convert to gdf and export: 0:09:07.664431
 """
 
 import datetime
