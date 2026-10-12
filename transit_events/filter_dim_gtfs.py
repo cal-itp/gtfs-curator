@@ -37,20 +37,12 @@ from google.cloud import bigquery, bigquery_storage
 from gtfs_curator_utils import geography_utils, utils
 from world_cup_vars import GCS_FILE_PATH
 
-# from google.cloud import storage
-# gcs_client = storage.Client()
-# bucket = gcs_client.bucket("calitp-analytics-data")
-
 credentials, project = google.auth.default()
 client = bigquery.Client(project=project, credentials=credentials)
 bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
 def filter_dim_shapes(feed_valid_value: str, feed_key_list: list) -> pd.DataFrame:
-
-    # Figure out how to parameterize this, make sure date list works
-    # this is staging project right now
-    # client = bigquery.Client(project=project, credentials=credentials)
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
@@ -70,10 +62,6 @@ def filter_dim_shapes(feed_valid_value: str, feed_key_list: list) -> pd.DataFram
     """
     query_job = client.query(dim_gtfs_query, job_config=job_config)
 
-    # df = query_job.result().to_geodataframe(
-    #    bqstorage_client=bqstorage_client,
-    #    geography_column="pt_array"
-    # )
     t1 = datetime.datetime.now()
 
     df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
@@ -85,43 +73,6 @@ def filter_dim_shapes(feed_valid_value: str, feed_key_list: list) -> pd.DataFram
 
     t3 = datetime.datetime.now()
     print(f"convert to gdf: {t3 - t2}")
-
-    return df
-
-
-def filter_dim_stops(feed_valid_value: str, feed_key_list: list) -> pd.DataFrame:
-
-    # Figure out how to parameterize this, make sure date list works
-    # this is staging project right now
-    # client = bigquery.Client(project=project, credentials=credentials)
-
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter("feed_valid_value", "DATE", feed_valid_value),
-            bigquery.ArrayQueryParameter("feed_key_list", "STRING", feed_key_list),
-        ]
-    )
-
-    dim_gtfs_query = """
-        SELECT
-            feed_key,
-            stop_id,
-            pt_geom,
-        FROM `cal-itp-data-infra.mart_gtfs.dim_stops`
-        WHERE DATE(_feed_valid_from) IN UNNEST(@feed_valid_value) AND feed_key IN UNNEST(@feed_key_list)
-    """
-    query_job = client.query(dim_gtfs_query, job_config=job_config)
-
-    t1 = datetime.datetime.now()
-
-    df = (
-        query_job.result()
-        .to_geodataframe(bqstorage_client=bqstorage_client, geography_column="pt_geom")
-        .rename(columns={"pt_geom": "geometry"})
-    )
-
-    t2 = datetime.datetime.now()
-    print(f"export query to geodataframe: {t2 - t1}")
 
     return df
 
@@ -148,6 +99,3 @@ if __name__ == "__main__":
     utils.geoparquet_gcs_export(
         dim_shape_arrays, GCS_FILE_PATH, f"dim_shape_arrays_{event_name}"
     )
-
-    # dim_stops = filter_dim_stops(subset_feed_valid_from, subset_feed_keys)
-    # utils.geoparquet_gcs_export(dim_stops, GCS_FILE_PATH, f"dim_stops_{event_name}")
