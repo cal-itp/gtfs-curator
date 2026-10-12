@@ -13,18 +13,10 @@ use cases:
 """
 
 import gcsfs
-import google.auth
 import pandas as pd
-from google.cloud import bigquery, bigquery_storage
+from google.cloud import bigquery
+from gtfs_curator_utils import bq_utils
 from world_cup_vars import GCS_FILE_PATH
-
-# from google.cloud import storage
-# gcs_client = storage.Client()
-# bucket = gcs_client.bucket("calitp-analytics-data")
-
-credentials, project = google.auth.default()
-client = bigquery.Client(project=project, credentials=credentials)
-bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
 def filter_fct_daily_schedule_feeds_by_date(
@@ -52,10 +44,13 @@ def filter_fct_daily_schedule_feeds_by_date(
         GROUP BY 1, 2, 3
     """
 
-    query_job = client.query(daily_feeds_query, job_config)
-    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+    bq_utils.download_table_with_job_config(
+        daily_feeds_query,
+        job_config=job_config,
+        output_path=f"{GCS_FILE_PATH}fct_daily_schedule_feeds_{wc_vars.event_name}.parquet",
+    )
 
-    return df
+    return
 
 
 def filter_to_last_n_feeds(one_operator_name: str, feed_type: str, n: int):
@@ -67,7 +62,6 @@ def filter_to_last_n_feeds(one_operator_name: str, feed_type: str, n: int):
     -- Inglewood Schedule: doing the partition by name and base64_url means we might keep some older feeds, which had different base64_url
     but if we don't do it, some names might not be continuous, like some change names slightly, and we'd miss them
     """
-    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
@@ -96,10 +90,11 @@ def filter_to_last_n_feeds(one_operator_name: str, feed_type: str, n: int):
         )
     """
 
-    query_job = client.query(daily_feeds_query, job_config)
-    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+    bq_utils.download_table_with_job_config(
+        daily_feeds_query, job_config=job_config, output_path=""
+    )
 
-    return df
+    return
 
 
 def filter_to_operators_for_event(event_name: str, schedule_gtfs_name_list: list):
@@ -136,17 +131,6 @@ def filter_fct_daily_schedule_rt_operator_summary(
     Need to save out schedule feed_key, quartet_gtfs_dataset_keys, and quartet base4_urls.
     Future TODO: see how service_alerts can fit into this dbt model
     """
-    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
-
-    # what if we want all operators, how to set up if condition
-    # schedule_name_list defaults to None? filter it after the query is done?
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter(
-                "service_date_list", "DATETIME", service_date_list
-            ),
-        ]
-    )
 
     query = """
         SELECT 
@@ -164,26 +148,24 @@ def filter_fct_daily_schedule_rt_operator_summary(
             tu_base64_url,
   
     FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_rt_operator_summary`
-    WHERE service_date IN UNNEST(@service_date_list) 
     """
-    query_job = client.query(query, job_config)
-    df = query_job.result().to_arrow().to_pandas()
+
+    bq_utils.download_table(
+        query,
+        filter_dict={"service_date": service_date_list},
+        output_path=f"{GCS_FILE_PATH}fct_daily_schedule_rt_operator_summary_{wc_vars.event_name}.parquet",
+    )
 
     print("fct_daily_schedule_rt_operator_summary feeds")
 
-    return df
+    return
 
 
 if __name__ == "__main__":
     import world_cup_vars as wc_vars
 
     # (1) fct_daily_schedule_feeds for entire date range
-    daily_feeds = filter_fct_daily_schedule_feeds_by_date(wc_vars.event_date_range)
-
-    daily_feeds.to_parquet(
-        f"{GCS_FILE_PATH}fct_daily_schedule_feeds_{wc_vars.event_name}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-    )
+    filter_fct_daily_schedule_feeds_by_date(wc_vars.event_date_range)
 
     # (2) filter down to operators for those feeds
     filter_to_operators_for_event(
@@ -191,10 +173,4 @@ if __name__ == "__main__":
     )
 
     # (3) filter to fct_daily_schedule_rt_operator_summary for event_date range
-    daily_operator_summary = filter_fct_daily_schedule_rt_operator_summary(
-        wc_vars.event_date_range
-    )
-    daily_operator_summary.to_parquet(
-        f"{GCS_FILE_PATH}fct_daily_schedule_rt_operator_summary_{wc_vars.event_name}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-    )
+    filter_fct_daily_schedule_rt_operator_summary(wc_vars.event_date_range)

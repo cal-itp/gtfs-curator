@@ -7,6 +7,7 @@ from typing import Literal
 
 import gcsfs
 import google.auth
+import pandas as pd
 from google.cloud import bigquery, bigquery_storage
 
 from gtfs_curator_utils import utils
@@ -145,6 +146,28 @@ def download_table(
         df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
 
     df.to_parquet(output_path, filesystem=filesystem)
+
+    print(f"exported: {output_path}")
+    return
+
+
+def download_table_with_job_config(
+    sql_query: str = "",
+    job_config: bigquery.job.query.QueryJobConfig = None,
+    output_path: str = "",
+    client: bigquery.Client = client,
+    filesystem: gcsfs.GCSFileSystem = gcsfs.GCSFileSystem(),
+    bqstorage_client: google.cloud.bigquery_storage_v1.BigQueryReadClient = None,
+) -> pd.DataFrame:
+    """ """
+    query_job = client.query(sql_query, job_config=job_config)
+
+    df = query_job.result().to_arrow(bqstorage_client=bqstorage_client).to_pandas()
+
+    if output_path == "":
+        df.to_parquet("./data/data.parquet")
+    else:
+        df.to_parquet(output_path, filesystem=filesystem)
 
     print(f"exported: {output_path}")
     return
