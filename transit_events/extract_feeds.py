@@ -14,9 +14,11 @@ use cases:
 
 import gcsfs
 import pandas as pd
+import world_cup_vars as wc_vars
 from google.cloud import bigquery
 from gtfs_curator_utils import bq_utils
-from world_cup_vars import GCS_FILE_PATH
+
+GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 
 
 def filter_fct_daily_schedule_feeds_by_date(
@@ -162,8 +164,6 @@ def filter_fct_daily_schedule_rt_operator_summary(
 
 
 if __name__ == "__main__":
-    import world_cup_vars as wc_vars
-
     # (1) fct_daily_schedule_feeds for entire date range
     filter_fct_daily_schedule_feeds_by_date(wc_vars.event_date_range)
 
