@@ -134,3 +134,40 @@ def weekday_weekend_chart_by_operator(
     )
 
     return combined_chart
+
+
+def arrivals_by_time_of_day_grouped_bar(
+    df, time_of_day: str, day_type: str
+) -> alt.Chart:
+    """
+    Grouped bar chart for one day_type-time-of-day combination (weekday am_peak, weekday pm_peak).
+    y-axis = arrivals_per_hour
+    x-axis = individual match dates + all non_event dates
+    """
+    selection = alt.selection_point(fields=["schedule_name"], bind="legend")
+
+    chart = (
+        alt.Chart(df[(df.time_of_day == time_of_day) & (df.day_type == day_type)])
+        .mark_bar()
+        .encode(
+            x="service_date",
+            y="arrivals_per_hour",
+            color=alt.Color(
+                "schedule_name:N",
+                title="GTFS Schedule Name",
+                scale=alt.Scale(
+                    scheme="plasma"
+                ),  # same colorscale as operator charts for daily_trips
+            ),
+            opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.2)),
+            tooltip=[
+                "service_date",
+                "schedule_name",
+                "day_type",
+                "time_of_day",
+                "arrivals_per_hour",
+            ],
+        )
+    )
+
+    return chart
