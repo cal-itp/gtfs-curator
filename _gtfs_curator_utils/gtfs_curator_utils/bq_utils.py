@@ -32,6 +32,7 @@ def bigquery_partition_and_job_config(
         "month_first_day",
         "ntd_start_year",
         "ntd_us_states",
+        "ntd_us_source_states",
     ],
     list_of_values: list = [],
 ) -> tuple:
@@ -74,11 +75,16 @@ def bigquery_partition_and_job_config(
         job_config = bigquery.ScalarQueryParameter(
             "min_year", "INT64", list_of_values[0]
         )
-    elif name == "ntd_us_states":
-        where_partition_condition = "state IN UNNEST(@us_state_list)"
+    elif name in ["ntd_us_states", "ntd_us_source_states"]:
+        if name == "ntd_us_states":
+            col = "state"
+        elif name == "ntd_us_source_states":
+            col = "source_state"
+        where_partition_condition = f"{col} IN UNNEST(@us_state_list)"
         job_config = bigquery.ArrayQueryParameter(
             "us_state_list", "STRING", list_of_values
         )
+
     elif name in [
         "base64_url",
         "schedule_base64_url",
