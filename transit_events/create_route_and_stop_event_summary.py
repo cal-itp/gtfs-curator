@@ -12,7 +12,6 @@ import google.auth
 import pandas as pd
 import poi_geography_utils as poi_geog_utils
 import world_cup_vars as wc_vars
-from gtfs_curator_utils import utils
 
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 credentials, _ = google.auth.default()
@@ -362,9 +361,7 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
     # get non-event and aggregate
     # FutureWarning: The behavior of 'isin' with dtype=datetime64[ns] and castable values (e.g. strings) is deprecated. In a future version, these will not be considered matching by isin. Explicitly cast to the appropriate dtype before calling isin instead.
     # cast service_date to date, not datetime to do filtering
-    match_service_dates = [
-        pd.to_datetime(c).date for c in event_time_of_day_dict.keys()
-    ]
+    match_service_dates = [pd.to_datetime(d) for d in event_time_of_day_dict.keys()]
 
     arrivals_cols = [c for c in stop_gdf.columns if "arrivals_per_hour" in c]
 
@@ -423,6 +420,7 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
         service_date=arrivals_by_event_long2.service_date.dt.date.fillna(
             "nonevent"
         ).astype(str),
+        arrivals_per_hour=arrivals_by_event_long2.arrivals_per_hour.round(2),
     )
     print(f"stop arrivals by time-of-day aggregated for {point_of_interest}")
 
@@ -431,6 +429,7 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
 
 if __name__ == "__main__":
     for p in ["sofi", "levi"]:
+        """
         route_gdf = full_route_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"route_summary_{p}")
         del route_gdf
@@ -439,7 +438,7 @@ if __name__ == "__main__":
         stop_gdf = full_stop_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(stop_gdf, GCS_FILE_PATH, f"stop_summary_{p}")
         del stop_gdf
-
+        """
         # this holds arrivals_per_hour_[time_of_day] columns for individual match dates vs non-event
         arrivals_time_of_day = full_arrivals_by_time_of_day_cleaning(
             wc_vars.event_name, p

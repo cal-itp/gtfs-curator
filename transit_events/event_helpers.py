@@ -61,7 +61,7 @@ def grab_matches_by_day_type(
     filtered_events = {
         **{
             d: tod
-            for d, tod in wc_vars.sofi_match_times.items()
+            for d, tod in event_time_of_day_dict.items()
             if (tod == time_of_day)
             and (
                 pd.to_datetime(d).day_name() in ["Saturday", "Sunday"]
