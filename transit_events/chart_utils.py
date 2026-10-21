@@ -144,7 +144,7 @@ def arrivals_by_time_of_day_grouped_bar(
     y-axis = arrivals_per_hour
     x-axis = individual match dates + all non_event dates
     """
-    selection = alt.selection_point(fields=["schedule_name"], bind="legend")
+    selection = alt.selection_point(fields=["route_id_array"], bind="legend")
 
     chart = (
         alt.Chart(df[(df.time_of_day == time_of_day) & (df.day_type == day_type)])
