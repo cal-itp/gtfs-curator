@@ -346,7 +346,7 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
     elif point_of_interest == "levi":
         event_time_of_day_dict = wc_vars.levi_match_times
 
-    # Same set up as full_stop_cleaning
+    # Same set up as full_stop_cleaning()
     routes_df = import_routes_near_poi(event_name, point_of_interest)
 
     stop_gdf = (
@@ -367,8 +367,8 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
 
     nonevent_arrivals_df = event_helpers.aggregate_by_event_type(
         stop_gdf[
-            (stop_gdf.is_special_route == True)
-            & (~stop_gdf.service_date.isin(match_service_dates))
+            # (stop_gdf.is_special_route==True) &
+            (~stop_gdf.service_date.isin(match_service_dates))
         ],
         group_cols=[
             "schedule_name",
@@ -385,8 +385,8 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
         [
             nonevent_arrivals_df,
             stop_gdf[
-                (stop_gdf.is_special_route == True)
-                & (stop_gdf.service_date.isin(match_service_dates))
+                # (stop_gdf.is_special_route==True) &
+                (stop_gdf.service_date.isin(match_service_dates))
             ],
         ],
         axis=0,
@@ -405,26 +405,14 @@ def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: st
         ],  # service_date for non_event are NaT
     )
 
-    # Aggregate this across number of stops for operator
-    # Keep average arrivals_per_hour
-    arrivals_by_event_long2 = (
-        arrivals_by_event_long.groupby(
-            ["service_date", "schedule_name", "time_of_day", "day_type"], dropna=False
-        )
-        .agg({"arrivals_per_hour": "mean", "stop_id": "count"})
-        .reset_index()
-        .rename(columns={"stop_id": "n_stops"})
-    )
-
-    arrivals_by_event_long2 = arrivals_by_event_long2.assign(
-        service_date=arrivals_by_event_long2.service_date.dt.date.fillna(
+    arrivals_by_event_long = arrivals_by_event_long.assign(
+        service_date=arrivals_by_event_long.service_date.dt.date.fillna(
             "nonevent"
         ).astype(str),
-        arrivals_per_hour=arrivals_by_event_long2.arrivals_per_hour.round(2),
     )
     print(f"stop arrivals by time-of-day aggregated for {point_of_interest}")
 
-    return arrivals_by_event_long2
+    return arrivals_by_event_long
 
 
 if __name__ == "__main__":

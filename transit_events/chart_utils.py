@@ -153,11 +153,11 @@ def arrivals_by_time_of_day_grouped_bar(
             x="service_date",
             y="arrivals_per_hour",
             color=alt.Color(
-                "schedule_name:N",
-                title="GTFS Schedule Name",
+                "route_id_array:N",
+                title="Route Name",
                 scale=alt.Scale(
-                    scheme="plasma"
-                ),  # same colorscale as operator charts for daily_trips
+                    scheme="category20"
+                ),  # same colorscale as operator charts for daily_trips by route
             ),
             opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.2)),
             tooltip=[
@@ -166,6 +166,7 @@ def arrivals_by_time_of_day_grouped_bar(
                 "day_type",
                 "time_of_day",
                 "arrivals_per_hour",
+                "route_id_array",
             ],
         )
     )

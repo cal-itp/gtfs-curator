@@ -168,7 +168,7 @@ def aggregate_by_event_type(
     """
 
     df = (
-        gdf.groupby(group_cols)
+        gdf.groupby(group_cols, dropna=False)
         .agg(
             {
                 **{c: "sum" for c in sum_cols},
