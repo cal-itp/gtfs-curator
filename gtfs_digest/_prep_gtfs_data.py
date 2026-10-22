@@ -113,8 +113,8 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
 
     # Multiply percetnage columns by 100. Clip any values above 100.
     df2 = df2.assign(
-        pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0),
-        pct_vp_trips=(df2.pct_vp_trips * 100).clip(upper=100.0),
+        pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0).round(2),
+        pct_vp_trips=(df2.pct_vp_trips * 100).clip(upper=100.0).round(2),
     )
 
     # Clean columns
