@@ -1,4 +1,4 @@
-import gcsfs
+# import gcsfs
 import geopandas as gpd
 import google.auth
 import pandas as pd
@@ -142,6 +142,12 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
             "pct_tu_trips",
         ]
     ]
+
+    df2 = df2.dropna(subset = ["n_vp_trips",
+                               "pct_vp_trips",
+                               "pct_tu_trips",
+                              "vp_name",
+                              "tu_name"]).reset_index(drop = True)
 
     # Multiply percetnage columns by 100. Clip any values above 100.
     df2 = df2.assign(

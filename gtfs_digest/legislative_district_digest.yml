@@ -1,6 +1,6 @@
 title: Legislative District GTFS Digest
 directory: .
-readme: README.md
+readme: ./README.md
 notebook: report_legislative_district.ipynb
 parts:
   - chapters:
@@ -160,6 +160,10 @@ parts:
           district: AD 77
       - params:
           district: AD 78
+      - params:
+          district: AD 79
+      - params:
+          district: AD 80
       - params:
           district: SD 01
       - params:
