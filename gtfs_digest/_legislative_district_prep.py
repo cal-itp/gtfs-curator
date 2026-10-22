@@ -47,7 +47,7 @@ def sjoin_shapes_legislative_districts(abbrev_month: str) -> pd.DataFrame:
     )
 
     utils.geoparquet_gcs_export(
-        crosswalk, PROCESSED_GCS, f"{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}"
+        crosswalk, PROCESSED_GCS, f"{DIGEST_DICT.crosswalk_legislative}"
     )
 
     print(f"{abbrev_month}: exported legislative districts to operators crosswalk")

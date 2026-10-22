@@ -128,6 +128,52 @@ def filter_to_operators_for_event(event_name: str, schedule_gtfs_name_list: list
     return
 
 
+def filter_fct_daily_schedule_rt_operator_summary(
+    service_date_list: list,
+    # schedule_name_list: list = None
+):
+    """
+    Need to save out schedule feed_key, quartet_gtfs_dataset_keys, and quartet base4_urls.
+    Future TODO: see how service_alerts can fit into this dbt model
+    """
+    client = bigquery.Client(project="cal-itp-data-infra", credentials=credentials)
+
+    # what if we want all operators, how to set up if condition
+    # schedule_name_list defaults to None? filter it after the query is done?
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ArrayQueryParameter(
+                "service_date_list", "DATETIME", service_date_list
+            ),
+        ]
+    )
+
+    query = """
+        SELECT 
+            service_date,
+            feed_key,
+            _feed_valid_from,
+            schedule_gtfs_dataset_key,
+            schedule_name,
+            schedule_base64_url,
+            vp_name,
+            vp_gtfs_dataset_key,
+            vp_base64_url,
+            tu_name,
+            tu_gtfs_dataset_key,
+            tu_base64_url,
+  
+    FROM `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_rt_operator_summary`
+    WHERE service_date IN UNNEST(@service_date_list) 
+    """
+    query_job = client.query(query, job_config)
+    df = query_job.result().to_arrow().to_pandas()
+
+    print("fct_daily_schedule_rt_operator_summary feeds")
+
+    return df
+
+
 if __name__ == "__main__":
     import world_cup_vars as wc_vars
 
@@ -142,4 +188,13 @@ if __name__ == "__main__":
     # (2) filter down to operators for those feeds
     filter_to_operators_for_event(
         wc_vars.event_name, wc_vars.socal_names + wc_vars.bay_area_names
+    )
+
+    # (3) filter to fct_daily_schedule_rt_operator_summary for event_date range
+    daily_operator_summary = filter_fct_daily_schedule_rt_operator_summary(
+        wc_vars.event_date_range
+    )
+    daily_operator_summary.to_parquet(
+        f"{GCS_FILE_PATH}fct_daily_schedule_rt_operator_summary_{wc_vars.event_name}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
     )

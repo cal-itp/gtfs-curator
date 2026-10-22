@@ -16,23 +16,30 @@ def generate_operator_report_yaml(site_path: Path, abbrev_month: str) -> pd.Data
     """
     Generate the yaml for our Operator grain portfolio.
     """
-    table = DIGEST_DICT.operator_summary
+    table = DIGEST_DICT.schedule_rt_route_direction
     site = load_site(site_path)
 
     # Keep only organizations with RT and schedule OR only schedule.
-    df = (
+    # must have weekday data at least and some trips for a route
+    route_df = (
         pd.read_parquet(
-            f"{PROCESSED_GCS}{table}_{abbrev_month}.parquet",
-            columns=["Caltrans District", "Analysis Name"],
+            f"{PROCESSED_GCS}{table}.parquet",
+            columns=["Analysis Name"],
             filesystem=gcsfs.GCSFileSystem(),
+            filters=[[("Day Type", "==", "Weekday"), ("Daily Trips All Day", ">", 0)]],
         )
         .drop_duplicates()
-        .rename(
-            columns={
-                "Caltrans District": "caltrans_district",
-                "Analysis Name": "analysis_name",
-            }
-        )  # rename so it's easier to key into below
+        .rename(columns={"Analysis Name": "analysis_name"})
+    )
+
+    crosswalk = pd.read_parquet(
+        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet",
+        columns=["analysis_name", "caltrans_district"],
+        filesystem=gcsfs.GCSFileSystem(),
+    ).drop_duplicates()
+
+    df = (
+        pd.merge(route_df, crosswalk, on="analysis_name", how="inner")
         .dropna(subset=["caltrans_district"])
         .reset_index(drop=True)
     )
