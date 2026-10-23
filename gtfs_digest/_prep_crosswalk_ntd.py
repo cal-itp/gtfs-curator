@@ -7,33 +7,22 @@ import google.auth
 import pandas as pd
 from google.cloud import bigquery
 from gtfs_curator_utils import bq_utils
-from update_vars import DIGEST_DICT, PROCESSED_GCS, abbrev_month
+from update_vars import DIGEST_DICT, PROCESSED_GCS
 
 credentials, project = google.auth.default()
 
 
 def load_crosswalk(
-    project_name: str,
-    dataset_name: str,
-    table_name: str = "bridge_gtfs_analysis_name_x_ntd",
+    output_path=f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet",
 ) -> pd.DataFrame:
-    crosswalk_cols = [
-        "schedule_gtfs_dataset_name",
-        "analysis_name",
-        "county_name",
-        "caltrans_district",
-        "caltrans_district_full",
-        "ntd_id",
-        "ntd_id_2022",
-    ]
 
-    df = bq_utils.download_table(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=table_name,
-        date_col=None,
-        columns=crosswalk_cols,
-    )
+    sql_query = """
+        SELECT 
+            *
+        FROM `cal-itp-data-infra.mart_transit_database.bridge_gtfs_analysis_name_x_ntd`
+    """
+
+    df = bq_utils.download_table(sql_query=sql_query, filter_dict={}, output_path=None)
 
     df2 = (
         df.dropna(subset=["ntd_id", "ntd_id_2022"])
@@ -51,7 +40,7 @@ def load_crosswalk(
     )
 
     df2.to_parquet(
-        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet",
+        output_path,
         filesystem=gcsfs.GCSFileSystem(),
     )
 
@@ -80,7 +69,10 @@ def download_ntd_dim_annual_agency(
             bigquery.ScalarQueryParameter("min_year", "INT64", min_year),
         ]
     )
-    df = bq_utils.bq_param_query(sql_query, job_config=job_config)
+
+    df = bq_utils.download_table_with_job_config(
+        sql_query, job_config=job_config, output_path=None
+    )
 
     df = prep_ntd(df)
 
@@ -130,7 +122,9 @@ def prep_ntd(df):
     return df
 
 
-def merge_crosswalk_with_ntd(abbrev_month: str):
+def merge_crosswalk_with_ntd(
+    output_path=f"{PROCESSED_GCS}{DIGEST_DICT.ntd_profile}.parquet",
+):
     ntd_columns = [
         "ntd_id",
         "service_area_sq_miles",
@@ -173,20 +167,16 @@ def merge_crosswalk_with_ntd(abbrev_month: str):
     )
 
     df.to_parquet(
-        f"{PROCESSED_GCS}{DIGEST_DICT.ntd_profile}.parquet",
+        output_path,
         filesystem=gcsfs.GCSFileSystem(),
     )
     return
 
 
 if __name__ == "__main__":
-    PROD_PROJECT = "cal-itp-data-infra"
-    PROD_MART = "mart_transit_database"
-
-    load_crosswalk(
-        project_name=PROD_PROJECT,
-        dataset_name=PROD_MART,
-    )
+    load_crosswalk(output_path=f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk}.parquet")
 
     download_ntd_dim_annual_agency(min_year=2022)
-    merge_crosswalk_with_ntd(abbrev_month)
+    merge_crosswalk_with_ntd(
+        output_path=f"{PROCESSED_GCS}{DIGEST_DICT.ntd_profile}.parquet"
+    )
