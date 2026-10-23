@@ -44,6 +44,8 @@ def load_crosswalk(
         filesystem=gcsfs.GCSFileSystem(),
     )
 
+    print(f"exported {output_path}")
+
     return
 
 
@@ -76,12 +78,13 @@ def download_ntd_dim_annual_agency(
 
     df = prep_ntd(df)
 
+    output_path = f"{PROCESSED_GCS}dim_annual_agency_information.parquet"
     df.to_parquet(
-        f"{PROCESSED_GCS}dim_annual_agency_information.parquet",
+        output_path,
         filesystem=gcsfs.GCSFileSystem(),
     )
 
-    print("exported dim_annual_agency_information")
+    print(f"exported {output_path}")
 
     return
 
@@ -170,6 +173,9 @@ def merge_crosswalk_with_ntd(
         output_path,
         filesystem=gcsfs.GCSFileSystem(),
     )
+
+    print(f"exported {output_path}")
+
     return
 
 
