@@ -5,31 +5,14 @@ Download tables for creating RT stop, route, operator report.
 import datetime
 import sys
 
-import gcsfs
-import google.auth
-from calitp_data_analysis import utils
+from gtfs_curator_utils import bq_utils, geography_utils, utils
 from loguru import logger
-from rt_msa_utils import PREDICTIONS_GCS
-from shared_utils import bq_utils
+from shared_vars import PREDICTIONS_GCS, operator_report_month
 
-credentials, project = google.auth.default()
 
-PRODUCTION_PROJECT = "cal-itp-data-infra"
-PRODUCTION_MART_GTFS = "mart_gtfs"
-PRODUCTION_MART_ROLLUP = "mart_gtfs_rollup"
-
-if __name__ == "__main__":
-    LOG_FILE = "./logs/download_warehouse.log"
-    logger.add(LOG_FILE, retention="2 months")
-    logger.add(
-        sys.stderr,
-        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-        level="INFO",
-    )
-
-    # (1) Stop report tables
-    start = datetime.datetime.now()
-
+def download_stops_stuff():
+    """
+    TODO: see if these can get added to monthly stops table
     monthly_stops = bq_utils.download_table(
         project_name="cal-itp-data-infra-staging",
         dataset_name="tiffany_mart_gtfs_rollup",
@@ -58,7 +41,13 @@ if __name__ == "__main__":
         f"{PREDICTIONS_GCS}int_gtfs_schedule__stop_order_by_route.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
+    """
+    return
 
+
+def download_monthly_route_direction():
+    """
+    # TODO: see if these columns can get added to table
     monthly_tu_route_direction_summary = bq_utils.download_table(
         project_name="cal-itp-data-infra-staging",
         dataset_name="tiffany_mart_gtfs_rollup",
@@ -72,32 +61,47 @@ if __name__ == "__main__":
         f"{PREDICTIONS_GCS}monthly_tu_route_direction_summary.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
+    """
+    return
 
-    monthly_operator_summary = bq_utils.download_table(
-        project_name="cal-itp-data-infra-staging",
-        dataset_name="tiffany_mart_gtfs_rollup",
-        table_name="fct_monthly_operator_summary",
-        date_col="month_first_day",
-        start_date="2025-12-01",
-        end_date="2026-02-01",
+
+if __name__ == "__main__":
+    LOG_FILE = "./logs/download_warehouse.log"
+    logger.add(LOG_FILE, retention="2 months")
+    logger.add(
+        sys.stderr,
+        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+        level="INFO",
     )
 
-    monthly_operator_summary.to_parquet(
-        f"{PREDICTIONS_GCS}monthly_operator_summary.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
+    start = datetime.datetime.now()
+
+    # these would be shared with GTFS digest, so may not have to download operator summary or monthly routes
+    operator_summary_query = """
+        SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_operator_summary`
+    """
+    bq_utils.download_table(
+        operator_summary_query,
+        filter_dict={"month_first_day": operator_report_month},
+        output_path=f"{PREDICTIONS_GCS}monthly_operator_summary.parquet",
     )
 
-    monthly_routes = bq_utils.download_table(
-        project_name=PRODUCTION_PROJECT,
-        dataset_name=PRODUCTION_MART_ROLLUP,
-        table_name="fct_monthly_routes",
-        date_col="month_first_day",
-        start_date="2025-12-01",
-        end_date="2026-02-01",
-        geom_col="pt_array",
-        geom_type="line",
+    routes_query = """
+        SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_routes`
+    """
+
+    routes_gdf = bq_utils.download_table(
+        routes_query,
+        filter_dict={"month_first_day": operator_report_month},
+        output_path=None,
     )
 
-    utils.geoparquet_gcs_export(monthly_routes, PREDICTIONS_GCS, "monthly_routes")
+    routes_gdf = geography_utils.convert_to_gdf(routes_gdf, "pt_array", "line")
+
+    utils.geoparquet_gcs_export(
+        routes_gdf,
+        PREDICTIONS_GCS,
+        "monthly_routes",
+    )
 
     end = datetime.datetime.now()
