@@ -41,6 +41,9 @@ def bigquery_partition_and_job_config(
     Be able to use a list of values we want and have it set up the
     Big Query parameterized query correctly - needs the sql query portion + job_config.
     """
+    # just in case 1 value is put in, make sure we can unpack correctly with bigquery.QueryParameter
+    if not isinstance(list_of_values, list):
+        list_of_values = [list_of_values]
 
     if name == "service_date":
         where_partition_condition = "service_date IN UNNEST(@service_date_list)"
@@ -68,7 +71,7 @@ def bigquery_partition_and_job_config(
     elif name == "month_first_day":
         where_partition_condition = "month_first_day >= @gtfs_rollup_start_date"
         job_config = bigquery.ScalarQueryParameter(
-            "gtfs_rollup_start_date", "INT64", list_of_values[0]
+            "gtfs_rollup_start_date", "DATE", list_of_values[0]
         )
     elif name == "ntd_start_year":
         where_partition_condition = "year >= @min_year"
