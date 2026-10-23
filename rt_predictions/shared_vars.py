@@ -16,8 +16,8 @@ def get_catalog(catalog_name="catalog") -> Path:
 
 
 RT_MSA_DICT = get_catalog("catalog")
-stop_report_month = "2026-01-01"
-operator_report_month = "2026-01-01"
+stop_report_month = "2026-09-01"
+operator_report_month = "2026-09-01"
 
 """
 execute:
