@@ -126,6 +126,8 @@ def download_table(
 
     filter_dict: order matters, put the partition columns first, then the clustering columns.
 
+    output_path: set local or GCS export path. If None, then this function returns df.
+
     geography_column: if column is GEOGRAPHY in Big Query, set this to return a geodataframe.
          Use only for points, not linestrings.
          Linestrings in warehouse are ARRAYS of points, not GEOGRAPHY.
@@ -165,9 +167,6 @@ def download_table(
 
     query_job = client.query(sql_query_expanded, job_config=job_config)
 
-    # parse the output path, if nothing is given, save it locally
-    filename = Path(output_path).name
-
     # this would only support pt_geom, not linestrings, since we store those as arrays of points
     if geography_column is not None:
         df = (
@@ -179,7 +178,10 @@ def download_table(
             .rename(columns={geography_column: "geometry"})
         )
 
-        utils.geoparquet_gcs_export(df, output_path.replace(filename, ""), filename)
+        if output_path is not None:
+            filename = Path(output_path).name
+            utils.geoparquet_gcs_export(df, output_path.replace(filename, ""), filename)
+        print(f"exported: {output_path}")
 
     else:
         df = (
@@ -189,10 +191,13 @@ def download_table(
             .pipe(clean_up_table)
         )
 
-        df.to_parquet(output_path, filesystem=filesystem)
+        if output_path is not None:
+            df.to_parquet(output_path, filesystem=filesystem)
 
-    print(f"exported: {output_path}")
-    return
+            print(f"exported: {output_path}")
+
+        elif output_path is None:
+            return df
 
 
 def download_table_with_job_config(
@@ -216,10 +221,13 @@ def download_table_with_job_config(
         .pipe(clean_up_table)
     )
 
-    df.to_parquet(output_path, filesystem=filesystem)
+    if output_path is not None:
+        df.to_parquet(output_path, filesystem=filesystem)
 
-    print(f"exported: {output_path}")
-    return
+        print(f"exported: {output_path}")
+
+    elif output_path is None:
+        return df
 
 
 def fix_date_columns(
