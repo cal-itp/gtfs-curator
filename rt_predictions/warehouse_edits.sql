@@ -6,7 +6,7 @@
 -- but event_time set with service_date from upstream? 1 table, 2 incremental
 -- can this be incremental? how would lookback be set up?
 -- incremental, fulll refresh worked
--- job ID: 8f04ee91-ade3-47f4-a1c7-d7586dc33e9a (run for sep); aa0b2f68-bfb6-4454-a07f-393c2bd2d6d9 (run for aug, incremental worked)
+-- job ID: 8f04ee91-ade3-47f4-a1c7-d7586dc33e9a (run for sep); f46f3ba9-6ede-42f0-897c-b22247044249 (run for aug, incremental worked)
 -----------------------------------------------------------------------
 {{
     config(
