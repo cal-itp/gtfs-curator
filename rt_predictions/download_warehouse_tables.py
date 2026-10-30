@@ -5,9 +5,14 @@ Download tables for creating RT stop, route, operator report.
 import datetime
 import sys
 
-from gtfs_curator_utils import bq_utils, geography_utils, utils
+import google.auth
+from google.cloud import bigquery
+from gtfs_curator_utils import bq_utils
 from loguru import logger
-from shared_vars import PREDICTIONS_GCS, operator_report_month
+from shared_vars import PREDICTIONS_GCS
+
+credentials, project = google.auth.default()
+client = bigquery.Client(project="cal-itp-data-infra-staging", credentials=credentials)
 
 
 def download_stops_stuff():
@@ -45,23 +50,13 @@ def download_stops_stuff():
     return
 
 
-def download_monthly_route_direction():
-    """
-    # TODO: see if these columns can get added to table
-    monthly_tu_route_direction_summary = bq_utils.download_table(
-        project_name="cal-itp-data-infra-staging",
-        dataset_name="tiffany_mart_gtfs_rollup",
-        table_name="fct_monthly_trip_updates_route_direction_summary",
-        date_col="month_first_day",
-        start_date="2025-12-01",
-        end_date="2026-01-01",
+def download_monthly_route_direction(start_date: list):
+    bq_utils.download_table(
+        "SELECT * FROM `cal-itp-data-infra-staging.tiffany_mart_gtfs_rollup.fct_monthly_trip_updates_route_direction_summary`",
+        filter_dict={"month_first_day": start_date},
+        client=client,
+        output_path=f"{PREDICTIONS_GCS}monthly_tu_route_direction_summary.parquet",
     )
-
-    monthly_tu_route_direction_summary.to_parquet(
-        f"{PREDICTIONS_GCS}monthly_tu_route_direction_summary.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-    )
-    """
     return
 
 
@@ -76,22 +71,16 @@ if __name__ == "__main__":
 
     start = datetime.datetime.now()
 
-    # these would be shared with GTFS digest, so may not have to download operator summary or monthly routes
-    operator_summary_query = """
-        SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_operator_summary`
     """
+    # these would be shared with GTFS digest, so may not have to download operator summary or monthly routes
     bq_utils.download_table(
-        operator_summary_query,
+        "SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_operator_summary`",
         filter_dict={"month_first_day": operator_report_month},
         output_path=f"{PREDICTIONS_GCS}monthly_operator_summary.parquet",
     )
 
-    routes_query = """
-        SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_routes`
-    """
-
     routes_gdf = bq_utils.download_table(
-        routes_query,
+        "SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_routes`",
         filter_dict={"month_first_day": operator_report_month},
         output_path=None,
     )
@@ -103,5 +92,7 @@ if __name__ == "__main__":
         PREDICTIONS_GCS,
         "monthly_routes",
     )
+    """
+    download_monthly_route_direction(["2026-09-01"])
 
     end = datetime.datetime.now()
