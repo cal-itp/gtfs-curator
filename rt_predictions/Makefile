@@ -37,3 +37,6 @@ operator_report:
 	uv run calitp-portfolio login
 	uv run calitp-portfolio deploy rt_operator_metrics.yml --target staging
 	uv run calitp-portfolio deploy rt_operator_metrics.yml --target prod
+
+convert_nb_to_qmd:
+	uv run quarto convert operator_report.ipynb
