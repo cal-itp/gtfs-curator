@@ -105,8 +105,6 @@ parts:
       - params:
           name: GET TripUpdates
       - params:
-          name: Golden Gate Park Shuttle Swiftly Trip Updates
-      - params:
           name: Humboldt Trip Updates
       - params:
           name: Kern Swiftly Trip Update
