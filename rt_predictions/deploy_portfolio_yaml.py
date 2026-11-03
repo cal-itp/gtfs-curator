@@ -1,9 +1,6 @@
 """
 Create the yamls for parameterized reports.
 
-Since these yamls do not use sections, we can
-generate them similarly using Makefile commands.
-
 Try out typer to make CLI a little easier to use, since
 this only takes 1 argument with 2 possible values.
 Base it off of this tutorial:
@@ -12,18 +9,11 @@ https://typer.tiangolo.com/tutorial/options/required/
 
 from pathlib import Path
 
-import gcsfs
-import google.auth
 import pandas as pd
 import report_utils
 import typer
-from shared_utils import portfolio_utils
-
-RT_TRIP_UPDATES_STOP_YAML = Path("../portfolio/sites/rt_stop_metrics.yml")
-RT_TRIP_UPDATES_OPERATOR_YAML = Path("../portfolio/sites/rt_operator_metrics.yml")
-
-credentials, project = google.auth.default()
-fs = gcsfs.GCSFileSystem()
+from calitp_portfolio.models import load_site
+from calitp_portfolio.mutations import generate_parts_flat
 
 app = typer.Typer()
 
@@ -93,10 +83,6 @@ def check_route_counts(one_month: str):
         ]
     ]
 
-    # TODO: should portfolio_utils be extended to include multiple params that move together?
-    # simpler to have 1 param. Here, tu_name would be used, since the same schedule_name
-    # can appear for different tu_names (Marin Swiftly/Equans or Torrance).
-    # Drop if there's is either column
     route_df = (
         report_utils.import_route_df(
             filters=filtering,
@@ -135,21 +121,29 @@ def overwrite_yaml(name: str = typer.Argument(default="rt_msa"), month: str = ""
         print(month)
         df = check_stop_and_route_counts(month)
 
-        portfolio_utils.create_portfolio_yaml_chapters_no_sections(
-            RT_TRIP_UPDATES_STOP_YAML,
-            chapter_name="name",
-            chapter_values=sorted(list(df.tu_name)),
+        STOP_REPORT_YML = Path("./rt_stop_metrics.yml")
+        site = load_site(STOP_REPORT_YML)
+        site = generate_parts_flat(
+            site,
+            param_key="name",
+            values=sorted(df.tu_name.unique()),
         )
+
+        site.write_yaml(STOP_REPORT_YML)
 
     elif name == "rt_msa_operators":
         print(month)
         df = check_route_counts(month)
 
-        portfolio_utils.create_portfolio_yaml_chapters_no_sections(
-            RT_TRIP_UPDATES_OPERATOR_YAML,
-            chapter_name="name",
-            chapter_values=sorted(list(df.tu_name)),
+        OPERATOR_REPORT_YML = Path("./rt_operator_metrics.yml")
+        site = load_site(OPERATOR_REPORT_YML)
+        site = generate_parts_flat(
+            site,
+            param_key="name",
+            values=sorted(df.tu_name.unique()),
         )
+
+        site.write_yaml(OPERATOR_REPORT_YML)
 
     return
 

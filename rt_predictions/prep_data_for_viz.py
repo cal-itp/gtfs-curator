@@ -9,8 +9,8 @@ import google.auth
 import outlier_detection
 import pandas as pd
 import report_utils
-from calitp_data_analysis import utils
-from rt_msa_utils import PREDICTIONS_GCS, RT_MSA_DICT
+from gtfs_curator_utils import utils
+from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 
 credentials, project = google.auth.default()
 
@@ -170,7 +170,7 @@ def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
     return stop_with_route_gdf
 
 
-def clean_route_file(filename: str) -> pd.DataFrame:
+def clean_route_file(filename: str, operator_filename: str) -> pd.DataFrame:
     """
     Clean route metrics.
 
@@ -183,9 +183,13 @@ def clean_route_file(filename: str) -> pd.DataFrame:
     for routes, use same 5 min cutoff, and this removes less than 1% on each tail.
     1% on each tail is around 3.5 min.
     """
-    route_df = pd.read_parquet(
-        f"{PREDICTIONS_GCS}{filename}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
+    route_df = (
+        pd.read_parquet(
+            f"{PREDICTIONS_GCS}{filename}.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+        )
+        .rename(columns={"base64_url": "tu_base64_url"})
+        .pipe(merge_operator_tu_identifiers, operator_filename)
     )
 
     route_df = (
@@ -219,7 +223,7 @@ def clean_route_file(filename: str) -> pd.DataFrame:
     group_cols = [
         "month_first_day",
         "day_type",
-        "base64_url",
+        "tu_base64_url",
         "tu_name",
         "schedule_base64_url",
         "schedule_name",
@@ -233,7 +237,7 @@ def clean_route_file(filename: str) -> pd.DataFrame:
         route_df,
         group_cols,
         array_col="scaled_prediction_error_sec_array",
-        ptile_array_col="scaled_prediction_error_sec_percentile_array",
+        ptile_array_col="prediction_error_sec_percentile_array",
         ptiles_to_keep=[25, 75],
     ).rename(
         columns={
@@ -308,22 +312,37 @@ def merge_in_route_geom(
     return route_gdf
 
 
+def merge_operator_tu_identifiers(df: pd.DataFrame, operator_filename: str):
+    operator_df = pd.read_parquet(
+        f"{PREDICTIONS_GCS}{operator_filename}.parquet",
+        filesystem=gcsfs.GCSFileSystem(),
+        columns=["month_first_day", "tu_base64_url", "tu_name"],
+    ).drop_duplicates()
+
+    df2 = pd.merge(
+        df, operator_df, on=["month_first_day", "tu_base64_url"], how="inner"
+    )
+
+    return df2
+
+
 if __name__ == "__main__":
     DOWNLOADED_DICT = RT_MSA_DICT.dbt_model_downloads
     PROCESSED_DICT = RT_MSA_DICT.rt_schedule_models
 
-    TU_STOP_DOWNLOADED = DOWNLOADED_DICT.weekday_stop_grain
-    TU_STOP_CLEANED = PROCESSED_DICT.weekday_stop_with_route
+    # TU_STOP_DOWNLOADED = DOWNLOADED_DICT.weekday_stop_grain
+    # TU_STOP_CLEANED = PROCESSED_DICT.weekday_stop_with_route
 
-    stop_with_route_gdf = merge_stops_with_route_info(TU_STOP_DOWNLOADED)
+    # stop_with_route_gdf = merge_stops_with_route_info(TU_STOP_DOWNLOADED)
 
-    utils.geoparquet_gcs_export(stop_with_route_gdf, PREDICTIONS_GCS, TU_STOP_CLEANED)
+    # utils.geoparquet_gcs_export(stop_with_route_gdf, PREDICTIONS_GCS, TU_STOP_CLEANED)
 
     TU_ROUTE_DOWNLOADED = DOWNLOADED_DICT.weekday_route_direction_grain
     ROUTE_GEOM_FILE = DOWNLOADED_DICT.route_geom
+    OPERATOR_FILE = DOWNLOADED_DICT.weekday_operator_grain
 
     TU_ROUTE_CLEANED = PROCESSED_DICT.weekday_route_direction
-    route_cleaned = clean_route_file(TU_ROUTE_DOWNLOADED).pipe(
+    route_cleaned = clean_route_file(TU_ROUTE_DOWNLOADED, OPERATOR_FILE).pipe(
         merge_in_route_geom, ROUTE_GEOM_FILE
     )
 
