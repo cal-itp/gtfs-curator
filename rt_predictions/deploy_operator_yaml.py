@@ -8,10 +8,7 @@ import pandas as pd
 import report_utils
 from calitp_portfolio.models import load_site
 from calitp_portfolio.mutations import generate_parts_flat
-
-exclude_operators = [
-    "Bay Area 511 Regional Schedule",
-]
+from shared_vars import exclude_operators
 
 
 def check_route_counts(one_month: str):

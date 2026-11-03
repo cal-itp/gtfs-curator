@@ -19,6 +19,10 @@ RT_MSA_DICT = get_catalog("catalog")
 stop_report_month = "2026-09-01"
 operator_report_month = "2026-09-01"
 
+exclude_operators = [
+    "Bay Area 511 Regional Schedule",
+]
+
 """
 execute:
   echo: false

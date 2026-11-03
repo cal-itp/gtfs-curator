@@ -91,7 +91,9 @@ def add_route_direction_column(df: pd.DataFrame) -> pd.DataFrame:
     Concatenate a combined route_name with direction_id.
     Use this to label route-direction consistently.
     """
-    df = df.assign(route_dir_name=df.route_name + "_" + df.direction_id.astype(str))
+    df = df.assign(
+        route_dir_name=df.route_name + "_" + df.direction_id.astype("Int64").astype(str)
+    )
 
     return df
 
