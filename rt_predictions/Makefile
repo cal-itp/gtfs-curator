@@ -25,12 +25,15 @@ stop_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
 	# save it out as parquet
 	python prep_data_for_viz.py
-	python deploy_portfolio_yaml.py rt_msa_stops --month 2026-01-01
-	# TODO: add portfolio steps
+	python deploy_stops_yaml.py
 
 operator_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
 	# save it out as parquet
 	uv run python prep_data_for_viz.py
 	uv run python deploy_operator_yaml.py
-	# TODO: add portfolio steps
+	# uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block --limit 2 # use this for dry run
+	uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block
+	uv run calitp-portfolio login
+	uv run calitp-portfolio deploy rt_operator_metrics.yml --target staging
+	uv run calitp-portfolio deploy rt_operator_metrics.yml --target prod
