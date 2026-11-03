@@ -31,6 +31,6 @@ stop_report:
 operator_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
 	# save it out as parquet
-	#python prep_data_for_viz.py
-	#python deploy_portfolio_yaml.py rt_msa_operators --month 2026-01-01
+	uv run python prep_data_for_viz.py
+	uv run python deploy_operator_yaml.py
 	# TODO: add portfolio steps
