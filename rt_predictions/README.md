@@ -26,12 +26,12 @@ As the bus approaches each stop, the software is making predictions for when the
 * Positive values = arrival came **after** the prediction.
    * actual_arrival = 8:05 am
    * predicted arrival = 8:00 am
-   * actual_arrival - predicted_arrival = +5 seconds
+   * actual_arrival - predicted_arrival = +5 minutes
    * follow the prediction, you will catch the bus
 * Negative values = arrival came **before** the prediction.
    * actual_arrival = 8:05 am
    * predicted arrival = 8:10 am
-   * actual_arrival - predicted_arrival = -5 seconds
+   * actual_arrival - predicted_arrival = -5 minutes
    * follow the prediction, you will **miss** the bus...this is very bad!
    * we want fewer of these kinds of predictions, and would much rather wait for the bus than to miss it
 

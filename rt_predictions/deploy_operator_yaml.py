@@ -28,11 +28,7 @@ def check_route_counts(one_month: str):
     route_df = (
         report_utils.import_route_df(
             filters=filtering,
-            columns=[
-                "schedule_name",
-                "tu_name",
-            ],
-        )
+        )[["schedule_name", "tu_name"]]
         .drop_duplicates()
         .dropna()
         .reset_index(drop=True)
@@ -40,9 +36,10 @@ def check_route_counts(one_month: str):
 
     operator_df = (
         report_utils.import_operator_df(
-            filters=filtering, columns=["schedule_name", "tu_name"]
-        )
+            filters=filtering,
+        )[["schedule_name", "tu_name"]]
         .drop_duplicates()
+        .dropna()
         .reset_index(drop=True)
     )
 
