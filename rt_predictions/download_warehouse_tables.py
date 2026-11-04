@@ -6,33 +6,26 @@ import datetime
 import sys
 
 import google.auth
-from google.cloud import bigquery
+from google.cloud import bigquery, bigquery_storage
 from gtfs_curator_utils import bq_utils
 from loguru import logger
 from shared_vars import PREDICTIONS_GCS
 
 credentials, project = google.auth.default()
 client = bigquery.Client(project="cal-itp-data-infra-staging", credentials=credentials)
+bqstorage_client = bigquery_storage.BigQueryReadClient(credentials=credentials)
 
 
-def download_stops_stuff():
+def download_monthly_tu_stops(start_date: list):
+    bq_utils.download_table(
+        "SELECT * FROM `cal-itp-data-infra-staging.tiffany_mart_gtfs_rollup.fct_monthly_tu_stops`",
+        filter_dict={"month_first_day": start_date},
+        client=client,
+        geography_column="pt_geom",
+        output_path=f"{PREDICTIONS_GCS}monthly_tu_stops.parquet",
+    )
+
     """
-    TODO: see if these can get added to monthly stops table
-    monthly_stops = bq_utils.download_table(
-        project_name="cal-itp-data-infra-staging",
-        dataset_name="tiffany_mart_gtfs_rollup",
-        table_name="test_monthly_schedule_rt_stops",
-        date_col="month_first_day",
-        start_date="2025-12-01",
-        end_date="2026-01-01",
-        geom_col="pt_geom",
-        geom_type="point",
-    )
-
-    utils.geoparquet_gcs_export(
-        monthly_stops, PREDICTIONS_GCS, "monthly_schedule_rt_stops"
-    )
-
     stop_order = bq_utils.download_table(
         project_name=PRODUCTION_PROJECT,
         dataset_name="staging",
@@ -93,6 +86,7 @@ if __name__ == "__main__":
         "monthly_routes",
     )
     """
-    download_monthly_route_direction(["2026-09-01"])
+    # download_monthly_route_direction(["2026-09-01"])
 
+    download_monthly_tu_stops(["2026-09-01"])
     end = datetime.datetime.now()
