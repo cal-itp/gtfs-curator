@@ -240,3 +240,57 @@ tu_route_dir_metrics AS (
 )
    
 SELECT * FROM tu_route_dir_metrics
+
+
+-----------------------------------------------------------------------
+-- tiffany_mart_gtfs.fct_daily_tu_stops
+-- if we have vp, we might not have the same dates
+-- have to keep tu and vp separate, then merge onto monthly scheduled stops?
+-- or daily stops table can be similar to observed_trips, with a boolean for appeared_in_vp/tu
+-- job ID: job_1LIv5t-q0Z0_hH1NkF5_JhK3BX3t
+-----------------------------------------------------------------------
+{{ config(materialized='table') }}
+
+-- these will not be present for each date,
+-- so use left join when bringing it in with daily schedule / daily RT
+WITH daily_tu_stop_metrics AS (
+    SELECT *
+    FROM `cal-itp-data-infra.mart_gtfs.fct_trip_updates_stop_metrics`--{{ ref('fct_trip_updates_stop_metrics') }}
+    WHERE service_date >= "2026-09-01" AND service_date < "2026-10-01"  
+),
+    
+scheduled_stops AS (
+    SELECT 
+        stops.key,
+        stops.service_date,
+        stops.feed_key,
+        feeds.gtfs_dataset_key AS schedule_gtfs_dataset_key,
+        feeds.base64_url AS schedule_base64_url,
+        feeds.gtfs_dataset_name AS schedule_name,
+        feeds._feed_valid_from,
+    
+        stop_id,
+        stop_name,
+        stop_key,
+        pt_geom,
+    
+    FROM `cal-itp-data-infra.mart_gtfs.fct_daily_scheduled_stops` AS stops
+    INNER JOIN `cal-itp-data-infra.mart_gtfs.fct_daily_schedule_feeds` AS feeds
+        ON stops.service_date = feeds.date
+        AND stops.feed_key = feeds.feed_key
+    WHERE stops.service_date >= "2026-09-01" AND stops.service_date < "2026-10-01"  
+),
+
+-- join tu with scheduled stops (tu is the one with fewer dates, do inner join)
+tu_join AS (
+    SELECT
+        scheduled_stops.*,
+        daily_tu_stop_metrics.* EXCEPT(service_date, schedule_base64_url, stop_id),
+    FROM daily_tu_stop_metrics
+    INNER JOIN scheduled_stops
+        ON daily_tu_stop_metrics.service_date = scheduled_stops.service_date
+        AND daily_tu_stop_metrics.schedule_base64_url = scheduled_stops.schedule_base64_url
+        AND daily_tu_stop_metrics.stop_id = scheduled_stops.stop_id   
+)
+
+SELECT * FROM tu_join
