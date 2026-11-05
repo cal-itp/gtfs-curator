@@ -25,7 +25,7 @@ stop_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
 	# save it out as parquet
 	uv run python prep_data_for_viz.py
-	python deploy_stops_yaml.py
+	uv run python deploy_stops_yaml.py
 
 operator_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
@@ -40,3 +40,4 @@ operator_report:
 
 convert_nb_to_qmd:
 	uv run quarto convert operator_report.ipynb
+	uv run quarto convert stop_report.ipynb
