@@ -470,3 +470,19 @@ monthly_tu_stop_metrics AS (
 )
 
 SELECT * FROM monthly_tu_stop_metrics
+
+-----------------------------------------------------------------------
+-- int_gtfs_schedule__stop_order_by_route 
+-- there is still additional preprocessing needed
+-- feed_key grouping is lost by the time it's monthly rollup
+-- try tiffany_mart_gtfs.int_gtfs_schedule__stop_order_by_route2
+-----------------------------------------------------------------------
+SELECT 
+    gtfs_dataset_name,
+    route_name,
+    direction_id,
+    stop_id,
+
+    ROUND(AVG(avg_stop_seq), 2) AS avg_stop_seq
+FROM `cal-itp-data-infra.staging.int_gtfs_schedule__stop_order_by_route` 
+GROUP BY 1, 2, 3, 4

@@ -24,7 +24,7 @@ rt_download_data:
 stop_report:
 	# things that should be done before report is run, but probably can't make it into dbt model
 	# save it out as parquet
-	python prep_data_for_viz.py
+	uv run python prep_data_for_viz.py
 	python deploy_stops_yaml.py
 
 operator_report:
