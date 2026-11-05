@@ -93,27 +93,13 @@ def import_stop_order_by_route(**kwargs) -> pd.DataFrame:
         **kwargs,
     )
 
-    route_cols = ["gtfs_dataset_name", "route_name", "direction_id"]
-    stop_cols = route_cols + ["stop_id"]
-    other_cols = [c for c in df.columns if c not in stop_cols and c != "avg_stop_seq"]
-
-    # in case other columns should be kept to see versioned differences,
-    # keep those in a list
-    df2 = (
-        df.sort_values(stop_cols + other_cols)
-        .groupby(stop_cols, dropna=False)
-        .agg(
-            {"avg_stop_seq": "mean", **{c: lambda x: list(set(x)) for c in other_cols}}
-        )
-        .reset_index()
+    df = df.assign(
+        stop_rank=df.groupby(
+            ["gtfs_dataset_name", "route_name", "direction_id"]
+        ).avg_stop_seq.rank(),
     )
 
-    df2 = df2.assign(
-        avg_stop_seq=df2.avg_stop_seq.round(2),
-        stop_rank=df2.groupby(route_cols).avg_stop_seq.rank(),
-    )
-
-    return df2
+    return df
 
 
 def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
@@ -132,14 +118,21 @@ def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
     )
     stop_gdf = (
         stop_gdf.assign(
-            bus_catch_likelihood=stop_gdf.pct_tu_predictions_early
-            + stop_gdf.pct_tu_predictions_ontime,
-            avg_prediction_spread_minutes=stop_gdf.avg_prediction_spread_minutes.round(
-                2
-            ),
+            bus_catch_likelihood=(
+                stop_gdf.n_predictions_early + stop_gdf.n_predictions_ontime
+            )
+            .divide(stop_gdf.n_predictions)
+            .round(3),
+            pct_tu_complete_minutes=stop_gdf.n_tu_complete_minutes.divide(
+                stop_gdf.n_tu_minutes_available
+            ).round(3),
         )
         .pipe(report_utils.convert_seconds_to_minutes, "avg_prediction_error_sec")
-        .pipe(outlier_detection.remove_outliers)
+        .pipe(
+            outlier_detection.drop_outliers,
+            outlier_detection.MIN_ERROR_SEC_5MIN,
+            outlier_detection.MAX_ERROR_SEC_5MIN,
+        )
         .pipe(
             categorize_prediction_error,
             "avg_prediction_error_minutes",
@@ -149,16 +142,7 @@ def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
         )
     )
 
-    stop_order = import_stop_order_by_route(
-        columns=[
-            "gtfs_dataset_name",
-            "feed_key",
-            "route_name",
-            "direction_id",
-            "stop_id",
-            "avg_stop_seq",
-        ]
-    )
+    stop_order = import_stop_order_by_route()
 
     stop_with_route_gdf = pd.merge(
         stop_gdf,
@@ -330,13 +314,13 @@ if __name__ == "__main__":
     DOWNLOADED_DICT = RT_MSA_DICT.dbt_model_downloads
     PROCESSED_DICT = RT_MSA_DICT.rt_schedule_models
 
-    # TU_STOP_DOWNLOADED = DOWNLOADED_DICT.weekday_stop_grain
-    # TU_STOP_CLEANED = PROCESSED_DICT.weekday_stop_with_route
+    TU_STOP_DOWNLOADED = DOWNLOADED_DICT.weekday_stop_grain
+    TU_STOP_CLEANED = PROCESSED_DICT.weekday_stop_with_route
 
-    # stop_with_route_gdf = merge_stops_with_route_info(TU_STOP_DOWNLOADED)
+    stop_with_route_gdf = merge_stops_with_route_info(TU_STOP_DOWNLOADED)
 
-    # utils.geoparquet_gcs_export(stop_with_route_gdf, PREDICTIONS_GCS, TU_STOP_CLEANED)
-
+    utils.geoparquet_gcs_export(stop_with_route_gdf, PREDICTIONS_GCS, TU_STOP_CLEANED)
+    """
     TU_ROUTE_DOWNLOADED = DOWNLOADED_DICT.weekday_route_direction_grain
     ROUTE_GEOM_FILE = DOWNLOADED_DICT.route_geom
     OPERATOR_FILE = DOWNLOADED_DICT.weekday_operator_grain
@@ -347,3 +331,4 @@ if __name__ == "__main__":
     )
 
     utils.geoparquet_gcs_export(route_cleaned, PREDICTIONS_GCS, TU_ROUTE_CLEANED)
+    """
