@@ -1,157 +1,20 @@
 """
-Merge downloaded tables, light data cleaning,
-and get it ready for visualization.
+Merge downloaded operator and route tables.
+
+Light data cleaning, remove outliers,
+explode arrays to get percentiles for charts.
+Get route geom merged in.
 """
 
 import gcsfs
 import geopandas as gpd
 import google.auth
-import outlier_detection
 import pandas as pd
 import report_utils
 from gtfs_curator_utils import utils
 from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 
-credentials, project = google.auth.default()
-
-
-def categorize_prediction_error(
-    df: pd.DataFrame,
-    prediction_error_col: str,
-    upper_cutoff: int = 5,  # 5 minutes
-    middle_cutoff: int = 3,
-    lower_cutoff: int = 1,
-) -> pd.DataFrame:
-    """
-    Using exponential equation to determine accuracy means it is
-    fairly assertive.
-    However, we can convert that to minutes and get a better understanding
-    of how far out operators are doing.
-
-    early (positive values) mean prediction is earlier than actual arrival
-    bus comes after prediction (which means you will catch bus)
-    highest end, > 5 minutes
-    second highest: 3.01 minutes to 5.0 minutes
-    second lowest: -3.01 minutes (late) to -5.0 minutes (late)
-    lowest end < -5 minutes (late)
-    """
-
-    def set_error_cutoffs(
-        prediction_error: float,
-        upper_cutoff: int,
-        middle_cutoff: int,
-        lower_cutoff: int,
-    ) -> str:
-        if prediction_error > upper_cutoff:
-            return f"{upper_cutoff}+ min early"
-        elif (prediction_error <= upper_cutoff) and (prediction_error > middle_cutoff):
-            return f"{middle_cutoff}-{upper_cutoff} min early"
-        elif (prediction_error <= middle_cutoff) and (prediction_error > lower_cutoff):
-            return f"{lower_cutoff}-{middle_cutoff} min early"
-        elif (prediction_error <= lower_cutoff) and (
-            prediction_error >= -1 * lower_cutoff
-        ):
-            return f"{lower_cutoff} min early to {lower_cutoff} min late"
-        elif (prediction_error < -1 * lower_cutoff) and (
-            prediction_error >= -1 * middle_cutoff
-        ):
-            return f"{lower_cutoff}-{middle_cutoff} min late"
-        elif (prediction_error < -1 * middle_cutoff) and (
-            prediction_error >= -1 * upper_cutoff
-        ):
-            return f"{middle_cutoff}-{upper_cutoff} min late"
-        elif prediction_error < -1 * upper_cutoff:
-            return f"{upper_cutoff}+ min late"
-        else:
-            return "unknown"
-
-    df["prediction_error_label"] = df.apply(
-        lambda x: set_error_cutoffs(
-            x[prediction_error_col], upper_cutoff, middle_cutoff, lower_cutoff
-        ),
-        axis=1,
-    )
-
-    return df
-
-
-def import_stop_order_by_route(**kwargs) -> pd.DataFrame:
-    """
-    Import int_gtfs_schedule__stop_order_by_route.
-
-    This is feed-route-direction-stop grain.
-    It is possible for multiple feed_keys to be active for the month.
-
-    For viz, the stops should roughly be plotted by the order they appear
-    for each route-direction.
-    Take average across feed_keys for avg(stop_sequence) (not meaningful beyond sorting)
-    and assign a stop_rank (whole number).
-    """
-    df = pd.read_parquet(
-        f"{PREDICTIONS_GCS}{RT_MSA_DICT.dbt_model_downloads.stop_order}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-        **kwargs,
-    )
-
-    df = df.assign(
-        stop_rank=df.groupby(
-            ["gtfs_dataset_name", "route_name", "direction_id"]
-        ).avg_stop_seq.rank(),
-    )
-
-    return df
-
-
-def merge_stops_with_route_info(filename: str) -> gpd.GeoDataFrame:
-    """
-    Stop metrics should have route-direction + stop_rank attached.
-    Merge stop metrics with result returned from import_stop_order_by_route().
-
-    Derive several more metrics, drop outliers, handle unit conversions, rounding.
-        - bus catch likelihood - sum of early + on-time predictions,
-        - prediction error categorized (we can adjust this for viz)
-    Note: Since stops can serve multiple routes, the same metrics will show up for both routes.
-    """
-    stop_gdf = gpd.read_parquet(
-        f"{PREDICTIONS_GCS}{filename}.parquet",
-        storage_options={"token": credentials.token},
-    )
-    stop_gdf = (
-        stop_gdf.assign(
-            bus_catch_likelihood=(
-                stop_gdf.n_predictions_early + stop_gdf.n_predictions_ontime
-            )
-            .divide(stop_gdf.n_predictions)
-            .round(3),
-            pct_tu_complete_minutes=stop_gdf.n_tu_complete_minutes.divide(
-                stop_gdf.n_tu_minutes_available
-            ).round(3),
-        )
-        .pipe(report_utils.convert_seconds_to_minutes, "avg_prediction_error_sec")
-        .pipe(
-            outlier_detection.drop_outliers,
-            outlier_detection.MIN_ERROR_SEC_5MIN,
-            outlier_detection.MAX_ERROR_SEC_5MIN,
-        )
-        .pipe(
-            categorize_prediction_error,
-            "avg_prediction_error_minutes",
-            upper_cutoff=5,
-            middle_cutoff=3,
-            lower_cutoff=1,
-        )
-    )
-
-    stop_order = import_stop_order_by_route()
-
-    stop_with_route_gdf = pd.merge(
-        stop_gdf,
-        stop_order.rename(columns={"gtfs_dataset_name": "schedule_name"}),
-        on=["schedule_name", "stop_id"],
-        how="left",
-    ).pipe(report_utils.add_route_direction_column)
-
-    return stop_with_route_gdf
+credentials, _ = google.auth.default()
 
 
 def clean_route_file(filename: str, operator_filename: str) -> pd.DataFrame:
@@ -188,13 +51,13 @@ def clean_route_file(filename: str, operator_filename: str) -> pd.DataFrame:
             ).round(3),
         )
         .pipe(
-            outlier_detection.drop_outliers,
-            outlier_detection.MIN_ERROR_SEC_5MIN,
-            outlier_detection.MAX_ERROR_SEC_5MIN,
+            report_utils.drop_outliers,
+            report_utils.MIN_ERROR_SEC_5MIN,
+            report_utils.MAX_ERROR_SEC_5MIN,
         )
         .pipe(report_utils.convert_seconds_to_minutes, "avg_prediction_error_sec")
         .pipe(
-            categorize_prediction_error,
+            report_utils.categorize_prediction_error,
             "avg_prediction_error_minutes",
             upper_cutoff=5,
             middle_cutoff=3,
@@ -297,6 +160,11 @@ def merge_in_route_geom(
 
 
 def merge_operator_tu_identifiers(df: pd.DataFrame, operator_filename: str):
+    """
+    Monthly tu route-direction summary only has tu_base64_url.
+    Attach tu_name with the operator file.
+    Operator file handles the daily -> monthly aggregation already.
+    """
     operator_df = pd.read_parquet(
         f"{PREDICTIONS_GCS}{operator_filename}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
@@ -314,21 +182,11 @@ if __name__ == "__main__":
     DOWNLOADED_DICT = RT_MSA_DICT.dbt_model_downloads
     PROCESSED_DICT = RT_MSA_DICT.rt_schedule_models
 
-    TU_STOP_DOWNLOADED = DOWNLOADED_DICT.weekday_stop_grain
-    TU_STOP_CLEANED = PROCESSED_DICT.weekday_stop_with_route
+    route_cleaned = clean_route_file(
+        DOWNLOADED_DICT.weekday_route_direction_grain,
+        DOWNLOADED_DICT.weekday_operator_grain,
+    ).pipe(merge_in_route_geom, DOWNLOADED_DICT.route_geom)
 
-    stop_with_route_gdf = merge_stops_with_route_info(TU_STOP_DOWNLOADED)
-
-    utils.geoparquet_gcs_export(stop_with_route_gdf, PREDICTIONS_GCS, TU_STOP_CLEANED)
-    """
-    TU_ROUTE_DOWNLOADED = DOWNLOADED_DICT.weekday_route_direction_grain
-    ROUTE_GEOM_FILE = DOWNLOADED_DICT.route_geom
-    OPERATOR_FILE = DOWNLOADED_DICT.weekday_operator_grain
-
-    TU_ROUTE_CLEANED = PROCESSED_DICT.weekday_route_direction
-    route_cleaned = clean_route_file(TU_ROUTE_DOWNLOADED, OPERATOR_FILE).pipe(
-        merge_in_route_geom, ROUTE_GEOM_FILE
+    utils.geoparquet_gcs_export(
+        route_cleaned, PREDICTIONS_GCS, PROCESSED_DICT.weekday_route_direction
     )
-
-    utils.geoparquet_gcs_export(route_cleaned, PREDICTIONS_GCS, TU_ROUTE_CLEANED)
-    """

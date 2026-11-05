@@ -19,6 +19,86 @@ credentials, project = google.auth.default()
 DAYTYPE_ORDER_DICT = {"Weekday": 1, "Saturday": 2, "Sunday": 3}
 
 
+MIN_ERROR_SEC_5MIN = -60 * 5
+MAX_ERROR_SEC_5MIN = 60 * 5
+
+
+def drop_outliers(df: pd.DataFrame, min_cutoff: int, max_cutoff: int) -> pd.DataFrame:
+    """
+    Drop outliers based on avg_prediction_error_sec for now.
+    Use 250 seconds on either end, this is roughly 1% of either tail.
+    In the future, we might expand to other columns.
+
+
+    Thresholds here are based on exploratory work
+    from 2 week June 2025 period to find 1% tails.
+    """
+    return df[
+        (df.avg_prediction_error_sec >= min_cutoff)
+        & (df.avg_prediction_error_sec <= max_cutoff)
+    ].reset_index(drop=True)
+
+
+def categorize_prediction_error(
+    df: pd.DataFrame,
+    prediction_error_col: str,
+    upper_cutoff: int = 5,  # 5 minutes
+    middle_cutoff: int = 3,
+    lower_cutoff: int = 1,
+) -> pd.DataFrame:
+    """
+    Using exponential equation to determine accuracy means it is
+    fairly assertive.
+    However, we can convert that to minutes and get a better understanding
+    of how far out operators are doing.
+
+    early (positive values) mean prediction is earlier than actual arrival
+    bus comes after prediction (which means you will catch bus)
+    highest end, > 5 minutes
+    second highest: 3.01 minutes to 5.0 minutes
+    second lowest: -3.01 minutes (late) to -5.0 minutes (late)
+    lowest end < -5 minutes (late)
+    """
+
+    def set_error_cutoffs(
+        prediction_error: float,
+        upper_cutoff: int,
+        middle_cutoff: int,
+        lower_cutoff: int,
+    ) -> str:
+        if prediction_error > upper_cutoff:
+            return f"{upper_cutoff}+ min early"
+        elif (prediction_error <= upper_cutoff) and (prediction_error > middle_cutoff):
+            return f"{middle_cutoff}-{upper_cutoff} min early"
+        elif (prediction_error <= middle_cutoff) and (prediction_error > lower_cutoff):
+            return f"{lower_cutoff}-{middle_cutoff} min early"
+        elif (prediction_error <= lower_cutoff) and (
+            prediction_error >= -1 * lower_cutoff
+        ):
+            return f"{lower_cutoff} min early to {lower_cutoff} min late"
+        elif (prediction_error < -1 * lower_cutoff) and (
+            prediction_error >= -1 * middle_cutoff
+        ):
+            return f"{lower_cutoff}-{middle_cutoff} min late"
+        elif (prediction_error < -1 * middle_cutoff) and (
+            prediction_error >= -1 * upper_cutoff
+        ):
+            return f"{middle_cutoff}-{upper_cutoff} min late"
+        elif prediction_error < -1 * upper_cutoff:
+            return f"{upper_cutoff}+ min late"
+        else:
+            return "unknown"
+
+    df["prediction_error_label"] = df.apply(
+        lambda x: set_error_cutoffs(
+            x[prediction_error_col], upper_cutoff, middle_cutoff, lower_cutoff
+        ),
+        axis=1,
+    )
+
+    return df
+
+
 def explode_percentiles(
     df: pd.DataFrame,
     group_cols: list,
