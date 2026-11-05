@@ -28,7 +28,7 @@ stop_report:
 
 operator_report:
 	uv run python download_operator_route_tables.py
-	uv run python prep_operator_data.py
+	uv run python prep_operator_route_data.py
 	uv run python deploy_operator_yaml.py
 	# uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block --limit 2 # use this for dry run
 	uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block
