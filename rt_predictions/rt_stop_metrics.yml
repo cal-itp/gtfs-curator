@@ -229,5 +229,5 @@ parts:
       - params:
           name: eTrans TripUpdates
 deploy:
-  staging: gs://calitp-analysis-staging/rt_operator_metrics
-  prod: gs://calitp-analysis/rt_operator_metrics
+  staging: gs://calitp-analysis-staging/rt_stop_metrics
+  prod: gs://calitp-analysis/rt_stop_metrics
