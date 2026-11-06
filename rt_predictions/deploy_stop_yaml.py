@@ -4,6 +4,7 @@ Create rt_stop_metrics.yml
 
 from pathlib import Path
 
+import gcsfs
 import pandas as pd
 import report_utils
 from calitp_portfolio.models import load_site
@@ -47,13 +48,25 @@ def check_stop_and_route_counts(one_month: str):
         .drop_duplicates()
     )
 
+    crosswalk = (
+        pd.read_parquet(
+            "gs://calitp-analytics-data/data-analyses/gtfs_digest/processed/crosswalk.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+            columns=["analysis_name", "name"],
+        )
+        .rename(columns={"name": "schedule_name"})
+        .dropna(subset="analysis_name")
+        .drop_duplicates()
+    )
+
     # Use inner merge - charts and maps need both dfs to work
+    # also merge in analysis_name, because stop report gets too big to fully build without timing out
     count_df = (
         pd.merge(route_df, stop_df, on=["schedule_name", "route_name"], how="inner")
         .groupby(["schedule_name", "tu_name"])
         .agg({"route_name": "count"})
         .reset_index()
-    )
+    ).merge(crosswalk, on="schedule_name", how="inner")
 
     return count_df
 
