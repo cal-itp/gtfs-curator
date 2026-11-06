@@ -39,7 +39,7 @@ CARTO_TILE_URL = dotenv_values("../_env")["CARTO_TILE_URL"]
 #| slideshow: {slide_type: ''}
 #| tags: [parameters]
 # Comment out, this is `parameters` tagged cell
-name = "Foothill Trip Updates"
+#name = "Foothill Trip Updates"
 ```
 
 ```{python}
@@ -287,17 +287,15 @@ itables.show(
     caption="Stops", 
     classes="compact",
     #pageLength=2,
-    maxBytes="5MB", # can play with what this is
+    maxBytes="1MB", # can play with what this is. went down from 5MB to 1MB because report is large
     search={"caseInsensitive": True},
     showIndex=False,
     fixedColumns={"start": 3, "end": 0},
     scrollX=True,
     buttons=[
-        "pageLength",
-        #"columnsToggle", 
-        "copyHtml5", "csvHtml5", "excelHtml5"
+        "pageLength", "copyHtml5", #"csvHtml5", "excelHtml5"
     ],
-    lengthMenu=[2, 5, 10, 20, 50],
+    lengthMenu=[10, 20, 50],
 )
 ```
 

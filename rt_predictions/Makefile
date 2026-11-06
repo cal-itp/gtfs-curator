@@ -22,7 +22,7 @@ stop_report:
 	uv run python download_stop_tables.py
 	uv run python prep_stop_data.py
 	uv run python deploy_stops_yaml.py
-	uv run calitp-portfolio build rt_stop_metrics.yml --hide-title-block
+	uv run calitp-portfolio build rt_stop_metrics.yml --hide-title-block 
 	uv run calitp-portfolio deploy rt_stop_metrics.yml --target staging
 	uv run calitp-portfolio deploy rt_stop_metrics.yml --target prod
 
