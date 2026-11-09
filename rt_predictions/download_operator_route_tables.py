@@ -6,21 +6,15 @@ Operator report includes route-direction summary.
 import datetime
 import sys
 
-import google.auth
-from google.cloud import bigquery
 from gtfs_curator_utils import bq_utils, geography_utils, utils
 from loguru import logger
 from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 
-credentials, project = google.auth.default()
-client = bigquery.Client(project="cal-itp-data-infra-staging", credentials=credentials)
-
 
 def download_monthly_route_direction(start_date: list, filename: str):
     bq_utils.download_table(
-        "SELECT * FROM `cal-itp-data-infra-staging.tiffany_mart_gtfs_rollup.fct_monthly_trip_updates_route_direction_summary`",
+        "SELECT * FROM `cal-itp-data-infra.mart_gtfs_rollup.fct_monthly_schedule_rt_route_direction_summary`",
         filter_dict={"month_first_day": start_date},
-        client=client,
         output_path=f"{PREDICTIONS_GCS}{filename}.parquet",
     )
 
@@ -63,8 +57,6 @@ if __name__ == "__main__":
         DOWNLOADED_DICT.route_geom,
     )
 
-    # this is new trip updates table
-    # TODO: merge with monthly_schedule_rt_route_direction_summary model
     download_monthly_route_direction(
         [operator_report_month], DOWNLOADED_DICT.weekday_route_direction_grain
     )
