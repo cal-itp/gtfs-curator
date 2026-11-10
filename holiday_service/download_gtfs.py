@@ -24,9 +24,9 @@ holiday_dates = [
 
 if __name__ == "__main__":
     year = "2025"
-    '''
+
     bq_utils.download_table(
-        sql_query = """
+        sql_query="""
             SELECT 
                 service_date,
                 feed_key,
@@ -42,10 +42,10 @@ if __name__ == "__main__":
                 service_hours,
             FROM `cal-itp-data-infra.mart_gtfs.fct_scheduled_trips`
         """,
-        filter_dict = {"service_date": holiday_dates},
-        output_path = f"{GCS_FILE_PATH}holidays_{year}.parquet"
+        filter_dict={"service_date": holiday_dates},
+        output_path=f"{GCS_FILE_PATH}holidays_{year}.parquet",
     )
-    '''
+
     feeds_df = pd.read_parquet(
         f"{GCS_FILE_PATH}holidays_{year}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
