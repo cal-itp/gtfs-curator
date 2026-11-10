@@ -1,9 +1,8 @@
 """
-Merge downloaded operator and route tables.
+Merge downloaded route summary table with route geom.
 
 Light data cleaning, remove outliers,
 explode arrays to get percentiles for charts.
-Get route geom merged in.
 """
 
 import gcsfs
@@ -17,7 +16,7 @@ from shared_vars import PREDICTIONS_GCS, RT_MSA_DICT
 credentials, _ = google.auth.default()
 
 
-def clean_route_file(filename: str, operator_filename: str) -> pd.DataFrame:
+def clean_route_file(filename: str) -> pd.DataFrame:
     """
     Clean route metrics.
 
@@ -30,25 +29,22 @@ def clean_route_file(filename: str, operator_filename: str) -> pd.DataFrame:
     for routes, use same 5 min cutoff, and this removes less than 1% on each tail.
     1% on each tail is around 3.5 min.
     """
+    # this table is a left join with prediction accuracy, so drop rows that don't have tu metrics calculated
+    # also dropna with vp_name, because vp can be missing while still having tu
     route_df = (
         pd.read_parquet(
             f"{PREDICTIONS_GCS}{filename}.parquet",
             filesystem=gcsfs.GCSFileSystem(),
         )
-        .rename(columns={"base64_url": "tu_base64_url"})
-        .pipe(merge_operator_tu_identifiers, operator_filename)
+        .dropna(subset="n_tu_trips_prediction_accuracy")
+        .dropna(subset="vp_name")
     )
 
     route_df = (
         route_df.assign(
-            bus_catch_likelihood=(
-                route_df.n_predictions_early + route_df.n_predictions_ontime
-            )
-            .divide(route_df.n_predictions)
-            .round(3),
-            pct_tu_complete_minutes=route_df.n_tu_complete_minutes.divide(
-                route_df.n_tu_minutes_available
-            ).round(3),
+            bus_catch_likelihood=route_df[
+                ["pct_predictions_early", "pct_predictions_ontime"]
+            ].sum(axis=1),
         )
         .pipe(
             report_utils.drop_outliers,
@@ -159,32 +155,12 @@ def merge_in_route_geom(
     return route_gdf
 
 
-def merge_operator_tu_identifiers(df: pd.DataFrame, operator_filename: str):
-    """
-    Monthly tu route-direction summary only has tu_base64_url.
-    Attach tu_name with the operator file.
-    Operator file handles the daily -> monthly aggregation already.
-    """
-    operator_df = pd.read_parquet(
-        f"{PREDICTIONS_GCS}{operator_filename}.parquet",
-        filesystem=gcsfs.GCSFileSystem(),
-        columns=["month_first_day", "tu_base64_url", "tu_name"],
-    ).drop_duplicates()
-
-    df2 = pd.merge(
-        df, operator_df, on=["month_first_day", "tu_base64_url"], how="inner"
-    )
-
-    return df2
-
-
 if __name__ == "__main__":
     DOWNLOADED_DICT = RT_MSA_DICT.dbt_model_downloads
     PROCESSED_DICT = RT_MSA_DICT.rt_schedule_models
 
     route_cleaned = clean_route_file(
         DOWNLOADED_DICT.weekday_route_direction_grain,
-        DOWNLOADED_DICT.weekday_operator_grain,
     ).pipe(merge_in_route_geom, DOWNLOADED_DICT.route_geom)
 
     utils.geoparquet_gcs_export(
