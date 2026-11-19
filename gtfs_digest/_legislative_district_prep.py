@@ -29,7 +29,7 @@ def sjoin_shapes_legislative_districts(abbrev_month: str) -> pd.DataFrame:
     monthly_routes = gpd.read_parquet(
         f"{RAW_GCS}{DIGEST_DICT.route_map}_{abbrev_month}.parquet",
         storage_options={"token": credentials.token},
-        columns=["analysis_name", "geometry"],
+        columns=["name", "geometry"],
     )
 
     legislative_districts = gpd.read_parquet(
@@ -40,9 +40,9 @@ def sjoin_shapes_legislative_districts(abbrev_month: str) -> pd.DataFrame:
     crosswalk = (
         gpd.sjoin(
             monthly_routes, legislative_districts, how="inner", predicate="intersects"
-        )[["analysis_name", "legislative_district"]]
+        )[["name", "legislative_district"]]
         .drop_duplicates()
-        .sort_values(["analysis_name", "legislative_district"])
+        .sort_values(["name", "legislative_district"])
         .reset_index(drop=True)
     )
 
@@ -64,7 +64,7 @@ def legislative_district_yaml(site_path: Path):
     site = load_site(site_path)
 
     crosswalk_url = (
-        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk_legislative}_{abbrev_month}.parquet"
+        f"{PROCESSED_GCS}{DIGEST_DICT.crosswalk_legislative}.parquet"
     )
 
     legislative_districts_list = (

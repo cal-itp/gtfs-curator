@@ -1,4 +1,4 @@
-# import gcsfs
+import gcsfs
 import geopandas as gpd
 import google.auth
 import pandas as pd
@@ -29,7 +29,7 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     df = (
         pd.read_parquet(
             f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-            filesystem=gcsfs.GCSFileSystem(),
+            storage_options={"token": credentials.token}
         )
         .rename(columns={"schedule_name": "name"})
         .pipe(merge_with_crosswalk)
@@ -107,7 +107,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     df = (
         pd.read_parquet(
             f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-            filesystem=gcsfs.GCSFileSystem(),
+            storage_options={"token": credentials.token}
         )
         .rename(columns={"schedule_name": "name"})
         .pipe(
@@ -212,7 +212,8 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.hourly_day_type_summary
 
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+        storage_options={"token": credentials.token}
     ).pipe(merge_with_crosswalk)
 
     # Prepare data
