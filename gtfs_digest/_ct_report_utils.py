@@ -114,9 +114,9 @@ def transpose_summary_stats(
     )
 
     # Change to string for display
-    subset_df2["Value"] = (
-        subset_df2["Value"].astype(int).apply(lambda x: "{:,}".format(x))
-    )
+    #subset_df2["Value"] = (
+    #    subset_df2["Value"].astype(int).apply(lambda x: "{:,}".format(x))
+    #)
     return subset_df2
 
 
