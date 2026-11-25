@@ -19,26 +19,23 @@ marin_report:
 	quarto render marin_operator.qmd
 
 stop_report:
-	python download_warehouse_tables.py
-	# things that should be done before report is run, but probably can't make it into dbt model
-	# save it out as parquet
-	python prep_data_for_viz.py
-	python deploy_portfolio_yaml.py rt_msa_stops --month 2026-01-01
-	cd ../portfolio/ && pip install -r requirements.txt && cd ../
-	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra # will need to authenticate this step
-	python portfolio/portfolio.py build rt_trip_updates_stop_metrics --hide-title-block --deploy --target staging
-	python portfolio/portfolio.py index --deploy --no-prod
+	uv run python download_stop_tables.py
+	uv run python prep_stop_data.py
+	uv run python deploy_stops_yaml.py
+	uv run calitp-portfolio build rt_stop_metrics.yml --hide-title-block 
+	uv run calitp-portfolio deploy rt_stop_metrics.yml --target staging
+	uv run calitp-portfolio deploy rt_stop_metrics.yml --target prod
 
 operator_report:
-	#python download_warehouse_tables.py
-	# things that should be done before report is run, but probably can't make it into dbt model
-	# save it out as parquet
-	#python prep_data_for_viz.py
-	#python deploy_portfolio_yaml.py rt_msa_operators --month 2026-01-01
-	#cd ../portfolio/ && pip install -r requirements.txt && cd ../
-	cd ../ && python portfolio/portfolio.py clean rt_operator_metrics
-	gcloud auth login --login-config=iac/login.json && gcloud config set project cal-itp-data-infra # will need to authenticate this step
-	#python portfolio/portfolio.py build rt_operator_metrics --hide-title-block
-	# still set H1, hide title instead
-	python portfolio/portfolio.py build rt_operator_metrics --no-execute-papermill --hide-title-block --deploy --target production
-	python portfolio/portfolio.py index --deploy --no-prod
+	uv run python download_operator_route_tables.py
+	uv run python prep_operator_route_data.py
+	uv run python deploy_operator_yaml.py
+	# uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block --limit 2 # use this for dry run
+	uv run calitp-portfolio build rt_operator_metrics.yml --hide-title-block
+	uv run calitp-portfolio login
+	uv run calitp-portfolio deploy rt_operator_metrics.yml --target staging
+	uv run calitp-portfolio deploy rt_operator_metrics.yml --target prod
+
+convert_nb_to_qmd:
+	uv run quarto convert operator_report.ipynb
+	uv run quarto convert stop_report.ipynb

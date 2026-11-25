@@ -142,13 +142,13 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
             "pct_tu_trips",
         ]
     ]
-
     # Keep the operator row with the highest number of trips for that month-day type
     df3 = (df2.sort_values(by = ["analysis_name","month_first_day","day_type", "n_trips"], 
             ascending = [True, True, False, False])
             .drop_duplicates(subset = ["analysis_name","month_first_day","day_type",])
           )
-    
+
+
     # Multiply percetnage columns by 100. Clip any values above 100.
     df3 = df3.assign(
         month_first_day=pd.to_datetime(df2.month_first_day),

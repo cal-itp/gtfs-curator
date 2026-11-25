@@ -12,7 +12,6 @@ import google.auth
 import pandas as pd
 import poi_geography_utils as poi_geog_utils
 import world_cup_vars as wc_vars
-from gtfs_curator_utils import utils
 
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
 credentials, _ = google.auth.default()
@@ -47,6 +46,10 @@ def prep_fct_daily_schedule_rt_route_direction_summary(
                 "shape_array_key",
                 "n_trips",
                 "num_stop_times",
+                "n_vp_trips",
+                "vp_messages_per_minute",
+                "n_tu_trips",
+                "tu_messages_per_minute",
             ],
             filters=[[("schedule_name", "in", operator_list)]],
         )
@@ -102,29 +105,57 @@ def full_route_cleaning(event_name: str, point_of_interest: str) -> gpd.GeoDataF
 
     route_cols = ["schedule_name", "route_name", "direction_id", "route_type"]
 
-    trips_by_event = (
-        event_helpers.aggregate_by_event_type(
-            route_gdf,
-            group_cols=route_cols
-            + [
-                "event_day",
-                "day_type",
-            ],
-            metric_cols=["n_trips"],
-        )
-        .rename(columns={"n_trips": "daily_trips"})
-        .pipe(
-            event_helpers.make_wide,
-            index_cols=route_cols,
-            pivot_cols=["day_type", "event_day"],
-            value_cols=["daily_trips"],
-        )
+    daily_metrics_by_event = event_helpers.aggregate_by_event_type(
+        route_gdf,
+        group_cols=route_cols
+        + [
+            "event_day",
+            "day_type",
+        ],
+        sum_cols=["n_trips"],
+        mean_cols=["vp_messages_per_minute", "tu_messages_per_minute"],
+    ).rename(columns={"n_trips": "daily_trips"})
+
+    rt_by_event = (
+        route_gdf.groupby(route_cols + ["event_day", "day_type"])
+        .agg({c: "sum" for c in ["n_trips", "n_vp_trips", "n_tu_trips"]})
+        .reset_index()
     )
 
-    trips_by_event = trips_by_event.assign(
-        combined_change_daily_trips=trips_by_event.change_daily_trips_weekday
-        + trips_by_event.change_daily_trips_weekend
+    rt_by_event = rt_by_event.assign(
+        pct_vp_trips=rt_by_event.n_vp_trips.divide(rt_by_event.n_trips).round(2),
+        pct_tu_trips=rt_by_event.n_tu_trips.divide(rt_by_event.n_trips).round(2),
     )
+
+    trips_by_event = pd.merge(
+        daily_metrics_by_event,
+        rt_by_event,
+        on=route_cols + ["day_type", "event_day"],
+        how="inner",
+    ).pipe(
+        event_helpers.make_wide,
+        index_cols=route_cols,
+        pivot_cols=["day_type", "event_day"],
+        value_cols=[
+            "daily_trips",
+            "pct_vp_trips",
+            "vp_messages_per_minute",
+            "pct_tu_trips",
+            "tu_messages_per_minute",
+        ],
+    )
+
+    # take all the value_cols and calculate combined change
+    for m in [
+        "daily_trips",
+        "pct_vp_trips",
+        "vp_messages_per_minute",
+        "pct_tu_trips",
+        "tu_messages_per_minute",
+    ]:
+        trips_by_event[f"combined_change_{m}"] = trips_by_event[
+            [f"change_{m}_weekday", f"change_{m}_weekend"]
+        ].sum(axis=1)
 
     # Attach deduped route geom to trips_by_event
     route_geom = dedupe_route_geom(route_gdf, route_cols)
@@ -221,23 +252,16 @@ def flag_if_stop_on_near_or_special_route(
 
 
 def prep_fct_daily_scheduled_stops(event_name: str, event_time_of_day_dict: dict = {}):
+    # these columns are shared for full_stop_cleaning() and full_arrivals_by_time_of_day_cleaning()
     metric_cols = [
-        # "n_hours_in_service",
         "arrivals_per_hour_owl",
         "arrivals_per_hour_early_am",
         "arrivals_per_hour_am_peak",
         "arrivals_per_hour_midday",
         "arrivals_per_hour_pm_peak",
         "arrivals_per_hour_evening",
-        "arrivals_owl",
-        "arrivals_early_am",
-        "arrivals_am_peak",
-        "arrivals_midday",
-        "arrivals_pm_peak",
-        "arrivals_evening",
         "route_id_array",
         "route_type_array",
-        # "wheelchair_boarding", "location_type"
     ]
 
     # stop gdf doesn't have schedule_name, merge that in before we aggregate
@@ -290,7 +314,7 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
                 "event_day",
                 "day_type",
             ],
-            metric_cols=["daily_arrivals"],
+            sum_cols=["daily_arrivals"],
         )
         .pipe(
             event_helpers.make_wide,
@@ -315,12 +339,100 @@ def full_stop_cleaning(event_name: str, point_of_interest: str):
     return arrivals_by_event_df
 
 
+def full_arrivals_by_time_of_day_cleaning(event_name: str, point_of_interest: str):
+    if point_of_interest == "sofi":
+        event_time_of_day_dict = wc_vars.sofi_match_times
+
+    elif point_of_interest == "levi":
+        event_time_of_day_dict = wc_vars.levi_match_times
+
+    # Same set up as full_stop_cleaning()
+    routes_df = import_routes_near_poi(event_name, point_of_interest)
+
+    stop_gdf = (
+        prep_fct_daily_scheduled_stops(event_name, event_time_of_day_dict)
+        .merge(
+            routes_df[["feed_key", "schedule_name"]].drop_duplicates(),
+            how="inner",
+        )
+        .pipe(flag_if_stop_on_near_or_special_route, routes_df)
+    )
+
+    # get non-event and aggregate
+    # FutureWarning: The behavior of 'isin' with dtype=datetime64[ns] and castable values (e.g. strings) is deprecated. In a future version, these will not be considered matching by isin. Explicitly cast to the appropriate dtype before calling isin instead.
+    # cast service_date to date, not datetime to do filtering
+    match_service_dates = [pd.to_datetime(d) for d in event_time_of_day_dict.keys()]
+
+    arrivals_cols = [c for c in stop_gdf.columns if "arrivals_per_hour" in c]
+
+    nonevent_arrivals_df = event_helpers.aggregate_by_event_type(
+        stop_gdf[
+            # (stop_gdf.is_special_route==True) &
+            (~stop_gdf.service_date.isin(match_service_dates))
+        ],
+        group_cols=[
+            "schedule_name",
+            "stop_id",
+            "stop_name",
+            "event_day",
+            "day_type",
+        ],
+        mean_cols=arrivals_cols,
+    )
+
+    # for match dates, keep individual service_dates and don't aggregate
+    arrivals_by_event = pd.concat(
+        [
+            nonevent_arrivals_df,
+            stop_gdf[
+                # (stop_gdf.is_special_route==True) &
+                (stop_gdf.service_date.isin(match_service_dates))
+            ],
+        ],
+        axis=0,
+        ignore_index=True,
+    )
+
+    # Keep this as long df for chart
+    arrivals_by_event_long = event_helpers.make_long(
+        arrivals_by_event,
+        id_vars=[
+            "service_date",
+            "schedule_name",
+            "stop_id",
+            "stop_name",
+            "day_type",
+        ],  # service_date for non_event are NaT
+    )
+
+    arrivals_by_event_long = arrivals_by_event_long.assign(
+        service_date=arrivals_by_event_long.service_date.dt.date.fillna(
+            "nonevent"
+        ).astype(str),
+    )
+    print(f"stop arrivals by time-of-day aggregated for {point_of_interest}")
+
+    return arrivals_by_event_long
+
+
 if __name__ == "__main__":
     for p in ["sofi", "levi"]:
+        """
         route_gdf = full_route_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(route_gdf, GCS_FILE_PATH, f"route_summary_{p}")
         del route_gdf
 
+        # this holds daily arrivals columns for event vs non-event
         stop_gdf = full_stop_cleaning(wc_vars.event_name, p)
         utils.geoparquet_gcs_export(stop_gdf, GCS_FILE_PATH, f"stop_summary_{p}")
         del stop_gdf
+        """
+        # this holds arrivals_per_hour_[time_of_day] columns for individual match dates vs non-event
+        arrivals_time_of_day = full_arrivals_by_time_of_day_cleaning(
+            wc_vars.event_name, p
+        )
+        arrivals_time_of_day.to_parquet(
+            f"{GCS_FILE_PATH}arrivals_time_of_day_summary_{p}.parquet",
+            filesystem=gcsfs.GCSFileSystem(),
+        )
+        del arrivals_time_of_day

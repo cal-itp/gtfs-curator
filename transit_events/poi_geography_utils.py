@@ -158,3 +158,43 @@ def categorize_stop_proximity_to_poi(
     )
 
     return stop_gdf2
+
+
+def keep_stops_within_buffer(
+    stop_gdf: gpd.GeoDataFrame,
+    stop_arrivals_df: pd.DataFrame,
+    poi_gdf: gpd.GeoDataFrame,
+    buffer_meters: float = METERS_PER_MI * 1,  # 1 mile
+) -> pd.DataFrame:
+
+    # buffer by 1 mile and just show those stops
+    poi_gdf = poi_gdf.assign(
+        geometry=poi_gdf.geometry.to_crs(CA_NAD83Albers_m)
+        .buffer(buffer_meters)
+        .to_crs(WGS84)
+    )
+
+    stops_within_poi_buffer = (
+        gpd.sjoin(
+            stop_gdf[stop_gdf.is_special_route == True][
+                ["schedule_name", "stop_id", "stop_name", "route_id_array", "geometry"]
+            ],
+            poi_gdf[["geometry"]],
+            how="inner",
+            predicate="intersects",
+        )
+        .drop(columns=["index_right"])
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+
+    stop_arrivals_near_poi = pd.merge(
+        stop_arrivals_df,
+        stops_within_poi_buffer.drop(
+            columns="geometry"
+        ),  # will aggregate later, don't need geometry
+        on=["schedule_name", "stop_id", "stop_name"],
+        how="inner",
+    )
+
+    return stop_arrivals_near_poi

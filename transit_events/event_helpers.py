@@ -7,6 +7,8 @@ Merge in shape geom and stop geom.
 Aggregation by day_type-event_day for route-direction summary and stops.
 """
 
+from typing import Literal
+
 import geopandas as gpd
 import google.auth
 import numpy as np
@@ -16,6 +18,8 @@ import world_cup_vars as wc_vars
 credentials, _ = google.auth.default()
 
 GCS_FILE_PATH = wc_vars.GCS_FILE_PATH
+
+TIME_OF_DAY_ORDER = ["early_am", "am_peak", "midday", "pm_peak", "evening", "owl"]
 
 
 def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict):
@@ -44,6 +48,31 @@ def tag_event_days_and_times(df: pd.DataFrame, event_day_time_bucket_dict: dict)
     )
 
     return df
+
+
+def grab_matches_by_day_type(
+    event_time_of_day_dict: dict,
+    time_of_day: Literal[TIME_OF_DAY_ORDER],
+    day_type: Literal["weekday", "weekend"],
+) -> dict:
+    """
+    Or create a new dict that can key into weekday or weekend?
+    """
+    filtered_events = {
+        **{
+            d: tod
+            for d, tod in event_time_of_day_dict.items()
+            if (tod == time_of_day)
+            and (
+                pd.to_datetime(d).day_name() in ["Saturday", "Sunday"]
+                if day_type == "weekend"
+                else pd.to_datetime(d).day_name()
+                in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            )
+        }
+    }
+
+    return filtered_events
 
 
 def merge_routes_with_shape_geom(
@@ -131,17 +160,19 @@ def aggregate_by_event_type(
         "event_day",
         "day_type",
     ],
-    metric_cols: list = ["daily_arrivals"],
+    sum_cols: list = ["daily_arrivals"],
+    mean_cols: list = [],
 ) -> pd.DataFrame:
     """
-    TODO: this can be used for stop arrivals and trips
+    Can be used for stop arrivals and trips
     """
-    # See how this function can accommodate the aggregation here by time-of-day
+
     df = (
-        gdf.groupby(group_cols)
+        gdf.groupby(group_cols, dropna=False)
         .agg(
             {
-                **{c: "sum" for c in metric_cols},
+                **{c: "sum" for c in sum_cols},
+                **{c: "mean" for c in mean_cols},
                 "service_date": "nunique",
             }
         )
@@ -149,8 +180,11 @@ def aggregate_by_event_type(
         .rename(columns={"service_date": "n_days"})
     )
 
-    for c in metric_cols:
+    # rounding
+    for c in sum_cols:
         df[c] = df[c].divide(df.n_days).round(2)
+
+    df[mean_cols] = df[mean_cols].round(2)
 
     return df
 
@@ -206,3 +240,23 @@ def change_from_nonevent_column(df: pd.DataFrame, col_prefix: str) -> pd.Series:
     df[f"{col_prefix}_event"] = df[f"{col_prefix}_event"].fillna(0)
     df[f"{col_prefix}_non_event"] = df[f"{col_prefix}_non_event"].fillna(0)
     return (df[f"{col_prefix}_event"] - df[f"{col_prefix}_non_event"]).fillna(0)
+
+
+def make_long(df: pd.DataFrame, id_vars: list) -> pd.DataFrame:
+    """
+    Turn the wide arrivals_per_hour_{time_of_day} into long df.
+    Get time_of_day column, arrivals_per_hour column
+    """
+    df_long = pd.melt(
+        df,
+        id_vars=id_vars,
+        value_vars=[f"arrivals_per_hour_{t}" for t in TIME_OF_DAY_ORDER],
+        var_name="time_of_day",
+        value_name="arrivals_per_hour",
+    )
+
+    df_long = df_long.assign(
+        time_of_day=df_long.time_of_day.str.replace("arrivals_per_hour_", "")
+    )
+
+    return df_long

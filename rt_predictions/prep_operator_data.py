@@ -1,5 +1,5 @@
 """
-Data prep for operator report (data product #2).
+Data prep for operator report
 Mostly trip updates, but some vp and schedule metrics are also available.
 """
 
