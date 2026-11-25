@@ -29,7 +29,7 @@ def prep_schedule_rt_route_direction_summary(abbrev_month: str) -> pd.DataFrame:
     df = (
         pd.read_parquet(
             f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-            filesystem=gcsfs.GCSFileSystem(),
+            storage_options={"token": credentials.token}
         )
         .rename(columns={"schedule_name": "name"})
         .pipe(merge_with_crosswalk)
@@ -107,7 +107,7 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
     df = (
         pd.read_parquet(
             f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
-            filesystem=gcsfs.GCSFileSystem(),
+            storage_options={"token": credentials.token}
         )
         .rename(columns={"schedule_name": "name"})
         .pipe(
@@ -142,29 +142,31 @@ def prep_operator_summary(abbrev_month: str) -> pd.DataFrame:
             "pct_tu_trips",
         ]
     ]
+    # Keep the operator row with the highest number of trips for that month-day type
+    df3 = (df2.sort_values(by = ["analysis_name","month_first_day","day_type", "n_trips"], 
+            ascending = [True, True, False, False])
+            .drop_duplicates(subset = ["analysis_name","month_first_day","day_type",])
+          )
 
-    df2 = df2.dropna(
-        subset=["n_vp_trips", "pct_vp_trips", "pct_tu_trips", "vp_name", "tu_name"]
-    ).reset_index(drop=True)
 
     # Multiply percetnage columns by 100. Clip any values above 100.
-    df2 = df2.assign(
+    df3 = df3.assign(
         month_first_day=pd.to_datetime(df2.month_first_day),
         pct_tu_trips=(df2.pct_tu_trips * 100).clip(upper=100.0),
         pct_vp_trips=(df2.pct_vp_trips * 100).clip(upper=100.0),
     )
 
     # Clean columns
-    df2.columns = (
+    df3.columns = (
         df2.columns.str.replace("_", " ")
         .str.title()
         .str.replace("Vp", "VP")
         .str.replace("Tu", "TU")
     )
-    df2 = df2.rename(columns={"Month First Day": "Date"})
+    df3 = df3.rename(columns={"Month First Day": "Date"})
 
     # Save processed file
-    df2.to_parquet(
+    df3.to_parquet(
         f"{PROCESSED_GCS}{filename}.parquet",
         filesystem=gcsfs.GCSFileSystem(),
     )
@@ -210,7 +212,8 @@ def prep_fct_operator_hourly_summary(abbrev_month: str) -> pd.DataFrame:
     filename = DIGEST_DICT.hourly_day_type_summary
 
     df = pd.read_parquet(
-        f"{RAW_GCS}{filename}_{abbrev_month}.parquet", filesystem=gcsfs.GCSFileSystem()
+        f"{RAW_GCS}{filename}_{abbrev_month}.parquet",
+        storage_options={"token": credentials.token}
     ).pipe(merge_with_crosswalk)
 
     # Prepare data

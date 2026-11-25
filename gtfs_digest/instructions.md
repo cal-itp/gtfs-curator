@@ -1,0 +1,1 @@
+1. Go to update_vars.py and chane the dates between lines 7-9 
